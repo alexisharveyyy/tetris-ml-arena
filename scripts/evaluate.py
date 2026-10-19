@@ -14,7 +14,6 @@ import csv
 import time
 from pathlib import Path
 
-from tetris.agents.difficulty import PRESET_NAMES
 from tetris.agents.evaluation import (
     ASSUMED_PPS,
     GARBAGE_SETTING,
@@ -40,15 +39,17 @@ COLUMNS = (
 )
 
 
-def marathon_section(keys: list[str], games: int, workers: int, out: Path) -> list[str]:
+def marathon_section(
+    keys: list[str], games: int, workers: int, out: Path, presets: list[str]
+) -> list[str]:
     """Headless Marathon games per agent and preset (how beatable is each agent?)."""
     t0 = time.time()
     seeds = list(HELD_OUT_SEEDS[:games])
-    results = evaluate_marathon(keys, PRESET_NAMES, seeds, workers)
+    results = evaluate_marathon(keys, presets, seeds, workers)
     minutes = (time.time() - t0) / 60
     rows = []
     for key in keys:
-        for preset in PRESET_NAMES:
+        for preset in presets:
             sel = [r for r in results if r.agent == key and r.preset == preset]
             rows.append(
                 {"agent": AGENTS[key].name, "key": key, "preset": preset, **summarize_marathon(sel)}
@@ -166,7 +167,7 @@ def main() -> None:
                     )
             md.append("")
     if args.marathon_games > 0:
-        md += marathon_section(keys, args.marathon_games, args.workers, out)
+        md += marathon_section(keys, args.marathon_games, args.workers, out, args.marathon_presets)
     (out / "leaderboard.md").write_text("\n".join(md))
     print("\n".join(md))
 
