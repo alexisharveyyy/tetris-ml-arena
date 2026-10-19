@@ -1,0 +1,17 @@
+# Default environment and reward shaping. Each agent's config.yaml can override
+# any of these keys under the same names.
+env:
+  max_pieces: null        # truncate episodes after this many pieces (null = no cap)
+  include_hold: true      # expose the 40 hold actions
+  garbage_every: null     # evaluation pressure: insert garbage every N pieces
+  garbage_rows: 1
+
+reward:
+  line_clear: [0.0, 1.0, 3.0, 5.0, 8.0]  # reward for clearing 0..4 lines
+  per_piece: 0.01                         # survival bonus per placed piece
+  game_over: -5.0
+  score_scale: 0.0                        # multiplier on in-game score delta
+  attack: 0.0                             # multiplier on garbage sent
+  feature_deltas:                         # weight * (feature_after - feature_before)
+    holes: -0.5
+    bumpiness: -0.05

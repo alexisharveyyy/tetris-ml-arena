@@ -1,0 +1,12 @@
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+*.egg-info/
+configs/user_settings.yaml
+screenshots/
+runs/
+data/
+checkpoints/**
+!checkpoints/.gitkeep
