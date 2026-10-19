@@ -85,8 +85,10 @@ def test_afterstates_match_engine_place() -> None:
         afs = enumerate_afterstates(game)
         assert {a.placement.index for a in afs} == set(np.flatnonzero(action_mask(game)))
         choice = afs[int(rng.integers(len(afs)))]
+        before = game.score
         game.place(choice.placement)
         np.testing.assert_array_equal(game.board, choice.board)
+        assert game.score - before == choice.score
         assert len(choice.features) == len(FEATURE_NAMES)
         if game.game_over:
             break

@@ -39,6 +39,8 @@ class Afterstate:
     landing_height: float
     eroded_cells: int
     attack: int
+    #: Exact score gained by this placement (hard-drop points plus line clear).
+    score: int
     top_out: bool
     features: np.ndarray  # float32 (NUM_FEATURES,)
 
@@ -118,6 +120,9 @@ def enumerate_afterstates(
     eroded = np.zeros(n_cand, dtype=np.int32)
     top_out = np.zeros(n_cand, dtype=bool)
     attacks = np.zeros(n_cand, dtype=np.int32)
+    scores = np.zeros(n_cand, dtype=np.int64)
+    index = BoardIndex(game.board)
+    start_rows: dict[tuple[bool, Piece], int] = {}
 
     rows0 = board_rows(game.board)
     next_plain = game.queue[0]
@@ -148,6 +153,18 @@ def enumerate_afterstates(
             lines[i] = n
             eroded[i] = n * sum(1 for dr, dc in CELLS[t.piece][t.rotation] if t.row + dr in full)
             attacks[i] = scoring.attack_for(n, game.combo + 1, n == 4 and game.b2b)
+        # Hard-drop points: 2 per row from where the piece starts to where it lands.
+        key = (placement.use_hold, t.piece)
+        if key not in start_rows:
+            if placement.use_hold:
+                spawn = index.spawn(t.piece)
+                start_rows[key] = spawn[0] if spawn else t.row
+            else:
+                start_rows[key] = game.active.row
+        n_lines = int(lines[i])
+        scores[i] = 2 * max(0, t.row - start_rows[key]) + scoring.score_for(
+            n_lines, game.level, game.combo + 1 if n_lines else 0, n_lines == 4 and game.b2b
+        )
         nxt = next_hold if placement.use_hold else next_plain
         top_out[i] = lock_out or BoardIndex(rows=rows).spawn(nxt) is None
 
@@ -161,6 +178,7 @@ def enumerate_afterstates(
             landing_height=float(landing[i]),
             eroded_cells=int(eroded[i]),
             attack=int(attacks[i]),
+            score=int(scores[i]),
             top_out=bool(top_out[i]),
             features=feats[i],
         )

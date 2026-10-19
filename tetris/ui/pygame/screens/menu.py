@@ -23,7 +23,7 @@ class MenuScreen(Screen):
             ("Solo practice", lambda: app.push(SoloScreen(app)), ""),
             ("Watch AI", lambda: app.push(WatchSelectScreen(app)), ""),
             ("Race", lambda: app.push(OpponentSelectScreen(app, "race")), ""),
-            ("Battle", lambda: app.push(OpponentSelectScreen(app, "battle")), ""),
+            ("Marathon", lambda: app.push(OpponentSelectScreen(app, "marathon")), ""),
             ("Record Gameplay", None, "Available in phase 5"),
             ("Leaderboard", None, "Available in phase 7"),
             ("Settings", lambda: app.push(SettingsScreen(app)), ""),

@@ -1,0 +1,44 @@
+# Double DQN over afterstates with prioritized replay (see train.py).
+seed: 0
+budget_minutes: 180          # wall-clock training budget
+device: mps                  # MPS was about 60-90x faster than CPU (scripts/bench_device.py)
+torch_threads: 2
+
+# Environment: the garbage evaluation setting (1 direct row every 3 pieces, 500-piece cap).
+setting: garbage
+n_workers: 8                 # environment processes
+envs_per_worker: 8           # 64 parallel games
+
+# Learning
+gamma: 0.99
+lr: 2.5e-4
+batch_size: 256
+next_candidates: 8           # K next-state afterstates stored per transition
+replay_capacity: 400000
+warmup: 20000                # transitions before learning starts
+updates_per_step: 2          # gradient updates per vector step (64 transitions)
+target_update: 500           # gradient updates between target-network syncs
+n_step: 5                    # n-step returns (bootstrap from the 5th next state)
+grad_clip: 10.0
+per_alpha: 0.6
+per_beta_start: 0.4          # annealed to 1.0 over the budget
+
+# Exploration: epsilon decays linearly over the first 30% of the budget.
+eps_start: 0.2
+eps_end: 0.005
+eps_decay_frac: 0.3
+
+model:
+  board_dim: 128
+  extra_dim: 64
+  hidden: 128
+
+# Checkpoint selection: evaluate on the 30 selection seeds periodically.
+first_eval_minutes: 5
+eval_every_minutes: 10
+eval_workers: 3
+
+# Live play.
+play:
+  decision_timeout: 2.0
+  startup_timeout: 60.0

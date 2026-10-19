@@ -31,6 +31,8 @@ def linear_agents(tmp_path):
     for key, spec in AGENTS.items():
         if not spec.factory.startswith("tetris."):
             continue  # test doubles registered by other test modules
+        if spec.checkpoint and not spec.checkpoint.endswith(".json"):
+            continue  # learned agents are covered in tests/rl
         ckpt = None
         if spec.checkpoint:
             ckpt = tmp_path / f"{key}.json"

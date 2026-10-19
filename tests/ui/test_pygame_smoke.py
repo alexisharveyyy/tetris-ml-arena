@@ -90,8 +90,8 @@ def test_watch_ai_flow(app) -> None:
     assert isinstance(app.screen, WatchSelectScreen)
 
 
-@pytest.mark.parametrize("mode", ["race", "battle"])
-def test_opponent_selection_match_and_results(app, monkeypatch, mode: str) -> None:
+@pytest.mark.parametrize("mode", ["race", "battle", "marathon"])
+def test_opponent_selection_match_and_results(app, monkeypatch, tmp_path, mode: str) -> None:
     from tetris.match.agent_runtime import InlineRunner
     from tetris.match.rules import RaceRules
     from tetris.ui.pygame.screens import match_screen
@@ -100,6 +100,7 @@ def test_opponent_selection_match_and_results(app, monkeypatch, mode: str) -> No
     from tetris.ui.pygame.screens.results import ResultsScreen
 
     monkeypatch.setattr(match_screen, "ProcessRunner", InlineRunner)  # keep the UI test fast
+    app.history_path = tmp_path / "history.json"
     monkeypatch.setattr(InlineRunner, "startup_times", lambda self: {}, raising=False)
     saved = {}
     monkeypatch.setattr(app.settings, "save", lambda *a, **k: saved.update(app.settings.last_match))
@@ -127,6 +128,14 @@ def test_opponent_selection_match_and_results(app, monkeypatch, mode: str) -> No
         if isinstance(app.screen, ResultsScreen):
             break
     assert isinstance(app.screen, ResultsScreen)
+    if mode == "marathon":
+        assert app.history_path.exists()
+        press(pygame.K_k)  # keep watching
+        app.frame(1 / 60)
+        assert app.screen is screen and screen.match.spectating
+        press(pygame.K_RETURN)  # back to the results
+        app.frame(1 / 60)
+        assert isinstance(app.screen, ResultsScreen)
     seed = screen.match.config.seed
     press(pygame.K_r)  # rematch, same seed
     app.frame(1 / 60)

@@ -40,7 +40,7 @@ from tetris.match.rules import (
 _GARBAGE_SEED_STREAM = 1000
 _ROUTER_SEED_STREAM = 2000
 
-MODES = ("solo", "watch", "race", "battle", "eval")
+MODES = ("solo", "watch", "race", "battle", "marathon", "eval")
 
 
 @dataclass
@@ -53,6 +53,8 @@ class PlayerSpec:
     agent_key: str | None = None
     difficulty: DifficultyParams = field(default_factory=DifficultyParams)
     checkpoint: str | None = None
+    #: Difficulty preset name for display and history ("Custom" for custom values).
+    preset: str | None = None
 
 
 @dataclass
@@ -89,7 +91,13 @@ class PlayerState:
 
 
 class MatchController:
-    """Runs one match: solo, watch, race, battle or a headless evaluation."""
+    """Runs one match: solo, watch, race, battle, marathon or a headless evaluation.
+
+    Marathon: every board plays a normal game with the same pieces and no
+    interaction. The match ends when the human tops out (or, without a human,
+    when every board is done); standings are frozen at that moment and ranked by
+    score. :meth:`keep_watching` lets agents continue without changing them.
+    """
 
     def __init__(
         self,
@@ -142,6 +150,7 @@ class MatchController:
         self.countdown = self.config.countdown
         self.paused = False
         self.finished = False
+        self.spectating = False
         self.winner: str | None = None
         self.standings: list[dict[str, Any]] = []
         self.players: dict[str, PlayerState] = {}
@@ -195,6 +204,14 @@ class MatchController:
         """Change who a player's attacks go to (battle)."""
         self.router.set_mode(player_id, mode)
 
+    def keep_watching(self) -> None:
+        """After a finished match, let the remaining agents keep playing.
+
+        Standings stay frozen; only the boards keep moving.
+        """
+        if self.finished:
+            self.spectating = True
+
     def end_match(self) -> None:
         """Stop now and rank players as they stand."""
         if not self.finished:
@@ -216,7 +233,7 @@ class MatchController:
 
     def step(self, dt: float) -> None:
         """Advance the shared clock by ``dt`` seconds."""
-        if self.paused or self.finished:
+        if self.paused or (self.finished and not self.spectating):
             return
         if not self.config.lockstep and not self.ready:
             return  # workers still loading; the snapshot reports it
@@ -300,7 +317,11 @@ class MatchController:
             return
         alive = [p for p in self.players.values() if p.alive]
         cfg = self.config
-        if cfg.mode == "battle":
+        if cfg.mode == "marathon":
+            humans = [p for p in self.players.values() if p.spec.kind == "human"]
+            if (humans and any(not h.alive for h in humans)) or not alive:
+                self._finish()
+        elif cfg.mode == "battle":
             if len(alive) <= 1:
                 self._finish()
         elif cfg.mode == "race":
@@ -317,6 +338,8 @@ class MatchController:
             self._finish()
 
     def _finish(self) -> None:
+        if self.finished:
+            return
         self.finished = True
         self.paused = False
         self.standings = self._rank()
@@ -346,7 +369,7 @@ class MatchController:
                     return (-g.score, -g.lines)
                 assert cond == LINES_IN_TIME
                 return (-g.lines, -g.score)
-            return (-g.score, -g.lines)
+            return (-g.score, -g.lines, seat[p.spec.player_id])
 
         ranked = sorted(players, key=key)
         return [{"place": i + 1, **self._result_row(p)} for i, p in enumerate(ranked)]
@@ -358,14 +381,19 @@ class MatchController:
             "id": p.spec.player_id,
             "name": p.spec.name,
             "kind": p.spec.kind,
+            "agent_key": p.spec.agent_key,
+            "preset": p.spec.preset,
             "lines": g.lines,
             "score": g.score,
             "pieces": g.pieces_placed,
+            "tetrises": g.tetrises,
+            "level": g.level,
             "attack_sent": g.attack_sent,
             "attack_received": p.attack_received,
             "pps": g.pieces_placed / active if active > 0 else 0.0,
             "topped_out": g.game_over,
             "finish_time": p.finish_time,
+            "survival_time": active,
         }
 
     # ----------------------------------------------------------- snapshot
@@ -380,6 +408,7 @@ class MatchController:
             "loading": not self.config.lockstep and not self.ready,
             "paused": self.paused,
             "finished": self.finished,
+            "spectating": self.spectating,
             "winner": self.winner,
             "standings": self.standings,
             "hidden_rows": HIDDEN_ROWS,

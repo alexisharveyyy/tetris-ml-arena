@@ -154,6 +154,8 @@ class Game:
         self.b2b = False
         self.pieces_placed = 0
         self.attack_sent = 0
+        #: Number of locks that cleared 0, 1, 2, 3 and 4 lines.
+        self.clears = [0, 0, 0, 0, 0]
         self.game_over = False
         self.pending_garbage: list[int] = []
         self.garbage_hole: int | None = None
@@ -428,6 +430,7 @@ class Game:
 
         self.score += score
         self.lines += lines
+        self.clears[lines] += 1
         self.attack_sent += sent
         self.level = min(
             self.config.max_level,
@@ -454,6 +457,10 @@ class Game:
         if rows > 0:
             self.pending_garbage.append(rows)
             self._emit("garbage_queued", rows=rows, pending=self.pending_total)
+
+    @property
+    def tetrises(self) -> int:
+        return self.clears[4]
 
     @property
     def pending_total(self) -> int:
@@ -521,6 +528,7 @@ class Game:
             "b2b": self.b2b,
             "pieces_placed": self.pieces_placed,
             "attack_sent": self.attack_sent,
+            "clears": list(self.clears),
             "game_over": self.game_over,
             "pending_garbage": list(self.pending_garbage),
             "garbage_hole": self.garbage_hole,
@@ -552,6 +560,7 @@ class Game:
         game.b2b = d["b2b"]
         game.pieces_placed = d["pieces_placed"]
         game.attack_sent = d["attack_sent"]
+        game.clears = list(d.get("clears", [0, 0, 0, 0, 0]))
         game.game_over = d["game_over"]
         game.pending_garbage = list(d["pending_garbage"])
         game.garbage_hole = d.get("garbage_hole")
@@ -580,6 +589,7 @@ class Game:
             else None
         )
         new.pending_garbage = list(self.pending_garbage)
+        new.clears = list(self.clears)
         new._events = []
         return new
 

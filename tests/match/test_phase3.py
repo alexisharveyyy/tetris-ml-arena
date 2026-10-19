@@ -272,3 +272,36 @@ def test_presets_have_expected_shape() -> None:
     assert PRESETS["Easy"].noise > PRESETS["Medium"].noise > PRESETS["Hard"].noise
     assert PRESETS["Unlimited"].pps is None and PRESETS["Unlimited"].noise == 0
     _ = GameConfig, HEIGHT
+
+
+def test_decision_timeout_comes_from_agent_yaml(tmp_path, monkeypatch) -> None:
+    from tetris.agents import registry
+
+    cfg = tmp_path / "agent.yaml"
+    cfg.write_text("play:\n  decision_timeout: 7.5\n")
+    monkeypatch.setattr(registry, "ROOT", tmp_path)
+    register_agent(
+        AgentSpec(
+            "cfg_agent",
+            "cfg",
+            "t",
+            "tetris.agents.linear:DellacherieAgent",
+            None,
+            config="agent.yaml",
+        )
+    )
+    assert registry.AGENTS["cfg_agent"].decision_timeout == 7.5
+    assert registry.AGENTS["dellacherie"].decision_timeout == 2.0  # no YAML: default
+    runner = ProcessRunner()
+    try:
+        runner.add_agent("p", "cfg_agent", FAST)
+        runner.add_agent("q", "dellacherie", FAST)
+        assert runner.timeouts() == {"p": 7.5, "q": 2.0}
+    finally:
+        runner.close()
+    override = ProcessRunner(timeout=0.5)
+    try:
+        override.add_agent("p", "cfg_agent", FAST)
+        assert override.timeouts() == {"p": 0.5}
+    finally:
+        override.close()

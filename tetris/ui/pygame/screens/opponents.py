@@ -6,6 +6,7 @@ import pygame
 
 from tetris.agents.difficulty import nudge_pps
 from tetris.agents.registry import AGENTS, available_agents
+from tetris.match.history import MarathonHistory
 from tetris.match.lobby import CUSTOM, DIFFICULTY_CHOICES, MAX_OPPONENTS, Lobby, OpponentSlot
 from tetris.match.rules import (
     FIRST_TO_LINES,
@@ -39,6 +40,7 @@ class OpponentSelectScreen(Screen):
         )
         self.selected = 0
         self.message = ""
+        self.history = MarathonHistory(app.history_path)
 
     # ---------------------------------------------------------------- rows
 
@@ -52,7 +54,7 @@ class OpponentSelectScreen(Screen):
                     rows += [("pps", i), ("reaction", i), ("noise", i)]
         if self.mode == "race":
             rows += [("condition", 0), ("goal", 0)]
-        else:
+        elif self.mode == "battle":
             rows.append(("targeting", 0))
         rows += [("start", 0), ("back", 0)]
         return rows
@@ -65,6 +67,9 @@ class OpponentSelectScreen(Screen):
         if kind == "agent":
             return f"Opponent {i + 1}", AGENTS[slot.agent_key].name if slot else "(empty)"
         if kind == "difficulty":
+            if self.mode == "marathon":
+                record = self.history.describe(slot.agent_key, slot.preset)
+                return "    Difficulty", f"{slot.preset}   (your record: {record})"
             return "    Difficulty", slot.preset
         if kind == "pps":
             pps = slot.difficulty.pps
@@ -161,7 +166,7 @@ class OpponentSelectScreen(Screen):
     def draw(self, surface: pygame.Surface) -> None:
         surface.fill(BG)
         w, h = surface.get_size()
-        title = "RACE" if self.mode == "race" else "BATTLE"
+        title = self.mode.upper()
         draw_text(surface, f"{title}: CHOOSE OPPONENTS", (w // 2, 50), 56, ACCENT, "center")
         rows = self.rows()
         spacing = min(36, (h - 220) // max(1, len(rows)))

@@ -8,6 +8,7 @@ from pathlib import Path
 
 import pygame
 
+from tetris.match.history import DEFAULT_HISTORY_PATH
 from tetris.settings import Settings
 from tetris.ui.pygame.render import clear_font_cache
 from tetris.ui.pygame.screens.base import Screen
@@ -52,6 +53,7 @@ class App:
         pygame.display.set_caption("Tetris ML Arena")
         self.surface = pygame.display.set_mode(size, pygame.RESIZABLE)
         self.settings = Settings.load()
+        self.history_path = DEFAULT_HISTORY_PATH
         self.screens: list[Screen] = []
         self.running = True
 

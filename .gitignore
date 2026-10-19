@@ -14,3 +14,4 @@ checkpoints/**
 !checkpoints/*/best.json
 !checkpoints/*/report.json
 logs/
+configs/user_history.json

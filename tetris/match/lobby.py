@@ -61,7 +61,7 @@ class OpponentSlot:
 
 @dataclass
 class Lobby:
-    mode: str  # "race" or "battle"
+    mode: str  # "race", "marathon" or "battle"
     slots: list[OpponentSlot | None] = field(default_factory=lambda: [None] * MAX_OPPONENTS)
     race: RaceRules = field(default_factory=RaceRules)
     battle: BattleRules = field(default_factory=BattleRules)
@@ -91,7 +91,11 @@ class Lobby:
             if totals[slot.agent_key] > 1:
                 name = f"{name} #{seen[slot.agent_key]}"
             name = f"{name} ({slot.preset})"
-            specs.append(PlayerSpec(f"ai{i + 1}", name, "agent", slot.agent_key, slot.difficulty))
+            specs.append(
+                PlayerSpec(
+                    f"ai{i + 1}", name, "agent", slot.agent_key, slot.difficulty, preset=slot.preset
+                )
+            )
         return specs
 
     def to_dict(self) -> dict[str, Any]:

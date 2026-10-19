@@ -20,3 +20,8 @@ setting: garbage          # garbage: 1 row every 3 pieces, 500-piece cap
 final_candidates: 10      # hall-of-fame entries re-evaluated on selection seeds
 selection_games: 30
 final_eval_games: 500     # held-out seeds
+
+# Live play (worker process limits; on timeout the slot falls back to Dellacherie).
+play:
+  decision_timeout: 2.0     # seconds per decision
+  startup_timeout: 60.0     # seconds to load

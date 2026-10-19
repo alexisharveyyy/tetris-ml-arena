@@ -15,3 +15,8 @@ setting: garbage
 final_candidates: 10
 selection_games: 30
 final_eval_games: 500
+
+# Live play (worker process limits; on timeout the slot falls back to Dellacherie).
+play:
+  decision_timeout: 2.0     # seconds per decision
+  startup_timeout: 60.0     # seconds to load

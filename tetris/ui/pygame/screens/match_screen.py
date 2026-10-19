@@ -1,4 +1,4 @@
-"""Race and Battle: the human against 1 to 3 agents in real time."""
+"""Race, Marathon and Battle: the human against 1 to 3 agents in real time."""
 
 from __future__ import annotations
 
@@ -9,6 +9,7 @@ import pygame
 
 from tetris.match import MatchConfig, MatchController
 from tetris.match.agent_runtime import ProcessRunner
+from tetris.match.history import MarathonHistory
 from tetris.match.lobby import HUMAN_ID, Lobby
 from tetris.match.rules import FIRST_TO_LINES, TARGET_LABELS, TARGET_MODES
 from tetris.ui.pygame.input import KeyboardInput
@@ -104,6 +105,14 @@ class MatchScreen(Screen):
                 else:
                     self.leave()
             return
+        if m.spectating:
+            if event.type == pygame.KEYDOWN and event.key in (
+                pygame.K_RETURN,
+                pygame.K_KP_ENTER,
+                pygame.K_ESCAPE,
+            ):
+                self.show_results()
+            return
         if event.type == pygame.KEYDOWN and event.key == pygame.K_TAB and self.mode == "battle":
             self._cycle_targeting()
             return
@@ -127,11 +136,19 @@ class MatchScreen(Screen):
         m.step(dt)
         m.pop_events()
         if m.finished and not self._results_shown:
-            from tetris.ui.pygame.screens.results import ResultsScreen
-
             self._results_shown = True
             self.input.reset()
-            self.app.push(ResultsScreen(self.app, self))
+            if self.mode == "marathon":
+                MarathonHistory(self.app.history_path).record_match(m.standings)
+            self.show_results()
+
+    def show_results(self) -> None:
+        from tetris.ui.pygame.screens.results import ResultsScreen
+
+        self.app.push(ResultsScreen(self.app, self))
+
+    def keep_watching(self) -> None:
+        self.match.keep_watching()
 
     # -------------------------------------------------------------- draw
 
@@ -179,6 +196,15 @@ class MatchScreen(Screen):
             draw_menu(
                 surface, [(i, True) for i in PAUSE_ITEMS], self.pause_index, (w // 2, h // 2 + 10)
             )
+        elif snap["spectating"]:
+            draw_text(
+                surface,
+                "Watching the agents. Results are frozen (Enter: back to results)",
+                (w // 2, h - 30),
+                26,
+                ACCENT,
+                "center",
+            )
         elif human["game_over"] and not snap["finished"]:
             draw_text(
                 surface,
@@ -191,7 +217,18 @@ class MatchScreen(Screen):
 
     def _draw_header(self, surface, snap, human, names) -> None:
         w, _ = surface.get_size()
-        if self.mode == "race":
+        if self.mode == "marathon":
+            draw_text(surface, "MARATHON: highest score when you top out", (24, 14), 32, ACCENT)
+            leader = max(snap["players"], key=lambda p: p["score"])
+            draw_text(
+                surface,
+                f"Level {human['level']}   Leader: {names[leader['id']]}",
+                (w - 24, 14),
+                28,
+                TEXT,
+                "topright",
+            )
+        elif self.mode == "race":
             race = snap["race"]
             draw_text(surface, f"RACE: {race['description']}", (24, 14), 32, ACCENT)
             if race["condition"] == FIRST_TO_LINES:

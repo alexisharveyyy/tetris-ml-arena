@@ -14,6 +14,7 @@ import csv
 import time
 from pathlib import Path
 
+from tetris.agents.difficulty import PRESET_NAMES
 from tetris.agents.evaluation import (
     ASSUMED_PPS,
     GARBAGE_SETTING,
@@ -25,6 +26,7 @@ from tetris.agents.evaluation import (
     summarize,
 )
 from tetris.agents.registry import AGENTS, ROOT, available_agents
+from tetris.match.marathon_eval import MARATHON_MAX_PIECES, evaluate_marathon, summarize_marathon
 
 COLUMNS = (
     ("mean_lines", "Mean lines", "{:.1f}"),
@@ -38,6 +40,47 @@ COLUMNS = (
 )
 
 
+def marathon_section(keys: list[str], games: int, workers: int, out: Path) -> list[str]:
+    """Headless Marathon games per agent and preset (how beatable is each agent?)."""
+    t0 = time.time()
+    seeds = list(HELD_OUT_SEEDS[:games])
+    results = evaluate_marathon(keys, PRESET_NAMES, seeds, workers)
+    minutes = (time.time() - t0) / 60
+    rows = []
+    for key in keys:
+        for preset in PRESET_NAMES:
+            sel = [r for r in results if r.agent == key and r.preset == preset]
+            rows.append(
+                {"agent": AGENTS[key].name, "key": key, "preset": preset, **summarize_marathon(sel)}
+            )
+    with (out / "leaderboard_marathon.csv").open("w", newline="") as f:
+        writer = csv.DictWriter(f, fieldnames=list(rows[0]))
+        writer.writeheader()
+        writer.writerows(rows)
+    md = [
+        f"## Marathon (no garbage, level gravity, {MARATHON_MAX_PIECES}-piece cap)",
+        "",
+        f"{games} headless games per agent and preset on held-out seeds {seeds[0]}..{seeds[-1]}, "
+        "lockstep with a simulated 60 fps clock, so speed caps, reaction delays, move rates and "
+        "mistakes apply exactly as in real-time play. To win a Marathon match you need a higher "
+        f"score than the agent when you top out. Runtime: {minutes:.0f} minutes.",
+        "",
+        "| Agent | Preset | Mean score | Mean lines | Mean level | Mean pieces | Cap-hit rate "
+        "| Mean survival |",
+        "|---|---|---|---|---|---|---|---|",
+    ]
+    for r in rows:
+        survival = r["mean_survival_s"]
+        md.append(
+            f"| {r['agent']} | {r['preset']} | {r['mean_score']:,.0f} | {r['mean_lines']:.1f} | "
+            f"{r['mean_level']:.1f} | {r['mean_pieces']:.0f} | {r['cap_hit_rate']:.2f} | "
+            f"{int(survival // 60)}:{int(survival % 60):02d} |"
+        )
+    md.append("")
+    print(f"marathon: {len(results)} games in {minutes:.1f} min", flush=True)
+    return md
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(
         description=__doc__, formatter_class=argparse.RawTextHelpFormatter
@@ -48,6 +91,10 @@ def main() -> None:
     parser.add_argument("--games", type=int, default=500)
     parser.add_argument("--workers", type=int, default=default_workers())
     parser.add_argument("--out", default=str(ROOT / "reports"))
+    parser.add_argument(
+        "--marathon-games", type=int, default=100, help="0 skips the Marathon section"
+    )
+    parser.add_argument("--skip-garbage", action="store_true", help="only run the Marathon section")
     args = parser.parse_args()
 
     keys = args.agents or [a.key for a in available_agents()]
@@ -118,6 +165,8 @@ def main() -> None:
                         f"| {AGENTS[a].name} minus {AGENTS[b].name} | {cells[0]} | {cells[1]} |"
                     )
             md.append("")
+    if args.marathon_games > 0:
+        md += marathon_section(keys, args.marathon_games, args.workers, out)
     (out / "leaderboard.md").write_text("\n".join(md))
     print("\n".join(md))
 

@@ -10,11 +10,15 @@ import importlib
 from dataclasses import dataclass
 from pathlib import Path
 
+import yaml
+
 from tetris.agents.base import Agent
 from tetris.agents.difficulty import DifficultyParams
 
 ROOT = Path(__file__).resolve().parent.parent.parent
 CHECKPOINT_DIR = ROOT / "checkpoints"
+DEFAULT_DECISION_TIMEOUT = 2.0
+DEFAULT_STARTUP_TIMEOUT = 60.0
 
 
 @dataclass(frozen=True)
@@ -26,6 +30,27 @@ class AgentSpec:
     checkpoint: str | None  # file name under checkpoints/<key>/, None if not needed
     supports_epsilon: bool = True
     supports_target_return: bool = False
+    #: Agent config YAML (relative to the repo root) holding a ``play`` section.
+    config: str | None = None
+
+    @property
+    def play_config(self) -> dict:
+        """The ``play`` section of the agent's YAML (decision and startup timeouts)."""
+        if self.config is None:
+            return {}
+        path = ROOT / self.config
+        if not path.exists():
+            return {}
+        return (yaml.safe_load(path.read_text()) or {}).get("play") or {}
+
+    @property
+    def decision_timeout(self) -> float:
+        """Seconds a worker may take per decision before the fallback takes over."""
+        return float(self.play_config.get("decision_timeout", DEFAULT_DECISION_TIMEOUT))
+
+    @property
+    def startup_timeout(self) -> float:
+        return float(self.play_config.get("startup_timeout", DEFAULT_STARTUP_TIMEOUT))
 
     @property
     def checkpoint_path(self) -> Path | None:
@@ -53,6 +78,7 @@ AGENTS: dict[str, AgentSpec] = {
             "Linear feature weights evolved with a genetic algorithm.",
             "tetris.agents.heuristic_ga.agent:GAAgent",
             "best.json",
+            config="tetris/agents/heuristic_ga/config.yaml",
         ),
         AgentSpec(
             "cem",
@@ -60,6 +86,23 @@ AGENTS: dict[str, AgentSpec] = {
             "Linear feature weights optimized with the cross-entropy method.",
             "tetris.agents.cem.agent:CEMAgent",
             "best.json",
+            config="tetris/agents/cem/config.yaml",
+        ),
+        AgentSpec(
+            "dqn",
+            "DQN (afterstates)",
+            "Double DQN with prioritized replay; a CNN values each afterstate.",
+            "tetris.agents.dqn.agent:DQNAgent",
+            "best.pt",
+            config="tetris/agents/dqn/config.yaml",
+        ),
+        AgentSpec(
+            "ppo",
+            "PPO",
+            "Actor-critic policy over the masked 80-action placement space.",
+            "tetris.agents.ppo.agent:PPOAgent",
+            "best.pt",
+            config="tetris/agents/ppo/config.yaml",
         ),
     )
 }

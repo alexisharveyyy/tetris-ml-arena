@@ -1,0 +1,35 @@
+# PPO over the masked 80-action placement space (see train.py).
+seed: 0
+budget_minutes: 180
+device: mps                  # MPS was about 13-35x faster than CPU (scripts/bench_device.py)
+torch_threads: 2
+
+setting: garbage             # 1 direct garbage row every 3 pieces, 500-piece cap
+n_workers: 8
+envs_per_worker: 8           # 64 parallel games
+rollout_steps: 128           # 8,192 transitions per update
+
+gamma: 0.99
+gae_lambda: 0.95
+reward_scale: 0.1            # rewards are about 1 per piece; scaled for the value head
+lr: 3.0e-4                   # linearly decayed to 5% over the budget
+epochs: 4
+minibatch_size: 2048
+clip: 0.2
+value_clip: 10.0
+vf_coef: 0.5
+ent_coef: 0.01
+max_grad_norm: 0.5
+
+model:
+  board_dim: 128
+  extra_dim: 128
+  hidden: 256
+
+first_eval_minutes: 5
+eval_every_minutes: 10
+eval_workers: 3
+
+play:
+  decision_timeout: 2.0
+  startup_timeout: 60.0

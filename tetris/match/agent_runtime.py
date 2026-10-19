@@ -132,6 +132,8 @@ class _Worker:
     seed: int | None
     ready: bool = False
     startup_seconds: float | None = None
+    timeout: float = 2.0
+    startup_timeout: float = 60.0
     pending: tuple[int, float, dict[str, Any], int] | None = None  # id, sent_at, state, top_k
     result: Decision | None = None
     fallback: Any = None  # in-process agent after a failure
@@ -142,13 +144,15 @@ class ProcessRunner(AgentRunner):
     """One persistent ``spawn`` worker process per agent slot.
 
     Workers are started by :meth:`add_agent` and load their model once. If a
-    worker crashes, fails to load, or takes longer than ``timeout`` seconds on
-    a decision (or ``startup_timeout`` to load), that slot switches to an
+    worker crashes, fails to load, or takes longer than its decision timeout
+    (or startup timeout to load), that slot switches to an
     in-process Dellacherie agent for the rest of the match and
     :meth:`status` reports a warning. Nothing here ever blocks indefinitely.
     """
 
-    def __init__(self, timeout: float = 2.0, startup_timeout: float = 60.0) -> None:
+    def __init__(self, timeout: float | None = None, startup_timeout: float | None = None) -> None:
+        """Timeouts default to each agent's YAML ``play`` section (2 s and 60 s if
+        absent); passing a value here overrides them for every agent."""
         import multiprocessing as mp
 
         self._ctx = mp.get_context("spawn")
@@ -191,8 +195,19 @@ class ProcessRunner(AgentRunner):
                 else:
                     os.environ[k] = v
         child.close()
+        spec = AGENTS[agent_key]
         self._workers[player_id] = _Worker(
-            player_id, agent_key, process, parent, time.perf_counter(), difficulty, seed
+            player_id,
+            agent_key,
+            process,
+            parent,
+            time.perf_counter(),
+            difficulty,
+            seed,
+            timeout=self.timeout if self.timeout is not None else spec.decision_timeout,
+            startup_timeout=(
+                self.startup_timeout if self.startup_timeout is not None else spec.startup_timeout
+            ),
         )
 
     def _check_startup(self, w: _Worker, block: float = 0.0) -> None:
@@ -212,7 +227,7 @@ class ProcessRunner(AgentRunner):
             return
         if not w.process.is_alive():
             self._fall_back(w, "crashed while loading")
-        elif time.perf_counter() - w.started > self.startup_timeout:
+        elif time.perf_counter() - w.started > w.startup_timeout:
             self._fall_back(w, "load timed out")
 
     def ready(self) -> bool:
@@ -222,11 +237,16 @@ class ProcessRunner(AgentRunner):
 
     def wait_ready(self) -> dict[str, float | None]:
         """Block until all workers are loaded or fallen back; returns startup seconds."""
-        deadline = time.perf_counter() + self.startup_timeout + 1.0
+        longest = max((w.startup_timeout for w in self._workers.values()), default=0.0)
+        deadline = time.perf_counter() + longest + 1.0
         while not self.ready() and time.perf_counter() < deadline:
             for w in self._workers.values():
                 self._check_startup(w, block=0.01)
         return self.startup_times()
+
+    def timeouts(self) -> dict[str, float]:
+        """Effective decision timeout per player."""
+        return {pid: w.timeout for pid, w in self._workers.items()}
 
     def startup_times(self) -> dict[str, float | None]:
         return {pid: w.startup_seconds for pid, w in self._workers.items()}
@@ -309,8 +329,8 @@ class ProcessRunner(AgentRunner):
             return
         if not w.process.is_alive():
             self._fall_back(w, "crashed")
-        elif time.perf_counter() - w.pending[1] > self.timeout:
-            self._fall_back(w, f"timed out (>{self.timeout:g}s)")
+        elif time.perf_counter() - w.pending[1] > w.timeout:
+            self._fall_back(w, f"timed out (>{w.timeout:g}s)")
 
     def poll(self, player_id: str) -> Decision | None:
         w = self._workers[player_id]
