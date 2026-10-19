@@ -99,10 +99,18 @@ AGENTS: dict[str, AgentSpec] = {
         AgentSpec(
             "ppo",
             "PPO",
-            "Actor-critic policy over the masked 80-action placement space.",
+            "PPO policy that scores each placement's afterstate (masked 80-action space).",
             "tetris.agents.ppo.agent:PPOAgent",
             "best.pt",
             config="tetris/agents/ppo/config.yaml",
+        ),
+        AgentSpec(
+            "ppo_raw",
+            "PPO (raw actions)",
+            "PPO policy over the 80 actions from the board alone; weak, kept for comparison.",
+            "tetris.agents.ppo.agent:RawPPOAgent",
+            "best.pt",
+            config="tetris/agents/ppo/config_raw.yaml",
         ),
     )
 }

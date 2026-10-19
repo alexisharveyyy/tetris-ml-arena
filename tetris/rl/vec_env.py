@@ -1,8 +1,9 @@
 """Subprocess vector environment for the learned agents.
 
 Each worker process runs several games and returns, per environment, either
-the candidate afterstates (``mode="afterstate"``, DQN) or an observation and
-legal-action mask (``mode="obs"``, PPO). Episodes end with:
+the candidate afterstates (``mode="afterstate"``, DQN), an observation and
+legal-action mask (``mode="obs"``, raw PPO), or both an observation and the
+afterstate of each of the 80 actions (``mode="action_afterstate"``, PPO). Episodes end with:
 
 * ``terminated``: the game topped out (or has no legal placement). Terminal.
 * ``truncated``: the piece cap was reached. Not terminal: the package of the
@@ -27,7 +28,12 @@ from tetris.engine.placement import Placement
 from tetris.engine.rng import Rng, derive_seed
 from tetris.env.afterstates import action_mask, enumerate_afterstates
 from tetris.env.tetris_env import inject_scheduled_garbage
-from tetris.rl.encoding import afterstate_arrays, observation_arrays, reward_for_score
+from tetris.rl.encoding import (
+    action_afterstate_arrays,
+    afterstate_arrays,
+    observation_arrays,
+    reward_for_score,
+)
 
 #: Training seeds come from [0, TRAIN_SEED_RANGE); selection and held-out seeds are above it.
 TRAIN_SEED_RANGE = 500_000
@@ -58,6 +64,17 @@ def _package(game: Game, mode: str, include_hold: bool) -> dict[str, np.ndarray]
             "actions": actions,
         }
     board, extras = observation_arrays(game)
+    if mode == "action_afterstate":
+        cand_boards, cand_extras, mask = action_afterstate_arrays(game)
+        if not include_hold:
+            mask[40:] = False
+        return {
+            "board": board,
+            "extras": extras,
+            "mask": mask,
+            "cand_boards": cand_boards,
+            "cand_extras": cand_extras,
+        }
     return {"board": board, "extras": extras, "mask": action_mask(game, include_hold)}
 
 
@@ -148,7 +165,7 @@ class VecEnv:
         setting: EvalSetting,
         seed: int,
     ) -> None:
-        if mode not in ("afterstate", "obs"):
+        if mode not in ("afterstate", "obs", "action_afterstate"):
             raise ValueError(mode)
         ctx = mp.get_context("spawn")
         self.mode = mode

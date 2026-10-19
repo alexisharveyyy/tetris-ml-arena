@@ -13,6 +13,7 @@ from tetris.env import action_mask, enumerate_afterstates
 from tetris.rl.encoding import (
     AFTERSTATE_EXTRA_DIM,
     OBS_EXTRA_DIM,
+    action_afterstate_arrays,
     afterstate_arrays,
     observation_arrays,
     pack_boards,
@@ -22,6 +23,7 @@ from tetris.rl.encoding import (
 from tetris.rl.nets import (
     MASKED_LOGIT,
     ActorCritic,
+    AfterstateActorCritic,
     AfterstateValueNet,
     masked_log_probs,
     save_checkpoint,
@@ -256,11 +258,12 @@ def tiny_checkpoints(tmp_path_factory):
     d = tmp_path_factory.mktemp("ckpt")
     torch.manual_seed(0)
     save_checkpoint(d / "dqn.pt", "dqn", AfterstateValueNet(), gamma=GAMMA)
-    save_checkpoint(d / "ppo.pt", "ppo", ActorCritic())
+    save_checkpoint(d / "ppo.pt", "ppo", AfterstateActorCritic())
+    save_checkpoint(d / "ppo_raw.pt", "ppo_raw", ActorCritic())
     return d
 
 
-@pytest.mark.parametrize("key", ["dqn", "ppo"])
+@pytest.mark.parametrize("key", ["dqn", "ppo", "ppo_raw"])
 def test_learned_agents_return_legal_placements(tiny_checkpoints, key: str) -> None:
     agent = create_agent(key, tiny_checkpoints / f"{key}.pt")
     checked = 0
@@ -273,7 +276,7 @@ def test_learned_agents_return_legal_placements(tiny_checkpoints, key: str) -> N
     assert checked > 20
 
 
-@pytest.mark.parametrize("key", ["dqn", "ppo"])
+@pytest.mark.parametrize("key", ["dqn", "ppo", "ppo_raw"])
 def test_learned_agents_noise_picks_from_ranked_alternatives(tiny_checkpoints, key: str) -> None:
     from tetris.agents.difficulty import DifficultyParams
 
@@ -337,3 +340,41 @@ def test_n_step_tracker_returns_and_episode_ends() -> None:
     tr.observe(0, _pkg(2, 1.0, 5), np.array([1.0, 0.0]), False, rng)
     tr.end(0, None, None)
     assert replay.terminated[4] and replay.discount[4] == 0.0
+
+
+def test_action_afterstate_rows_match_actions() -> None:
+    game = Game(6)
+    boards, extras, mask = action_afterstate_arrays(game)
+    np.testing.assert_array_equal(mask, action_mask(game))
+    afs = enumerate_afterstates(game, dedupe=False)
+    ref_boards, ref_extras, *_ = afterstate_arrays(game, afs)
+    for a, b, e in zip(afs, ref_boards, ref_extras, strict=True):
+        np.testing.assert_array_equal(boards[a.placement.index], b)
+        np.testing.assert_allclose(extras[a.placement.index], e)
+    assert not boards[~mask].any() and not extras[~mask].any()
+
+
+def test_afterstate_policy_is_a_distribution_over_80_actions() -> None:
+    torch.manual_seed(0)
+    net = AfterstateActorCritic().eval()
+    games = [Game(s) for s in range(4)]
+    games[1].can_hold = False  # fewer legal actions in one row
+    obs = [observation_arrays(g) for g in games]
+    cands = [action_afterstate_arrays(g) for g in games]
+    board = torch.from_numpy(np.stack([o[0] for o in obs]).astype(np.float32))
+    extras = torch.from_numpy(np.stack([o[1] for o in obs]))
+    cb = torch.from_numpy(np.stack([c[0] for c in cands]))
+    ce = torch.from_numpy(np.stack([c[1] for c in cands]))
+    mask = torch.from_numpy(np.stack([c[2] for c in cands]))
+    with torch.no_grad():
+        logits, value = net(board, extras, mask, cb, ce)
+        logp, entropy = masked_log_probs(logits, mask)
+    assert logits.shape == (4, 80) and value.shape == (4,)
+    probs = logp.exp()
+    assert torch.isfinite(logp).all() and torch.isfinite(entropy).all()
+    assert torch.allclose(probs.sum(-1), torch.ones(4)) and torch.all(probs[~mask] == 0)
+    # Each legal logit is the shared scorer applied to that action's afterstate.
+    a = int(np.flatnonzero(cands[0][2])[3])
+    with torch.no_grad():
+        direct = net.scorer(unpack_boards_torch(cb[0, a : a + 1]), ce[0, a : a + 1])
+    assert float(logits[0, a]) == pytest.approx(float(direct[0]), abs=1e-5)

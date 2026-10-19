@@ -136,6 +136,57 @@ def to_cpu(obj: Any) -> Any:
     return obj
 
 
+class AfterstateActorCritic(nn.Module):
+    """PPO with afterstate-scored logits over the same 80-action space.
+
+    The logit of each legal action is a shared network's score for that
+    action's afterstate (board, features, next piece, hold, level). Illegal
+    actions get :data:`MASKED_LOGIT`, so the policy is still a distribution over
+    all 80 actions. The critic reads the ordinary observation.
+    """
+
+    def __init__(
+        self, board_dim: int = 128, extra_dim: int = 64, hidden: int = 128, critic_hidden: int = 256
+    ) -> None:
+        super().__init__()
+        self.config = {
+            "board_dim": board_dim,
+            "extra_dim": extra_dim,
+            "hidden": hidden,
+            "critic_hidden": critic_hidden,
+        }
+        self.scorer = AfterstateValueNet(board_dim, extra_dim, hidden)
+        self.critic_board = BoardEncoder(board_dim)
+        self.critic_extra = nn.Sequential(nn.Linear(OBS_EXTRA_DIM, 128), nn.ReLU())
+        self.critic = nn.Sequential(
+            nn.Linear(board_dim + 128, critic_hidden), nn.ReLU(), nn.Linear(critic_hidden, 1)
+        )
+
+    def value(self, boards: torch.Tensor, extras: torch.Tensor) -> torch.Tensor:
+        h = torch.cat([self.critic_board(boards), self.critic_extra(extras)], dim=-1)
+        return self.critic(h).squeeze(-1)
+
+    def forward(
+        self,
+        boards: torch.Tensor,
+        extras: torch.Tensor,
+        mask: torch.Tensor,
+        cand_boards: torch.Tensor,
+        cand_extras: torch.Tensor,
+    ):
+        """``cand_boards``: packed uint8 ``(B, 80, 30)``; ``cand_extras``: ``(B, 80, 29)``.
+
+        Only legal entries are scored. Returns masked logits ``(B, 80)`` and values ``(B,)``.
+        """
+        rows, cols = mask.nonzero(as_tuple=True)
+        scores = self.scorer(
+            unpack_boards_torch(cand_boards[rows, cols]), cand_extras[rows, cols].float()
+        )
+        logits = torch.full(mask.shape, MASKED_LOGIT, device=mask.device, dtype=scores.dtype)
+        logits = logits.index_put((rows, cols), scores)
+        return logits, self.value(boards, extras)
+
+
 def masked_log_probs(logits: torch.Tensor, mask: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
     """Log-probabilities and entropy over legal actions only.
 
@@ -151,6 +202,8 @@ def build(kind: str, config: dict[str, Any]) -> nn.Module:
     if kind == "dqn":
         return AfterstateValueNet(**config)
     if kind == "ppo":
+        return AfterstateActorCritic(**config)
+    if kind == "ppo_raw":
         return ActorCritic(**config)
     raise ValueError(kind)
 

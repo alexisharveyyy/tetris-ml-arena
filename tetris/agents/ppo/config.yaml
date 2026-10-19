@@ -1,4 +1,7 @@
-# PPO over the masked 80-action placement space (see train.py).
+# PPO with afterstate-scored logits: each of the 80 actions' logit is a shared
+# network's score of that action's afterstate (see README). The playable PPO agent.
+agent_key: ppo
+policy: afterstate
 seed: 0
 budget_minutes: 180
 device: mps                  # MPS was about 13-35x faster than CPU (scripts/bench_device.py)
@@ -22,9 +25,10 @@ ent_coef: 0.01
 max_grad_norm: 0.5
 
 model:
-  board_dim: 128
-  extra_dim: 128
-  hidden: 256
+  board_dim: 128             # afterstate scorer (same shape as the DQN value net)
+  extra_dim: 64
+  hidden: 128
+  critic_hidden: 256
 
 first_eval_minutes: 5
 eval_every_minutes: 10

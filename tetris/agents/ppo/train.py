@@ -1,5 +1,12 @@
 """PPO over the masked 80-action placement space with vectorized environments.
 
+Two policies share this trainer (``policy`` in the config):
+
+* ``afterstate`` (agent ``ppo``): each action's logit is a shared network's
+  score of that action's afterstate. Still a distribution over the 80 actions.
+* ``raw`` (agent ``ppo_raw``): logits for the 80 actions from the board and
+  piece observation alone (the originally specified design).
+
 Usage:
     python -m tetris.agents.ppo.train [--config PATH] [--budget-minutes M] [--seed S]
         [--run-name NAME] [--no-promote] [--resume]
@@ -25,8 +32,8 @@ import torch
 
 from tetris.agents.registry import CHECKPOINT_DIR
 from tetris.engine.placement import NUM_ACTIONS
-from tetris.rl.encoding import OBS_EXTRA_DIM
-from tetris.rl.nets import ActorCritic, masked_log_probs, save_checkpoint, select_device, to_cpu
+from tetris.rl.encoding import AFTERSTATE_EXTRA_DIM, OBS_EXTRA_DIM, PACKED_BOARD_BYTES
+from tetris.rl.nets import build, masked_log_probs, save_checkpoint, select_device, to_cpu
 from tetris.rl.training import (
     Budget,
     CurveLogger,
@@ -39,7 +46,6 @@ from tetris.rl.training import (
 )
 from tetris.rl.vec_env import VecEnv
 
-AGENT_KEY = "ppo"
 DEFAULT_CONFIG = Path(__file__).with_name("config.yaml")
 
 
@@ -72,18 +78,26 @@ def compute_gae(
     return adv, adv + values
 
 
-def _stack(packages: list[dict[str, np.ndarray]]) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
-    return (
-        np.stack([p["board"] for p in packages]),
-        np.stack([p["extras"] for p in packages]),
-        np.stack([p["mask"] for p in packages]),
-    )
+#: Package fields fed to each policy type, in network-argument order (mask is third).
+POLICY_INPUTS = {
+    "raw": ("board", "extras", "mask"),
+    "afterstate": ("board", "extras", "mask", "cand_boards", "cand_extras"),
+}
+VEC_MODE = {"raw": "obs", "afterstate": "action_afterstate"}
+NET_KIND = {"raw": "ppo_raw", "afterstate": "ppo"}
+
+
+def _stack(packages: list[dict[str, np.ndarray]], fields: tuple[str, ...]) -> list[np.ndarray]:
+    return [np.stack([p[f] for p in packages]) for f in fields]
 
 
 def train(
     cfg: dict[str, Any], resume: bool = False, run_name: str | None = None, promote: bool = True
 ) -> dict:
     seed = int(cfg["seed"])
+    policy = cfg.get("policy", "afterstate")
+    fields = POLICY_INPUTS[policy]
+    AGENT_KEY = cfg.get("agent_key", NET_KIND[policy])  # noqa: N806 - matches the DQN trainer
     run_name = run_name or f"seed{seed}"
     run_dir = CHECKPOINT_DIR / AGENT_KEY / run_name
     run_dir.mkdir(parents=True, exist_ok=True)
@@ -91,7 +105,7 @@ def train(
     torch.set_num_threads(int(cfg.get("torch_threads", 2)))
     device = select_device(cfg.get("device", "auto"))
     setting = setting_for(cfg)
-    net = ActorCritic(**cfg.get("model", {})).to(device)
+    net = build(NET_KIND[policy], cfg.get("model", {})).to(device)
     fused = device.type in ("cuda", "mps")
     opt = torch.optim.Adam(net.parameters(), lr=float(cfg["lr"]), eps=1e-5, fused=fused)
     gamma, lam = float(cfg["gamma"]), float(cfg["gae_lambda"])
@@ -115,7 +129,9 @@ def train(
 
     logger = CurveLogger(AGENT_KEY, run_name)
     budget = Budget(cfg["budget_minutes"] * 60, elapsed0)
-    vec = VecEnv("obs", cfg["n_workers"], cfg["envs_per_worker"], setting, seed + 1000 * n_evals)
+    vec = VecEnv(
+        VEC_MODE[policy], cfg["n_workers"], cfg["envs_per_worker"], setting, seed + 1000 * n_evals
+    )
     n_envs, horizon = vec.n_envs, int(cfg["rollout_steps"])
     packages = vec.reset()
     episodes: list[dict[str, Any]] = []
@@ -128,17 +144,15 @@ def train(
         flush=True,
     )
 
-    def tensors(b: np.ndarray, e: np.ndarray, m: np.ndarray):
-        return (
-            torch.from_numpy(b).to(device).float(),
-            torch.from_numpy(e).to(device),
-            torch.from_numpy(m).to(device),
-        )
+    def tensors(arrays: list[np.ndarray]) -> list[torch.Tensor]:
+        out = [torch.from_numpy(a).to(device) for a in arrays]
+        out[0] = out[0].float()  # board occupancy
+        return out
 
     def save_eval_checkpoint() -> Path:
         path = run_dir / f"eval_{int(budget.elapsed / 60):04d}min_{steps}.pt"
         save_checkpoint(
-            path, AGENT_KEY, net, steps=steps, minutes=budget.elapsed / 60, run=run_name
+            path, NET_KIND[policy], net, steps=steps, minutes=budget.elapsed / 60, run=run_name
         )
         return path
 
@@ -157,9 +171,14 @@ def train(
             latest,
         )
 
-    buf_b = np.zeros((horizon, n_envs, 24, 10), np.uint8)
-    buf_e = np.zeros((horizon, n_envs, OBS_EXTRA_DIM), np.float32)
-    buf_m = np.zeros((horizon, n_envs, NUM_ACTIONS), bool)
+    shapes = {
+        "board": ((24, 10), np.uint8),
+        "extras": ((OBS_EXTRA_DIM,), np.float32),
+        "mask": ((NUM_ACTIONS,), bool),
+        "cand_boards": ((NUM_ACTIONS, PACKED_BOARD_BYTES), np.uint8),
+        "cand_extras": ((NUM_ACTIONS, AFTERSTATE_EXTRA_DIM), np.float32),
+    }
+    bufs = [np.zeros((horizon, n_envs, *shapes[f][0]), shapes[f][1]) for f in fields]
     buf_a = np.zeros((horizon, n_envs), np.int64)
     buf_logp = np.zeros((horizon, n_envs), np.float32)
     buf_v = np.zeros((horizon, n_envs), np.float32)
@@ -176,14 +195,16 @@ def train(
                 g["lr"] = float(cfg["lr"]) * max(0.05, 1.0 - frac)
             net.eval()
             for t in range(horizon):
-                b, e, m = _stack(packages)
+                inputs = _stack(packages, fields)
                 with torch.no_grad():
-                    logits, v = net(*tensors(b, e, m))
+                    logits, v = net(*tensors(inputs))
                     logp_all = torch.log_softmax(logits, -1)
                     a = torch.multinomial(logp_all.exp(), 1).squeeze(1)
                     logp = logp_all.gather(1, a[:, None]).squeeze(1)
                 actions = a.cpu().numpy()
-                buf_b[t], buf_e[t], buf_m[t], buf_a[t] = b, e, m, actions
+                for buf, arr in zip(bufs, inputs, strict=True):
+                    buf[t] = arr
+                buf_a[t] = actions
                 buf_logp[t], buf_v[t] = logp.cpu().numpy(), v.cpu().numpy()
                 results = vec.step(actions)
                 finals = []
@@ -197,15 +218,14 @@ def train(
                     if res.episode is not None:
                         episodes.append(res.episode)
                 if finals:
-                    fb, fe, fm = _stack([f for _, f in finals])
                     with torch.no_grad():
-                        _, fv = net(*tensors(fb, fe, fm))
+                        _, fv = net(*tensors(_stack([f for _, f in finals], fields)))
                     for (i, _), value in zip(finals, fv.cpu().numpy(), strict=True):
                         buf_final_v[t, i] = value
                 packages = [r.package for r in results]
             steps += horizon * n_envs
             with torch.no_grad():
-                _, last_v = net(*tensors(*_stack(packages)))
+                _, last_v = net(*tensors(_stack(packages, fields)))
             adv, ret = compute_gae(
                 buf_r, buf_v, buf_term, buf_trunc, buf_final_v, last_v.cpu().numpy(), gamma, lam
             )
@@ -214,9 +234,8 @@ def train(
             # ---- PPO update
             net.train()
             flat = horizon * n_envs
-            fb = torch.from_numpy(buf_b.reshape(flat, 24, 10)).to(device).float()
-            fe = torch.from_numpy(buf_e.reshape(flat, -1)).to(device)
-            fm = torch.from_numpy(buf_m.reshape(flat, -1)).to(device)
+            flat_in = tensors([b.reshape(flat, *b.shape[2:]) for b in bufs])
+            fm = flat_in[2]
             fa = torch.from_numpy(buf_a.reshape(flat)).to(device)
             flogp = torch.from_numpy(buf_logp.reshape(flat)).to(device)
             fadv = torch.from_numpy(adv.reshape(flat)).to(device)
@@ -235,7 +254,7 @@ def train(
                 perm = torch.randperm(flat, device=device)
                 for start in range(0, flat, mb):
                     j = perm[start : start + mb]
-                    logits, v = net(fb[j], fe[j], fm[j])
+                    logits, v = net(*[x[j] for x in flat_in])
                     logp_all, entropy = masked_log_probs(logits, fm[j])
                     logp = logp_all.gather(1, fa[j][:, None]).squeeze(1)
                     ratio = (logp - flogp[j]).exp()
@@ -314,8 +333,11 @@ def main(argv: list[str] | None = None) -> None:
         "--no-promote", action="store_true", help="do not copy the result to best.pt"
     )
     parser.add_argument("--resume", action="store_true")
+    parser.add_argument("--lr", type=float)
+    parser.add_argument("--ent-coef", dest="ent_coef", type=float)
     args = parser.parse_args(argv)
-    overrides = {k: getattr(args, k) for k in ("budget_minutes", "seed", "n_workers", "device")}
+    keys = ("budget_minutes", "seed", "n_workers", "device", "lr", "ent_coef")
+    overrides = {k: getattr(args, k) for k in keys}
     train(load_config(args.config, overrides), args.resume, args.run_name, not args.no_promote)
 
 

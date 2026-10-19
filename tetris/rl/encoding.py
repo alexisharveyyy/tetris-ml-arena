@@ -130,3 +130,24 @@ def observation_arrays(game: Game) -> tuple[np.ndarray, np.ndarray]:
     o += len(BOARD_FEATURES)
     extras[o] = game.level / 20.0
     return board, extras
+
+
+def action_afterstate_arrays(game: Game) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    """Afterstate inputs laid out over the full 80-action space.
+
+    Returns packed boards ``(80, 30)``, extras ``(80, 29)`` and the legal mask
+    ``(80,)``. Row ``a`` describes the afterstate of action ``a``; illegal rows
+    are zero. No deduplication, so every legal action has its own row.
+    """
+    from tetris.engine.placement import NUM_ACTIONS
+    from tetris.env.afterstates import enumerate_afterstates
+
+    boards = np.zeros((NUM_ACTIONS, PACKED_BOARD_BYTES), np.uint8)
+    extras = np.zeros((NUM_ACTIONS, AFTERSTATE_EXTRA_DIM), np.float32)
+    mask = np.zeros(NUM_ACTIONS, bool)
+    afs = enumerate_afterstates(game, dedupe=False)
+    if afs:
+        b, e, _, _, actions = afterstate_arrays(game, afs)
+        idx = actions.astype(np.int64)
+        boards[idx], extras[idx], mask[idx] = b, e, True
+    return boards, extras, mask
