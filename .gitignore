@@ -10,3 +10,7 @@ runs/
 data/
 checkpoints/**
 !checkpoints/.gitkeep
+!checkpoints/*/
+!checkpoints/*/best.json
+!checkpoints/*/report.json
+logs/

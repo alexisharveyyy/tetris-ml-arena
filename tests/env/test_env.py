@@ -14,6 +14,8 @@ from tetris.env import (
 )
 from tetris.env.features import BOARD_FEATURES
 
+from ..engine.test_engine import respawn
+
 
 def feat(board: np.ndarray, name: str) -> float:
     return float(board_features(board != 0)[BOARD_FEATURES.index(name)])
@@ -92,7 +94,7 @@ def test_afterstates_match_engine_place() -> None:
 
 def test_dedupe_reduces_symmetric_pieces() -> None:
     game = Game(0)
-    game.active.piece = Piece.O
+    respawn(game, Piece.O)
     plain = [a for a in enumerate_afterstates(game, include_hold=False)]
     unique = enumerate_afterstates(game, include_hold=False, dedupe=True)
     assert len(plain) == 4 * 9 and len(unique) == 9
@@ -151,3 +153,16 @@ def test_env_seed_determinism() -> None:
                 return rewards
 
     assert run() == run()
+
+
+def test_piece_pushed_up_by_garbage_still_has_moves() -> None:
+    game = Game(0)
+    spawn_row = game.active.row
+    game.board[HEIGHT - 19 :, :] = GARBAGE  # stack reaching row 5, one hole per row
+    for r in range(HEIGHT - 19, HEIGHT):
+        game.board[r, r % 10] = 0
+    game.receive_garbage(1)  # pushes the stack into the live piece
+    assert not game.game_over and game.active.row < spawn_row
+    mask = action_mask(game)
+    assert mask.any()
+    game.place(Placement.from_index(int(np.flatnonzero(mask)[0])))

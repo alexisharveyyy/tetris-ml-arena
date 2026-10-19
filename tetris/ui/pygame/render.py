@@ -28,6 +28,9 @@ PIECE_COLORS: dict[str, tuple[int, int, int]] = {
     "G": (120, 124, 136),
 }
 
+#: Outline colors for the agent's ranked candidate placements (best first).
+CANDIDATE_COLORS = ((255, 255, 255), (255, 214, 92), (255, 128, 64))
+
 #: Hidden rows drawn above the playfield so freshly spawned pieces are visible.
 SHOWN_HIDDEN_ROWS = 2
 
@@ -134,6 +137,22 @@ def draw_board(
             if ch != ".":
                 color = PIECE_COLORS[ch]
                 draw_cell(surface, *cell_pos(r, c), cell, _shade(color, 0.45) if dead else color)
+
+    for cand in reversed(player.get("candidates") or []):
+        color = CANDIDATE_COLORS[(cand["rank"] - 1) % len(CANDIDATE_COLORS)]
+        cells = [(r, c) for r, c in cand["cells"] if r >= first_row]
+        for r, c in cells:
+            gx, gy = cell_pos(r, c)
+            pygame.draw.rect(
+                surface, color, (gx + 2, gy + 2, cell - 4, cell - 4), max(2, cell // 10)
+            )
+        if cells:
+            r, c = min(cells)
+            gx, gy = cell_pos(r, c)
+            label = f"{cand['rank']}{'H' if cand.get('hold') else ''}"
+            draw_text(
+                surface, label, (gx + cell // 2, gy + cell // 2), max(14, cell), color, "center"
+            )
 
     active = player.get("active")
     if active:

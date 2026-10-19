@@ -1,0 +1,22 @@
+# GA over the 13 linear features (see tetris/env/features.py).
+seed: 0
+population: 50
+generations: 40
+games_per_eval: 10        # seeds per generation, shared by every individual
+elite: 4
+tournament: 3
+crossover_rate: 0.9
+mutation_rate: 0.3        # per-gene probability
+mutation_sigma: 0.3
+mutation_sigma_decay: 0.96
+mutation_sigma_min: 0.05
+workers: null             # null = cpu_count - 1
+checkpoint_every: 1
+
+# Fitness setting (garbage is the primary leaderboard setting).
+setting: garbage          # garbage: 1 row every 3 pieces, 500-piece cap
+
+# Final selection and reporting.
+final_candidates: 10      # hall-of-fame entries re-evaluated on selection seeds
+selection_games: 30
+final_eval_games: 100     # held-out seeds

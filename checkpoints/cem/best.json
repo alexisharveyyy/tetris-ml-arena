@@ -1,0 +1,95 @@
+{
+  "format": "linear-v1",
+  "feature_names": [
+    "aggregate_height",
+    "max_height",
+    "holes",
+    "rows_with_holes",
+    "hole_depth",
+    "bumpiness",
+    "wells",
+    "max_well_depth",
+    "row_transitions",
+    "col_transitions",
+    "lines_cleared",
+    "landing_height",
+    "eroded_cells"
+  ],
+  "weights": [
+    0.16231229660322646,
+    -0.5132369358778711,
+    -1.1320619940046945,
+    -2.132598329534272,
+    -0.2486087137820437,
+    0.08200894257420857,
+    -0.3666948903556989,
+    -0.86424934129179,
+    -0.9849769497305677,
+    -2.3710009002874233,
+    -1.3885088548801303,
+    -1.6350331295002805,
+    0.6702930238262125
+  ],
+  "agent": "cem",
+  "generation": 38,
+  "config": {
+    "seed": 0,
+    "samples": 50,
+    "generations": 40,
+    "games_per_eval": 10,
+    "elite_frac": 0.2,
+    "init_std": 0.5,
+    "extra_noise": 0.05,
+    "extra_noise_iters": 30,
+    "workers": null,
+    "checkpoint_every": 1,
+    "setting": "garbage",
+    "final_candidates": 10,
+    "selection_games": 30,
+    "final_eval_games": 100
+  },
+  "report": {
+    "agent": "cem",
+    "selected_generation": 38,
+    "selection_fitness": 1.3563315499999142,
+    "held_out": {
+      "garbage": {
+        "setting": {
+          "name": "garbage",
+          "max_pieces": 500,
+          "garbage_every": 3,
+          "garbage_rows": 1,
+          "include_hold": true
+        },
+        "games": 100.0,
+        "fitness": 1.3352025421401803,
+        "mean_pieces": 474.54,
+        "mean_lines": 325.82,
+        "mean_score": 754611.82,
+        "score_per_piece": 1544.490168560721,
+        "lines_per_piece": 0.6820597769486803,
+        "top_out_rate": 0.13,
+        "attack_per_minute": 40.8681951919692
+      },
+      "plain": {
+        "setting": {
+          "name": "plain",
+          "max_pieces": 1000,
+          "garbage_every": null,
+          "garbage_rows": 1,
+          "include_hold": true
+        },
+        "games": 100.0,
+        "fitness": 1.20482754,
+        "mean_pieces": 1000.0,
+        "mean_lines": 398.5,
+        "mean_score": 819310.16,
+        "score_per_piece": 819.3101599999999,
+        "lines_per_piece": 0.3985000000000001,
+        "top_out_rate": 0.0,
+        "attack_per_minute": 10.768799999999997
+      }
+    },
+    "note": "held_out re-evaluated with scripts/evaluate.py after the pushed-up-piece engine fix"
+  }
+}

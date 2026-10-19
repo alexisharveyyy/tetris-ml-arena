@@ -1,0 +1,44 @@
+{
+  "agent": "ga",
+  "selected_generation": 35,
+  "selection_fitness": 1.3537731804967874,
+  "held_out": {
+    "garbage": {
+      "setting": {
+        "name": "garbage",
+        "max_pieces": 500,
+        "garbage_every": 3,
+        "garbage_rows": 1,
+        "include_hold": true
+      },
+      "games": 100.0,
+      "fitness": 1.2690967661735537,
+      "mean_pieces": 450.41,
+      "mean_lines": 307.63,
+      "mean_score": 708463.12,
+      "score_per_piece": 1473.107064694215,
+      "lines_per_piece": 0.6718055113389404,
+      "top_out_rate": 0.2,
+      "attack_per_minute": 39.70966260100608
+    },
+    "plain": {
+      "setting": {
+        "name": "plain",
+        "max_pieces": 1000,
+        "garbage_every": null,
+        "garbage_rows": 1,
+        "include_hold": true
+      },
+      "games": 100.0,
+      "fitness": 1.1955429,
+      "mean_pieces": 1000.0,
+      "mean_lines": 398.6,
+      "mean_score": 782171.6,
+      "score_per_piece": 782.1716,
+      "lines_per_piece": 0.39860000000000007,
+      "top_out_rate": 0.0,
+      "attack_per_minute": 6.417600000000001
+    }
+  },
+  "note": "held_out re-evaluated with scripts/evaluate.py after the pushed-up-piece engine fix"
+}

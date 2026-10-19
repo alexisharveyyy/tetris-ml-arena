@@ -1,0 +1,98 @@
+{
+  "format": "linear-v1",
+  "feature_names": [
+    "aggregate_height",
+    "max_height",
+    "holes",
+    "rows_with_holes",
+    "hole_depth",
+    "bumpiness",
+    "wells",
+    "max_well_depth",
+    "row_transitions",
+    "col_transitions",
+    "lines_cleared",
+    "landing_height",
+    "eroded_cells"
+  ],
+  "weights": [
+    -0.022515362537873673,
+    -0.06057625881186195,
+    -0.31092953646585936,
+    -0.26170921084509446,
+    -0.0659336616194742,
+    -0.024093874937668427,
+    -0.09410282374802169,
+    0.006736280702297796,
+    -0.2320842723131641,
+    -0.7820258452115401,
+    0.20956361542799562,
+    -0.2423975547935588,
+    -0.2207378324073414
+  ],
+  "agent": "ga",
+  "generation": 35,
+  "config": {
+    "seed": 0,
+    "population": 50,
+    "generations": 40,
+    "games_per_eval": 10,
+    "elite": 4,
+    "tournament": 3,
+    "crossover_rate": 0.9,
+    "mutation_rate": 0.3,
+    "mutation_sigma": 0.3,
+    "mutation_sigma_decay": 0.96,
+    "mutation_sigma_min": 0.05,
+    "workers": null,
+    "checkpoint_every": 1,
+    "setting": "garbage",
+    "final_candidates": 10,
+    "selection_games": 30,
+    "final_eval_games": 100
+  },
+  "report": {
+    "agent": "ga",
+    "selected_generation": 35,
+    "selection_fitness": 1.3537731804967874,
+    "held_out": {
+      "garbage": {
+        "setting": {
+          "name": "garbage",
+          "max_pieces": 500,
+          "garbage_every": 3,
+          "garbage_rows": 1,
+          "include_hold": true
+        },
+        "games": 100.0,
+        "fitness": 1.2690967661735537,
+        "mean_pieces": 450.41,
+        "mean_lines": 307.63,
+        "mean_score": 708463.12,
+        "score_per_piece": 1473.107064694215,
+        "lines_per_piece": 0.6718055113389404,
+        "top_out_rate": 0.2,
+        "attack_per_minute": 39.70966260100608
+      },
+      "plain": {
+        "setting": {
+          "name": "plain",
+          "max_pieces": 1000,
+          "garbage_every": null,
+          "garbage_rows": 1,
+          "include_hold": true
+        },
+        "games": 100.0,
+        "fitness": 1.1955429,
+        "mean_pieces": 1000.0,
+        "mean_lines": 398.6,
+        "mean_score": 782171.6,
+        "score_per_piece": 782.1716,
+        "lines_per_piece": 0.39860000000000007,
+        "top_out_rate": 0.0,
+        "attack_per_minute": 6.417600000000001
+      }
+    },
+    "note": "held_out re-evaluated with scripts/evaluate.py after the pushed-up-piece engine fix"
+  }
+}

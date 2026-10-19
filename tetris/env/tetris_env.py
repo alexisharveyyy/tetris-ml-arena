@@ -19,6 +19,12 @@ from tetris.env.rewards import RewardConfig
 QUEUE_OBS = 5
 
 
+def inject_scheduled_garbage(game: Game, every: int | None, rows: int) -> None:
+    """Evaluation pressure: add ``rows`` garbage rows after every ``every`` pieces."""
+    if every and not game.game_over and game.pieces_placed % every == 0:
+        game.receive_garbage(rows)
+
+
 def encode_observation(game: Game) -> dict[str, np.ndarray]:
     """Observation dict for a game (also used by agents outside the env)."""
     queue = np.array([int(p) - 1 for p in game.queue[:QUEUE_OBS]], dtype=np.int64)
@@ -108,12 +114,7 @@ class TetrisEnv(gym.Env):
         except IllegalPlacementError:
             return self._illegal(placement)
 
-        if (
-            self.garbage_every
-            and not game.game_over
-            and game.pieces_placed % self.garbage_every == 0
-        ):
-            game.receive_garbage(self.garbage_rows)
+        inject_scheduled_garbage(game, self.garbage_every, self.garbage_rows)
 
         terminated = game.game_over or not self._mask().any()
         if terminated and not game.game_over:

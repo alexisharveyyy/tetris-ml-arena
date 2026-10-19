@@ -34,7 +34,7 @@ from tetris.engine.board import (
     piece_cells,
 )
 from tetris.engine.pieces import ALL_PIECES, CELLS, Piece, kicks
-from tetris.engine.placement import Placement, resolve_target, spawn_position
+from tetris.engine.placement import BoardIndex, Placement, spawn_position
 from tetris.engine.rng import Rng, derive_seed
 
 _BAG_STREAM = 1
@@ -71,6 +71,9 @@ class GameConfig:
     gravity: float | None = None
     #: Maximum garbage rows inserted per lock; None means no cap.
     garbage_cap: int | None = None
+    #: Chance that the garbage hole column moves between batches (rows within a
+    #: batch always share one hole).
+    hole_change_prob: float = 0.3
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
@@ -146,6 +149,7 @@ class Game:
         self.attack_sent = 0
         self.game_over = False
         self.pending_garbage: list[int] = []
+        self.garbage_hole: int | None = None
         self.time = 0.0
         self._gravity_acc = 0.0
         self._lock_timer = 0.0
@@ -340,13 +344,18 @@ class Game:
         """Instantly place the current piece (or hold piece) and lock it."""
         if self.game_over or self.active is None:
             raise IllegalPlacementError("game is over")
+        index = BoardIndex(self.board)
         if placement.use_hold:
             if not self.can_hold:
                 raise IllegalPlacementError("hold already used for this piece")
             piece = self.hold if self.hold is not None else self.queue[0]
+            target = index.resolve(piece, placement.rotation, placement.column)
         else:
-            piece = self.active.piece
-        target = resolve_target(self.board, piece, placement.rotation, placement.column)
+            a = self.active
+            piece = a.piece
+            target = index.resolve(
+                piece, placement.rotation, placement.column, (a.rot, a.row, a.col)
+            )
         if target is None:
             raise IllegalPlacementError(f"illegal placement {placement} for {piece.letter}")
         if placement.use_hold:
@@ -446,10 +455,19 @@ class Game:
             self.receive_garbage(rows)
 
     def receive_garbage(self, rows: int) -> None:
-        """Immediately insert ``rows`` garbage rows sharing one random hole column."""
+        """Immediately insert ``rows`` garbage rows sharing one hole column.
+
+        The hole column carries over from the previous batch and moves to a
+        different random column with probability ``config.hole_change_prob``.
+        """
         if rows <= 0 or self.game_over:
             return
-        hole = self.garbage_rng.randbelow(WIDTH)
+        hole = self.garbage_hole
+        if hole is None:
+            hole = self.garbage_rng.randbelow(WIDTH)
+        elif self.garbage_rng.random() < self.config.hole_change_prob:
+            hole = (hole + 1 + self.garbage_rng.randbelow(WIDTH - 1)) % WIDTH
+        self.garbage_hole = hole
         self.board, overflow = insert_garbage_rows(self.board, rows, hole)
         self._emit("garbage", rows=rows, hole=hole)
         a = self.active
@@ -486,6 +504,7 @@ class Game:
             "attack_sent": self.attack_sent,
             "game_over": self.game_over,
             "pending_garbage": list(self.pending_garbage),
+            "garbage_hole": self.garbage_hole,
             "time": self.time,
             "gravity_acc": self._gravity_acc,
             "lock_timer": self._lock_timer,
@@ -516,6 +535,7 @@ class Game:
         game.attack_sent = d["attack_sent"]
         game.game_over = d["game_over"]
         game.pending_garbage = list(d["pending_garbage"])
+        game.garbage_hole = d.get("garbage_hole")
         game.time = d["time"]
         game._gravity_acc = d["gravity_acc"]
         game._lock_timer = d["lock_timer"]

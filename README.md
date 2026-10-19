@@ -10,7 +10,7 @@ controller, and a web frontend can wrap the same controller later.
 | Phase | Scope | State |
 |---|---|---|
 | 1 | Engine, Gymnasium env, tests, Solo mode | Done |
-| 2 | Agent interface, path planner, GA heuristic, CEM, Watch AI | Planned |
+| 2 | Agent interface, path planner, GA heuristic, CEM, Watch AI | Done |
 | 3 | Race and Battle, opponent selection, difficulty, worker pool | Planned |
 | 4 | DQN, PPO | Planned |
 | 5 | Imitation learning, recording mode, NEAT | Planned |
@@ -50,6 +50,42 @@ Default controls (rebindable in Settings):
 DAS, ARR, soft drop speed and the ghost piece are set in Settings and saved to
 `configs/user_settings.yaml`. F12 saves a screenshot to `screenshots/`.
 
+### Watch AI
+
+Pick any agent with a checkpoint and watch it play in real time.
+
+| Key | Action |
+|---|---|
+| 1 to 4 | Difficulty preset: Easy, Medium, Hard, Unlimited |
+| Left/Right or -/+ | Free speed slider (pieces per second, up to unlimited) |
+| T | Show the agent's top 3 candidate placements as outlines (H = via hold) |
+| Space | Pause |
+| R | New game |
+| Esc | Back |
+
+## Train
+
+```bash
+python -m tetris.agents.heuristic_ga.train     # GA heuristic, about 15 minutes on 12 cores
+python -m tetris.agents.cem.train              # cross-entropy method, about 15 minutes
+python scripts/log_games.py --agent ga         # logs games for imitation learning
+tensorboard --logdir runs
+```
+
+Every trainer takes `--resume`, reads its `config.yaml`, seeds everything, and
+writes checkpoints under `checkpoints/<agent>/`.
+
+## Evaluate
+
+```bash
+python scripts/evaluate.py --games 100
+```
+
+Plays each available agent on 100 fixed held-out seeds and writes
+`reports/leaderboard.md` plus CSVs. The primary leaderboard is the garbage
+setting (one garbage row every 3 pieces, 500-piece cap). The plain setting
+(no garbage, 1,000-piece cap) is a secondary sanity check.
+
 ## Tests
 
 ```bash
@@ -63,12 +99,37 @@ ruff check tetris tests && ruff format --check tetris tests
 tetris/
   engine/     headless rules: SRS, 7-bag, hold, gravity, lock delay, scoring, garbage
   env/        Gymnasium env, afterstate enumeration, features, reward shaping
-  match/      MatchController, DAS/ARR input repeat
+  agents/     agent interface, registry, path planner, difficulty, evaluation
+    heuristic_ga/, cem/   one subpackage per agent: agent.py, train.py, config.yaml, README.md
+  match/      MatchController, agent drivers and runners, DAS/ARR input repeat
   ui/pygame/  the only package that imports Pygame
   settings.py key bindings and input timing
 configs/      default env and reward config
+scripts/      evaluate.py, log_games.py, bench_env.py
 tests/
 ```
+
+## Adding an agent
+
+1. Create `tetris/agents/<name>/` with `agent.py`, `train.py`, `config.yaml`
+   and `README.md`.
+2. In `agent.py`, subclass `tetris.agents.base.Agent`:
+   - set `key`, `name` and `description`;
+   - implement `rank_placements(game)` to return legal placements best first
+     as `ScoredPlacement` objects;
+   - implement `load(checkpoint)`.
+
+   `select_placement` and `decide` (which adds the top-k candidates for the
+   overlay) come for free, including epsilon noise from the difficulty
+   settings. Use `tetris.env.enumerate_afterstates(game)` or
+   `tetris.env.action_mask(game)` to see the legal moves.
+3. Register it in `tetris/agents/registry.py` with an `AgentSpec` naming the
+   factory (`"module:Class"`) and the checkpoint file. It appears in Watch AI
+   once that file exists under `checkpoints/<key>/`.
+4. Agents never move pieces themselves. The shared planner
+   (`tetris/agents/planner.py`) finds real SRS move sequences to the chosen
+   placement, and the match's agent driver plays them at the difficulty's
+   speed.
 
 ## Engine rules (v1)
 
@@ -88,7 +149,13 @@ tests/
 
 Agents choose a placement: `(rotation, column, use_hold)`, which gives 4 x 10 x 2 = 80
 discrete actions with a legality mask. A placement is legal when the piece can
-rotate in place at spawn, shift sideways at spawn height to the target column,
-and hard drop. Tucks and spins are out of scope for v1.
+rotate in place at spawn (every intermediate orientation must also fit, so no
+kick is needed), shift sideways at spawn height to the target column, and hard
+drop. Tucks and spins are out of scope for v1.
+
+A test runs 480 random states, about 21,800 legal actions, including tall,
+jagged and spawn-row stacks. It checks that the path planner can reach every
+action the mask allows, and that executing the plan reproduces the enumerated
+board exactly.
 `tetris.env.enumerate_afterstates(game)` returns every legal placement with its
 resulting board and features.

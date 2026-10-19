@@ -30,6 +30,12 @@ def set_active(game: Game, piece: Piece, rot: int, row: int, col: int) -> None:
     game.active.col = col
 
 
+def respawn(game: Game, piece: Piece) -> None:
+    """Replace the live piece with ``piece`` at its real spawn position."""
+    game.active = None
+    game._spawn(piece)
+
+
 def fill_rows(game: Game, rows: int, gap_col: int) -> None:
     """Fill the bottom ``rows`` rows except ``gap_col``."""
     for r in range(HEIGHT - rows, HEIGHT):
@@ -155,7 +161,7 @@ def test_single_line_clear() -> None:
     game = Game(0)
     fill_rows(game, 1, gap_col=0)
     game.board[HEIGHT - 1, 0:4] = 0
-    game.active.piece = Piece.I
+    respawn(game, Piece.I)
     game.place(Placement(0, 0))
     assert game.lines == 1
     assert not game.board[HEIGHT - 1].any()
@@ -164,7 +170,7 @@ def test_single_line_clear() -> None:
 def test_tetris_scores_and_attacks() -> None:
     game = Game(0)
     fill_rows(game, 4, gap_col=9)
-    game.active.piece = Piece.I
+    respawn(game, Piece.I)
     result = game.place(Placement(1, 9))
     assert result.lines == 4
     assert result.attack == 4
@@ -175,15 +181,15 @@ def test_tetris_scores_and_attacks() -> None:
 def test_back_to_back_tetris_bonus() -> None:
     game = Game(0)
     fill_rows(game, 4, gap_col=9)
-    game.active.piece = Piece.I
+    respawn(game, Piece.I)
     first = game.place(Placement(1, 9))
     assert (first.b2b, first.attack) == (False, 4)
     # A non-clearing piece breaks the combo but not the back-to-back chain.
-    game.active.piece = Piece.O
+    respawn(game, Piece.O)
     game.place(Placement(0, 0))
     game.board[:] = 0
     fill_rows(game, 4, gap_col=9)
-    game.active.piece = Piece.I
+    respawn(game, Piece.I)
     second = game.place(Placement(1, 9))
     assert (second.b2b, second.attack) == (True, 5)
     assert second.score == 1200
@@ -206,10 +212,10 @@ def test_combo_counter_increments_and_resets() -> None:
         game.board[:] = 0
         fill_rows(game, 1, gap_col=0)
         game.board[HEIGHT - 1, 0:4] = 0
-        game.active.piece = Piece.I
+        respawn(game, Piece.I)
         result = game.place(Placement(0, 0))
         assert result.combo == i
-    game.active.piece = Piece.O
+    respawn(game, Piece.O)
     game.place(Placement(0, 4))
     assert game.combo == -1
 
@@ -246,6 +252,32 @@ def test_receive_garbage_inserts_rows_with_one_hole() -> None:
     assert game.board[HEIGHT - 4, 0] == int(Piece.T)
 
 
+def _hole(game: Game) -> int:
+    return int(np.flatnonzero(game.board[HEIGHT - 1] == 0)[0])
+
+
+@pytest.mark.parametrize(("prob", "expect_change"), [(0.0, False), (1.0, True)])
+def test_hole_change_probability_extremes(prob: float, expect_change: bool) -> None:
+    game = Game(4, GameConfig(hole_change_prob=prob))
+    holes = []
+    for _ in range(20):
+        game.receive_garbage(1)
+        holes.append(_hole(game))
+    changes = sum(a != b for a, b in zip(holes, holes[1:], strict=False))
+    assert changes == (19 if expect_change else 0)
+
+
+def test_hole_change_rate_matches_config() -> None:
+    game = Game(8, GameConfig(hole_change_prob=0.3))
+    holes = []
+    for _ in range(2000):
+        game.board[:] = 0
+        game.receive_garbage(1)
+        holes.append(_hole(game))
+    rate = sum(a != b for a, b in zip(holes, holes[1:], strict=False)) / (len(holes) - 1)
+    assert 0.25 < rate < 0.35
+
+
 def test_garbage_overflow_tops_out() -> None:
     game = Game(0)
     game.board[0, 0] = GARBAGE
@@ -257,7 +289,7 @@ def test_pending_garbage_is_cancelled_by_attack() -> None:
     game = Game(0)
     game.queue_garbage(3)
     fill_rows(game, 4, gap_col=9)
-    game.active.piece = Piece.I
+    respawn(game, Piece.I)
     result = game.place(Placement(1, 9))
     assert result.attack == 4 and result.sent == 1
     assert game.pending_total == 0
@@ -266,7 +298,7 @@ def test_pending_garbage_is_cancelled_by_attack() -> None:
 def test_pending_garbage_inserted_on_non_clearing_lock() -> None:
     game = Game(0)
     game.queue_garbage(2)
-    game.active.piece = Piece.O
+    respawn(game, Piece.O)
     game.place(Placement(0, 0))
     assert game.pending_total == 0
     assert (game.board[HEIGHT - 2 :] == GARBAGE).sum() == 2 * (WIDTH - 1)
@@ -339,7 +371,7 @@ def test_placement_index_round_trip() -> None:
 def test_lock_out_ends_game() -> None:
     game = Game(0)
     game.board[4:, 1:] = GARBAGE  # column 0 open so no row is full
-    game.active.piece = Piece.O
+    respawn(game, Piece.O)
     game.place(Placement(0, 4))  # lands entirely in the hidden rows
     assert game.game_over
     assert game.pop_events()[-1].data["reason"] == "lock_out"

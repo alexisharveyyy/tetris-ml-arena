@@ -11,17 +11,23 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any
 
+from tetris.agents.difficulty import DifficultyParams
 from tetris.engine.board import HIDDEN_ROWS, board_to_strings, piece_cells
 from tetris.engine.game import Game, GameConfig, Move
+from tetris.match.agent_driver import AgentDriver
+from tetris.match.agent_runtime import AgentRunner, InlineRunner
 
 
 @dataclass
 class PlayerSpec:
-    """Who sits at a board."""
+    """Who sits at a board. Agent players name a registry key and a difficulty."""
 
     player_id: str
     name: str
     kind: str = "human"  # "human" or "agent"
+    agent_key: str | None = None
+    difficulty: DifficultyParams = field(default_factory=DifficultyParams)
+    checkpoint: str | None = None
 
 
 @dataclass
@@ -35,14 +41,20 @@ class MatchConfig:
 class PlayerState:
     spec: PlayerSpec
     game: Game
-    thinking: bool = False
+    driver: AgentDriver | None = None
     finish_time: float | None = None
 
 
 class MatchController:
     """Runs one match. Phase 1 supports solo play; later phases add race and battle."""
 
-    def __init__(self, config: MatchConfig, players: list[PlayerSpec]) -> None:
+    def __init__(
+        self,
+        config: MatchConfig,
+        players: list[PlayerSpec],
+        runner: AgentRunner | None = None,
+        top_k: int = 0,
+    ) -> None:
         if not players:
             raise ValueError("a match needs at least one player")
         ids = [p.player_id for p in players]
@@ -50,6 +62,21 @@ class MatchController:
             raise ValueError("player ids must be unique")
         self.config = config
         self.specs = list(players)
+        self.top_k = top_k
+        self.runner = runner
+        agents = [p for p in players if p.kind == "agent"]
+        if agents and self.runner is None:
+            self.runner = InlineRunner()
+        for i, spec in enumerate(agents):
+            if spec.agent_key is None:
+                raise ValueError(f"agent player {spec.player_id} needs an agent_key")
+            self.runner.add_agent(
+                spec.player_id,
+                spec.agent_key,
+                spec.difficulty,
+                spec.checkpoint,
+                seed=config.seed + i,
+            )
         self.reset()
 
     def reset(self) -> None:
@@ -58,11 +85,33 @@ class MatchController:
         self.paused = False
         self.finished = False
         self.winner: str | None = None
-        self.players: dict[str, PlayerState] = {
-            spec.player_id: PlayerState(spec, Game(self.config.seed, self.config.game))
-            for spec in self.specs
-        }
+        self.players: dict[str, PlayerState] = {}
+        for spec in self.specs:
+            driver = None
+            if spec.kind == "agent":
+                assert self.runner is not None
+                driver = AgentDriver(spec.player_id, self.runner, spec.difficulty, self.top_k)
+            self.players[spec.player_id] = PlayerState(
+                spec, Game(self.config.seed, self.config.game), driver
+            )
         self.events: list[dict[str, Any]] = []
+
+    def close(self) -> None:
+        """Shut down agent runners."""
+        if self.runner is not None:
+            self.runner.close()
+
+    def set_difficulty(self, player_id: str, difficulty: DifficultyParams) -> None:
+        player = self.players[player_id]
+        player.spec.difficulty = difficulty
+        if player.driver is not None:
+            player.driver.set_difficulty(difficulty)
+
+    def set_top_k(self, top_k: int) -> None:
+        self.top_k = top_k
+        for player in self.players.values():
+            if player.driver is not None:
+                player.driver.top_k = top_k
 
     # ------------------------------------------------------------ control
 
@@ -71,10 +120,12 @@ class MatchController:
             self.paused = paused
 
     def apply_input(self, player_id: str, action: Move | str) -> bool:
-        """Apply a move for a player. Ignored while paused or after game over."""
+        """Apply a human move. Ignored while paused, after game over, or for agent boards."""
         if self.paused or self.finished:
             return False
         player = self.players[player_id]
+        if player.driver is not None:
+            return False
         changed = player.game.apply(action)
         self._collect(player)
         return changed
@@ -85,6 +136,9 @@ class MatchController:
             return
         self.time += dt
         for player in self.players.values():
+            if player.driver is not None and not player.game.game_over:
+                player.driver.update(player.game, dt)
+                self._collect(player)
             if not player.game.game_over:
                 player.game.tick(dt)
             self._collect(player)
@@ -152,5 +206,6 @@ class MatchController:
             "attack_sent": g.attack_sent,
             "pending_garbage": g.pending_total,
             "game_over": g.game_over,
-            "thinking": player.thinking,
+            "thinking": player.driver.thinking if player.driver else False,
+            "candidates": player.driver.candidate_cells if player.driver else [],
         }

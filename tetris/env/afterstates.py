@@ -13,10 +13,18 @@ from dataclasses import dataclass
 import numpy as np
 
 from tetris.engine import scoring
-from tetris.engine.board import HEIGHT, HIDDEN_ROWS, clear_full_rows
+from tetris.engine.board import HEIGHT, HIDDEN_ROWS
 from tetris.engine.game import Game
 from tetris.engine.pieces import CELLS, Piece
-from tetris.engine.placement import NUM_ACTIONS, Placement, Target, legal_targets, spawn_position
+from tetris.engine.placement import (
+    FULL_ROW,
+    NUM_ACTIONS,
+    BoardIndex,
+    Placement,
+    Target,
+    board_rows,
+    piece_row_masks,
+)
 from tetris.env.features import full_features
 
 
@@ -46,19 +54,40 @@ def _hold_piece_and_next(game: Game) -> tuple[Piece, Piece]:
     return game.queue[0], game.queue[1]
 
 
+def _cache_key(game: Game, include_hold: bool) -> tuple:
+    a = game.active
+    return (
+        game.board.tobytes(),
+        (a.piece, a.rot, a.row, a.col) if a else None,
+        game.hold,
+        game.can_hold,
+        game.queue[0] if game.queue else None,
+        include_hold,
+    )
+
+
 def legal_placements(game: Game, include_hold: bool = True) -> list[tuple[Placement, Target]]:
-    """All legal placements for the game's current decision point."""
+    """All legal placements for the game's current decision point.
+
+    Results are cached on the game object, keyed by everything that affects
+    legality, so repeated calls (mask, afterstates, step) cost one lookup.
+    """
     if game.game_over or game.active is None:
         return []
+    key = _cache_key(game, include_hold)
+    cached = getattr(game, "_placement_cache", None)
+    if cached is not None and cached[0] == key:
+        return cached[1]
+    index = BoardIndex(game.board)
+    a = game.active
     out = [
         (Placement(t.rotation, t.column, False), t)
-        for t in legal_targets(game.board, game.active.piece)
+        for t in index.targets(a.piece, (a.rot, a.row, a.col))
     ]
     if include_hold and game.can_hold:
         piece, _ = _hold_piece_and_next(game)
-        out.extend(
-            (Placement(t.rotation, t.column, True), t) for t in legal_targets(game.board, piece)
-        )
+        out.extend((Placement(t.rotation, t.column, True), t) for t in index.targets(piece))
+    game._placement_cache = (key, out)
     return out
 
 
@@ -82,37 +111,45 @@ def enumerate_afterstates(
     candidates = legal_placements(game, include_hold)
     if not candidates:
         return []
-    boards = np.empty((len(candidates), HEIGHT, game.board.shape[1]), dtype=np.int8)
-    lines = np.zeros(len(candidates), dtype=np.int32)
-    landing = np.zeros(len(candidates), dtype=np.float32)
-    eroded = np.zeros(len(candidates), dtype=np.int32)
-    top_out = np.zeros(len(candidates), dtype=bool)
-    attacks = np.zeros(len(candidates), dtype=np.int32)
+    n_cand = len(candidates)
+    boards = np.empty((n_cand, HEIGHT, game.board.shape[1]), dtype=np.int8)
+    lines = np.zeros(n_cand, dtype=np.int32)
+    landing = np.zeros(n_cand, dtype=np.float32)
+    eroded = np.zeros(n_cand, dtype=np.int32)
+    top_out = np.zeros(n_cand, dtype=bool)
+    attacks = np.zeros(n_cand, dtype=np.int32)
 
+    rows0 = board_rows(game.board)
     next_plain = game.queue[0]
     _, next_hold = _hold_piece_and_next(game)
 
     for i, (placement, t) in enumerate(candidates):
-        board = game.board.copy()
-        rows = []
-        for dr, dc in CELLS[t.piece][t.rotation]:
+        rows = rows0[:]
+        touched = []
+        for dr, mask in piece_row_masks(t.piece, t.rotation):
             r = t.row + dr
-            board[r, t.box_col + dc] = int(t.piece)
-            rows.append(r)
-        min_r, max_r = min(rows), max(rows)
+            rows[r] |= mask << t.box_col if t.box_col >= 0 else mask >> -t.box_col
+            touched.append(r)
+        min_r, max_r = touched[0], touched[-1]
         landing[i] = HEIGHT - (min_r + max_r) / 2.0
         lock_out = max_r < HIDDEN_ROWS
-        board, cleared = clear_full_rows(board)
-        n = len(cleared)
-        lines[i] = n
-        if n:
-            eroded[i] = n * sum(1 for r in rows if r in cleared)
-            combo = game.combo + 1
-            b2b = n == 4 and game.b2b
-            attacks[i] = scoring.attack_for(n, combo, b2b)
-        boards[i] = board
+
+        board = boards[i]
+        board[:] = game.board
+        for dr, dc in CELLS[t.piece][t.rotation]:
+            board[t.row + dr, t.box_col + dc] = int(t.piece)
+        full = [r for r in touched if rows[r] == FULL_ROW]
+        if full:
+            n = len(full)
+            kept = [r for r in range(HEIGHT) if r not in full]
+            board[n:] = board[kept]
+            board[:n] = 0
+            rows = [0] * n + [rows[r] for r in kept]
+            lines[i] = n
+            eroded[i] = n * sum(1 for dr, dc in CELLS[t.piece][t.rotation] if t.row + dr in full)
+            attacks[i] = scoring.attack_for(n, game.combo + 1, n == 4 and game.b2b)
         nxt = next_hold if placement.use_hold else next_plain
-        top_out[i] = lock_out or spawn_position(board, nxt) is None
+        top_out[i] = lock_out or BoardIndex(rows=rows).spawn(nxt) is None
 
     feats = full_features(boards != 0, lines, landing, eroded)
     result = [

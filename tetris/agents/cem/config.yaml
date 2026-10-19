@@ -1,0 +1,17 @@
+# Cross-entropy method over the 13 linear features (see tetris/env/features.py).
+seed: 0
+samples: 50               # candidates per iteration
+generations: 40           # iterations
+games_per_eval: 10        # seeds per iteration, shared by every sample
+elite_frac: 0.2
+init_std: 0.5
+extra_noise: 0.05         # added to the variance, linearly decayed to 0
+extra_noise_iters: 30     # (Szita and Lorincz 2006 noisy CEM)
+workers: null
+checkpoint_every: 1
+
+setting: garbage
+
+final_candidates: 10
+selection_games: 30
+final_eval_games: 100

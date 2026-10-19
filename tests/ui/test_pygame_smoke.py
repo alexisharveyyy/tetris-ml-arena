@@ -59,3 +59,31 @@ def test_settings_screen_renders(app, tmp_path, monkeypatch) -> None:
     press(pygame.K_a)
     app.frame(1 / 60)
     assert app.settings.bindings["left"][0] == "a"
+
+
+def test_watch_ai_flow(app) -> None:
+    from tetris.agents.registry import AGENTS
+    from tetris.ui.pygame.screens.menu import MenuScreen
+    from tetris.ui.pygame.screens.watch import WatchScreen, WatchSelectScreen
+
+    app.push(MenuScreen(app))
+    press(pygame.K_DOWN)  # Watch AI
+    press(pygame.K_RETURN)
+    app.frame(1 / 60)
+    assert isinstance(app.screen, WatchSelectScreen)
+
+    watch = WatchScreen(app, AGENTS["dellacherie"], seed=1)
+    app.push(watch)
+    press(pygame.K_4)  # Unlimited
+    press(pygame.K_t)  # top 3 overlay
+    for _ in range(30):
+        app.frame(1 / 60)
+    assert watch.pps is None and watch.show_candidates
+    assert watch.match.get_snapshot()["players"][0]["pieces"] >= 20
+    press(pygame.K_1)  # Easy
+    press(pygame.K_RIGHT)  # nudge speed up from the preset
+    app.frame(1 / 60)
+    assert watch.preset == "Easy" and watch.pps > 0.8
+    press(pygame.K_ESCAPE)
+    app.frame(1 / 60)
+    assert isinstance(app.screen, WatchSelectScreen)

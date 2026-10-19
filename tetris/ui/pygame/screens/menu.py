@@ -15,11 +15,12 @@ class MenuScreen(Screen):
         super().__init__(app)
         from tetris.ui.pygame.screens.settings_screen import SettingsScreen
         from tetris.ui.pygame.screens.solo import SoloScreen
+        from tetris.ui.pygame.screens.watch import WatchSelectScreen
 
         # (label, action or None if not available yet, note for unavailable items)
         self.items: list[tuple[str, Callable[[], None] | None, str]] = [
             ("Solo practice", lambda: app.push(SoloScreen(app)), ""),
-            ("Watch AI", None, "Available in phase 2"),
+            ("Watch AI", lambda: app.push(WatchSelectScreen(app)), ""),
             ("Race", None, "Available in phase 3"),
             ("Battle", None, "Available in phase 3"),
             ("Record Gameplay", None, "Available in phase 5"),

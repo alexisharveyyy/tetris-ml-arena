@@ -34,6 +34,10 @@ class Rng:
             raise ValueError("n must be positive")
         return self.next_u64() % n
 
+    def random(self) -> float:
+        """Float in ``[0, 1)`` with 53 bits of precision."""
+        return (self.next_u64() >> 11) / float(1 << 53)
+
     def shuffle(self, seq: MutableSequence[T]) -> None:
         """Fisher-Yates shuffle in place."""
         for i in range(len(seq) - 1, 0, -1):
