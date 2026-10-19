@@ -6,7 +6,7 @@ import random
 
 import pygame
 
-from tetris.agents.difficulty import PRESET_NAMES, PRESETS
+from tetris.agents.difficulty import PRESET_NAMES, PRESETS, nudge_pps
 from tetris.agents.registry import AgentSpec, available_agents
 from tetris.match import MatchConfig, MatchController, PlayerSpec
 from tetris.ui.pygame.render import (
@@ -24,27 +24,6 @@ from tetris.ui.pygame.render import (
 from tetris.ui.pygame.screens.base import Screen
 
 PLAYER_ID = "ai"
-#: Free speed slider stops, in pieces per second (None = unlimited).
-PPS_STOPS: tuple[float | None, ...] = (
-    0.25,
-    0.5,
-    0.75,
-    1.0,
-    1.25,
-    1.5,
-    2.0,
-    2.5,
-    3.0,
-    4.0,
-    5.0,
-    6.0,
-    8.0,
-    10.0,
-    15.0,
-    20.0,
-    30.0,
-    None,
-)
 
 
 class WatchSelectScreen(Screen):
@@ -126,12 +105,7 @@ class WatchScreen(Screen):
         self._apply_difficulty()
 
     def _nudge_speed(self, step: int) -> None:
-        stops = list(PPS_STOPS)
-        if self.pps in stops:
-            i = stops.index(self.pps)
-        else:
-            i = min(range(len(stops) - 1), key=lambda j: abs((stops[j] or 1e9) - self.pps))
-        self.pps = stops[max(0, min(len(stops) - 1, i + step))]
+        self.pps = nudge_pps(self.pps, step)
         self._apply_difficulty()
 
     def on_focus_lost(self) -> None:

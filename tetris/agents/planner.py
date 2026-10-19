@@ -17,6 +17,9 @@ from tetris.engine.placement import BoardIndex, Placement, Target
 
 State = tuple[int, int, int]  # (rot, row, col)
 
+#: Re-plans allowed per executor before the target is treated as unreachable.
+MAX_REPLANS = 8
+
 _LATERAL = (Move.CW, Move.CCW, Move.LEFT, Move.RIGHT)
 
 
@@ -118,7 +121,8 @@ class PlanExecutor:
 
     Gravity can move the piece between moves; when the piece is not where the
     plan expects, the executor re-plans from the current state. If the target
-    becomes unreachable it hard drops where it is.
+    becomes unreachable, :attr:`unreachable` is set and the next move is a hard
+    drop in place.
     """
 
     def __init__(self, game: Game, placement: Placement) -> None:
@@ -130,11 +134,16 @@ class PlanExecutor:
 
     def _plan(self, game: Game) -> None:
         moves = plan_path(game, self.placement)
+        #: True when the target can no longer be reached (for example gravity
+        #: pulled the piece below a ledge). Callers may choose a new placement;
+        #: otherwise :meth:`next_move` hard drops in place.
+        self.unreachable = moves is None
         self.moves: deque[Move] = deque(moves if moves is not None else [Move.HARD])
         self._expected: State | None = None
 
     def next_move(self, game: Game) -> Move | None:
-        """Apply the next move. Returns it, or None when finished."""
+        """Apply the next move. Returns it, or None when finished or when the
+        target just became unreachable (see :attr:`unreachable`)."""
         if self.done or game.game_over or game.active is None:
             self.done = True
             return None
@@ -147,6 +156,12 @@ class PlanExecutor:
             self.replans += 1
             self.placement = Placement(self.placement.rotation, self.placement.column, False)
             self._plan(game)
+            if self.replans > MAX_REPLANS:
+                # Gravity keeps undoing the plan; treat the target as unreachable.
+                self.unreachable = True
+                self.moves = deque([Move.HARD])
+            if self.unreachable:
+                return None  # let the caller re-decide before dropping
         if not self.moves:
             self.moves.append(Move.HARD)
         move = self.moves.popleft()

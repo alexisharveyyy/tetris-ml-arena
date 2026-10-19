@@ -18,6 +18,10 @@ from tetris.engine.game import Game, Move
 from tetris.engine.placement import BoardIndex, Placement
 from tetris.match.agent_runtime import AgentRunner, Decision
 
+#: Times per piece the driver asks for a new placement when gravity makes the
+#: chosen one unreachable, before giving up and dropping in place.
+MAX_REDECISIONS = 3
+
 
 class Phase(Enum):
     IDLE = "idle"
@@ -33,11 +37,13 @@ class AgentDriver:
         runner: AgentRunner,
         difficulty: DifficultyParams,
         top_k: int = 0,
+        lockstep: bool = False,
     ) -> None:
         self.player_id = player_id
         self.runner = runner
         self.difficulty = difficulty
         self.top_k = top_k
+        self.lockstep = lockstep
         self.clock = 0.0
         self.phase = Phase.IDLE
         self.request_id = 0
@@ -50,6 +56,8 @@ class AgentDriver:
         self._decision: Decision | None = None
         self._executor: PlanExecutor | None = None
         self._move_acc = 0.0
+        self._redecisions = 0
+        self.redecisions_total = 0
         self.candidate_cells: list[dict[str, Any]] = []
 
     @property
@@ -60,10 +68,12 @@ class AgentDriver:
         self.difficulty = difficulty
         self.runner.set_difficulty(self.player_id, difficulty)
 
-    def reset(self) -> None:
-        self.__init__(self.player_id, self.runner, self.difficulty, self.top_k)  # type: ignore[misc]
-
     # ------------------------------------------------------------------ loop
+
+    @property
+    def idle(self) -> bool:
+        """True between pieces (the controller may call :meth:`update` again)."""
+        return self.phase is Phase.IDLE
 
     def update(self, game: Game, dt: float) -> None:
         self.clock += dt
@@ -72,11 +82,13 @@ class AgentDriver:
         if self.phase is not Phase.IDLE and game.pieces_placed != self._token:
             # The piece locked without us (for example lock delay while thinking).
             self._finish_piece(locked_by_driver=False)
-
         if self.phase is Phase.IDLE:
             self._request(game)
         if self.phase is Phase.THINKING:
-            decision = self.runner.poll(self.player_id)
+            if self.lockstep:
+                decision = self.runner.wait(self.player_id)
+            else:
+                decision = self.runner.poll(self.player_id)
             if decision is not None and decision.request_id == self.request_id:
                 self._accept(game, decision)
         if (
@@ -93,10 +105,12 @@ class AgentDriver:
         if self.phase is Phase.MOVING:
             self._run_moves(game, dt)
 
-    def _request(self, game: Game) -> None:
+    def _request(self, game: Game, keep_clock: bool = False) -> None:
         self.request_id += 1
         self._token = game.pieces_placed
-        self._spawn_clock = self.clock
+        if not keep_clock:
+            self._spawn_clock = self.clock
+            self._redecisions = 0
         self.phase = Phase.THINKING
         self.runner.submit(self.player_id, self.request_id, game.to_dict(), self.top_k)
 
@@ -121,6 +135,12 @@ class AgentDriver:
         else:
             self._move_acc += dt * rate
         while self._move_acc >= 1.0 and not ex.done:
+            if ex.unreachable and self._redecisions < MAX_REDECISIONS:
+                # Gravity moved the piece past its target: decide again from here.
+                self._redecisions += 1
+                self.redecisions_total += 1
+                self._request(game, keep_clock=True)
+                return
             upcoming = ex.moves[0] if ex.moves else Move.HARD
             if upcoming is Move.HARD and not self._drop_allowed():
                 self._move_acc = min(self._move_acc, 1.0)

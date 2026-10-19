@@ -62,6 +62,26 @@ def draw_text(
     return rect
 
 
+def draw_text_fit(
+    surface: pygame.Surface,
+    text: str,
+    pos: tuple[int, int],
+    max_width: int,
+    size: int = 28,
+    color: tuple[int, int, int] = TEXT,
+    anchor: str = "topleft",
+    min_size: int = 16,
+) -> pygame.Rect:
+    """Like :func:`draw_text`, shrinking the font (then truncating) to fit ``max_width``."""
+    while size > min_size and font(size).size(text)[0] > max_width:
+        size -= 1
+    if font(size).size(text)[0] > max_width:
+        while len(text) > 1 and font(size).size(text + "...")[0] > max_width:
+            text = text[:-1]
+        text = text.rstrip() + "..."
+    return draw_text(surface, text, pos, size, color, anchor)
+
+
 def _shade(color: tuple[int, int, int], factor: float) -> tuple[int, int, int]:
     return tuple(max(0, min(255, int(c * factor))) for c in color)  # type: ignore[return-value]
 
@@ -270,3 +290,47 @@ def draw_menu(
             color = ACCENT if enabled else _shade(ACCENT, 0.6)
             label = f"> {label} <"
         draw_text(surface, label, (cx, top + i * spacing), size, color, "center")
+
+
+WARNING = (255, 196, 64)
+
+
+def small_player_size(cell: int) -> tuple[int, int]:
+    bw, bh = board_size(cell)
+    return bw + cell, bh + 92
+
+
+def draw_player_small(
+    surface: pygame.Surface,
+    player: dict[str, Any],
+    origin: tuple[int, int],
+    cell: int,
+    hidden_rows: int,
+    names: dict[str, str],
+    show_garbage: bool = False,
+    blink: bool = False,
+) -> pygame.Rect:
+    """Compact opponent board: name, playfield, stats, targeting and warnings."""
+    x0, y0 = origin
+    board_x = x0 + cell
+    draw_text_fit(surface, player["name"], (board_x, y0), board_size(cell)[0] + cell, 24, TEXT)
+    field = draw_board(surface, player, (board_x, y0 + 22), cell, hidden_rows, show_ghost=False)
+    if show_garbage:
+        draw_garbage_meter(surface, field, player.get("pending_garbage", 0), cell)
+    y = field.bottom + 4
+    draw_text(surface, f"{player['score']:,}  L{player['lines']}", (board_x, y), 22, TEXT)
+    if player.get("thinking"):
+        if blink:
+            draw_text(surface, "AI is thinking", (field.right, y), 20, ACCENT, "topright")
+    y += 20
+    if player.get("targets"):
+        who = "all" if len(player["targets"]) > 1 else names.get(player["targets"][0], "?")
+        draw_text(surface, f"-> {who}", (board_x, y), 20, MUTED)
+        y += 18
+    if player.get("warning"):
+        draw_text(surface, "! fallback: Dellacherie", (board_x, y), 18, WARNING)
+    if player.get("game_over"):
+        draw_text(surface, "TOPPED OUT", field.center, 24, DANGER, "center")
+    elif player.get("done"):
+        draw_text(surface, "FINISHED", field.center, 24, ACCENT, "center")
+    return field

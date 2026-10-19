@@ -42,8 +42,8 @@ AGENTS: dict[str, AgentSpec] = {
     for spec in (
         AgentSpec(
             "dellacherie",
-            "Dellacherie (reference)",
-            "Hand-tuned classic evaluation; untrained reference baseline.",
+            "Dellacherie (baseline)",
+            "Hand-tuned baseline: classic Dellacherie evaluation, not trained.",
             "tetris.agents.linear:DellacherieAgent",
             None,
         ),
@@ -70,22 +70,46 @@ def available_agents() -> list[AgentSpec]:
     return [spec for spec in AGENTS.values() if spec.available]
 
 
+def register_agent(spec: AgentSpec) -> None:
+    """Add or replace an agent spec (plugins, tests)."""
+    AGENTS[spec.key] = spec
+
+
+def create_agent_from_factory(
+    factory: str,
+    checkpoint: str | Path | None = None,
+    difficulty: DifficultyParams | None = None,
+    seed: int | None = None,
+) -> Agent:
+    """Instantiate ``"module:Class"`` and load ``checkpoint`` if given."""
+    module_name, cls_name = factory.split(":")
+    cls = getattr(importlib.import_module(module_name), cls_name)
+    agent: Agent = cls(seed=seed)
+    if checkpoint is not None:
+        path = Path(checkpoint)
+        if not path.exists():
+            raise FileNotFoundError(f"checkpoint not found: {path}")
+        agent.load(path)
+    if difficulty is not None:
+        agent.set_difficulty(difficulty)
+    return agent
+
+
+def resolve_checkpoint(key: str, checkpoint: str | Path | None = None) -> str | None:
+    """Explicit checkpoint, else the spec's default path, else None."""
+    if checkpoint is not None:
+        return str(checkpoint)
+    path = AGENTS[key].checkpoint_path
+    return str(path) if path is not None else None
+
+
 def create_agent(
     key: str,
     checkpoint: str | Path | None = None,
     difficulty: DifficultyParams | None = None,
     seed: int | None = None,
 ) -> Agent:
-    """Instantiate an agent and load its checkpoint."""
-    spec = AGENTS[key]
-    module_name, cls_name = spec.factory.split(":")
-    cls = getattr(importlib.import_module(module_name), cls_name)
-    agent: Agent = cls(seed=seed)
-    path = Path(checkpoint) if checkpoint else spec.checkpoint_path
-    if path is not None:
-        if not path.exists():
-            raise FileNotFoundError(f"no checkpoint for {key}: {path}")
-        agent.load(path)
-    if difficulty is not None:
-        agent.set_difficulty(difficulty)
-    return agent
+    """Instantiate a registry agent and load its checkpoint."""
+    return create_agent_from_factory(
+        AGENTS[key].factory, resolve_checkpoint(key, checkpoint), difficulty, seed
+    )

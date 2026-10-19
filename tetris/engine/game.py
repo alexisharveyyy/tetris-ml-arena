@@ -130,12 +130,19 @@ class Event:
 class Game:
     """A single Tetris board with its own piece sequence."""
 
-    def __init__(self, seed: int = 0, config: GameConfig | None = None) -> None:
+    def __init__(
+        self, seed: int = 0, config: GameConfig | None = None, garbage_seed: int | None = None
+    ) -> None:
+        """``seed`` drives the piece sequence. ``garbage_seed`` (default: derived
+        from ``seed``) drives garbage hole columns, so boards in a match can share
+        pieces but have independent holes."""
         self.seed = seed
         self.config = config or GameConfig()
         self.board = empty_board()
         self.bag_rng = Rng(derive_seed(seed, _BAG_STREAM))
-        self.garbage_rng = Rng(derive_seed(seed, _GARBAGE_STREAM))
+        self.garbage_rng = Rng(
+            derive_seed(seed if garbage_seed is None else garbage_seed, _GARBAGE_STREAM)
+        )
         self.queue: list[Piece] = []
         self.active: ActivePiece | None = None
         self.hold: Piece | None = None
@@ -221,14 +228,19 @@ class Game:
         a = self.active
         return a is not None and not fits(self.board, a.piece, a.rot, a.row + 1, a.col)
 
-    def _on_successful_move(self) -> None:
+    def _on_successful_move(self, was_grounded: bool) -> None:
+        """Lock-delay bookkeeping after a shift, rotation or soft drop.
+
+        A move counts toward the reset limit if the piece was on the ground
+        before or after it, so floor kicks that lift the piece still count.
+        """
         a = self.active
         assert a is not None
         if a.row > self._lowest_row:
             self._lowest_row = a.row
             self._lock_resets = 0
             self._lock_timer = 0.0
-        elif self._grounded() and self._lock_resets < self.config.max_lock_resets:
+        elif (was_grounded or self._grounded()) and self._lock_resets < self.config.max_lock_resets:
             self._lock_resets += 1
             self._lock_timer = 0.0
 
@@ -236,8 +248,9 @@ class Game:
         a = self.active
         if a is None or not fits(self.board, a.piece, a.rot, a.row, a.col + dcol):
             return False
+        was_grounded = self._grounded()
         a.col += dcol
-        self._on_successful_move()
+        self._on_successful_move(was_grounded)
         return True
 
     def _rotate(self, direction: int) -> bool:
@@ -247,10 +260,11 @@ class Game:
         new_rot = (a.rot + direction) % 4
         for drow, dcol in kicks(a.piece, a.rot, new_rot):
             if fits(self.board, a.piece, new_rot, a.row + drow, a.col + dcol):
+                was_grounded = self._grounded()
                 a.rot = new_rot
                 a.row += drow
                 a.col += dcol
-                self._on_successful_move()
+                self._on_successful_move(was_grounded)
                 return True
         return False
 
@@ -260,7 +274,7 @@ class Game:
             return False
         a.row += 1
         self.score += 1
-        self._on_successful_move()
+        self._on_successful_move(False)
         return True
 
     def _hard_drop(self) -> LockResult | None:
@@ -326,7 +340,12 @@ class Game:
                 self._lock_timer = 0.0
         if self._grounded():
             self._lock_timer += dt
-            if self._lock_timer >= self.config.lock_delay:
+            # Extended placement: once the move resets are used up, the piece locks
+            # as soon as it touches down (prevents infinite spinning with floor kicks).
+            if (
+                self._lock_timer >= self.config.lock_delay
+                or self._lock_resets >= self.config.max_lock_resets
+            ):
                 self._lock()
         else:
             self._lock_timer = 0.0

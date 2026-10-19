@@ -14,4 +14,4 @@ setting: garbage
 
 final_candidates: 10
 selection_games: 30
-final_eval_games: 100
+final_eval_games: 500

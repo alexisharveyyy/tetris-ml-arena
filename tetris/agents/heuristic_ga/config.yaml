@@ -19,4 +19,4 @@ setting: garbage          # garbage: 1 row every 3 pieces, 500-piece cap
 # Final selection and reporting.
 final_candidates: 10      # hall-of-fame entries re-evaluated on selection seeds
 selection_games: 30
-final_eval_games: 100     # held-out seeds
+final_eval_games: 500     # held-out seeds

@@ -29,6 +29,8 @@ def linear_agents(tmp_path):
     """Every linear agent type, with a temporary checkpoint where one is needed."""
     agents = []
     for key, spec in AGENTS.items():
+        if not spec.factory.startswith("tetris."):
+            continue  # test doubles registered by other test modules
         ckpt = None
         if spec.checkpoint:
             ckpt = tmp_path / f"{key}.json"

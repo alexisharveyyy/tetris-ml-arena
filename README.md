@@ -11,7 +11,7 @@ controller, and a web frontend can wrap the same controller later.
 |---|---|---|
 | 1 | Engine, Gymnasium env, tests, Solo mode | Done |
 | 2 | Agent interface, path planner, GA heuristic, CEM, Watch AI | Done |
-| 3 | Race and Battle, opponent selection, difficulty, worker pool | Planned |
+| 3 | Race and Battle, opponent selection, difficulty, worker pool | Done |
 | 4 | DQN, PPO | Planned |
 | 5 | Imitation learning, recording mode, NEAT | Planned |
 | 6 | Decision Transformer, optional LLM agent | Planned |
@@ -63,6 +63,41 @@ Pick any agent with a checkpoint and watch it play in real time.
 | R | New game |
 | Esc | Back |
 
+### Race and Battle
+
+Choose 1 to 3 opponents (duplicates allowed), each with a difficulty preset or
+custom settings. Only agents with checkpoints are listed, and the last
+selection is remembered.
+
+- **Race**: all boards get the same piece sequence. Pick a win condition: most
+  lines in a time limit, first to N lines, or highest score at the time limit.
+  Topping out ends that player's game.
+- **Battle**: line clears send garbage (see the attack table below) to opponents
+  by targeting rule: a random opponent, the leader (most lines), or all
+  opponents with the rows split. Each board has its own garbage hole sequence,
+  seeded from the match seed. Incoming garbage waits in the red meter beside
+  each board and is cancelled by your own attacks first. Press Tab to change
+  your targeting mode during the match. The header shows who you are
+  targeting and who is targeting you. Last board standing wins.
+- The results screen shows placement, lines, attack sent and pieces per
+  second. Press R for a rematch with the same seed or N for a new one.
+
+Agents run in persistent worker processes (one per opponent, model loaded
+once, CPU inference). If a worker crashes or takes more than 2 s to decide,
+that opponent switches to the Dellacherie baseline for the rest of the match
+and its board shows a warning.
+
+| Difficulty | Speed cap | Moves | Reaction | Mistake rate | Random moves |
+|---|---|---|---|---|---|
+| Easy | 0.5 pieces/s | 5/s | 900 ms | 0.40 | 0.03 |
+| Medium | 1 piece/s | 10/s | 450 ms | 0.15 | 0 |
+| Hard | 2 pieces/s | 25/s | 200 ms | 0.03 | 0 |
+| Unlimited | none | instant | 0 | 0 | 0 |
+
+The mistake rate is the chance of picking one of the next five best placements
+instead of the best one, so mistakes stay plausible. Measured results are in
+`reports/difficulty.md`. Easy clears about 10 lines per minute in a race.
+
 ## Train
 
 ```bash
@@ -78,11 +113,14 @@ writes checkpoints under `checkpoints/<agent>/`.
 ## Evaluate
 
 ```bash
-python scripts/evaluate.py --games 100
+python scripts/evaluate.py                 # leaderboard, 500 held-out seeds, paired bootstrap
+python scripts/eval_difficulty.py          # difficulty presets in real-time headless matches
+python scripts/stress_test.py --mode battle  # frame times with 3 Unlimited agents
 ```
 
-Plays each available agent on 100 fixed held-out seeds and writes
-`reports/leaderboard.md` plus CSVs. The primary leaderboard is the garbage
+`evaluate.py` plays each available agent on 500 fixed held-out seeds and writes
+`reports/leaderboard.md` plus CSVs, including paired bootstrap intervals
+between agents. The primary leaderboard is the garbage
 setting (one garbage row every 3 pieces, 500-piece cap). The plain setting
 (no garbage, 1,000-piece cap) is a secondary sanity check.
 
@@ -101,11 +139,13 @@ tetris/
   env/        Gymnasium env, afterstate enumeration, features, reward shaping
   agents/     agent interface, registry, path planner, difficulty, evaluation
     heuristic_ga/, cem/   one subpackage per agent: agent.py, train.py, config.yaml, README.md
-  match/      MatchController, agent drivers and runners, DAS/ARR input repeat
+  match/      MatchController (real time or lockstep), rules (race, battle targeting),
+              agent driver, worker pool runner, lobby, DAS/ARR input repeat
   ui/pygame/  the only package that imports Pygame
   settings.py key bindings and input timing
 configs/      default env and reward config
-scripts/      evaluate.py, log_games.py, bench_env.py
+scripts/      evaluate.py, eval_difficulty.py, stress_test.py, log_games.py, bench_env.py
+reports/      leaderboard, difficulty and stress test results
 tests/
 ```
 
@@ -134,6 +174,9 @@ tests/
 ## Engine rules (v1)
 
 - 10x20 visible board plus 4 hidden spawn rows; SRS rotation with standard wall kicks.
+- Lock delay uses extended placement: up to 15 moves or rotations reset it, and
+  a move counts even when a floor kick lifts the piece. Once the 15 are used,
+  the piece locks as soon as it touches down (no infinite spinning).
 - 7-bag randomizer, 5 visible next pieces, hold once per piece.
 - Guideline gravity curve, 0.5 s lock delay with up to 15 move resets.
 - Scoring: 100/300/500/800 times level, 1.5x for back-to-back Tetrises, 50 times combo times level.

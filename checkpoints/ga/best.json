@@ -64,15 +64,15 @@
           "garbage_rows": 1,
           "include_hold": true
         },
-        "games": 100.0,
-        "fitness": 1.2690967661735537,
-        "mean_pieces": 450.41,
-        "mean_lines": 307.63,
-        "mean_score": 708463.12,
-        "score_per_piece": 1473.107064694215,
-        "lines_per_piece": 0.6718055113389404,
-        "top_out_rate": 0.2,
-        "attack_per_minute": 39.70966260100608
+        "games": 500.0,
+        "fitness": 1.2894762633920365,
+        "mean_pieces": 457.86,
+        "mean_lines": 313.066,
+        "mean_score": 720347.624,
+        "score_per_piece": 1495.0250535681462,
+        "lines_per_piece": 0.6756331988363997,
+        "top_out_rate": 0.182,
+        "attack_per_minute": 39.92176465933641
       },
       "plain": {
         "setting": {
@@ -82,17 +82,17 @@
           "garbage_rows": 1,
           "include_hold": true
         },
-        "games": 100.0,
-        "fitness": 1.1955429,
+        "games": 500.0,
+        "fitness": 1.1954981210000002,
         "mean_pieces": 1000.0,
-        "mean_lines": 398.6,
-        "mean_score": 782171.6,
-        "score_per_piece": 782.1716,
-        "lines_per_piece": 0.39860000000000007,
+        "mean_lines": 398.564,
+        "mean_score": 781992.484,
+        "score_per_piece": 781.992484,
+        "lines_per_piece": 0.39856400000000003,
         "top_out_rate": 0.0,
-        "attack_per_minute": 6.417600000000001
+        "attack_per_minute": 6.4224
       }
     },
-    "note": "held_out re-evaluated with scripts/evaluate.py after the pushed-up-piece engine fix"
+    "note": "held_out: 500 games, re-evaluated with scripts/evaluate.py"
   }
 }

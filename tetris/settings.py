@@ -52,6 +52,8 @@ class Settings:
     soft_drop_rate: float = 30.0
     show_ghost: bool = True
     fps: int = 60
+    #: Last opponent selection and rules per mode ("race", "battle"), restored next time.
+    last_match: dict[str, Any] = field(default_factory=dict)
 
     def repeat_settings(self) -> RepeatSettings:
         return RepeatSettings(self.das_ms / 1000.0, self.arr_ms / 1000.0, self.soft_drop_rate)

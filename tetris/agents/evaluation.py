@@ -40,6 +40,9 @@ class EvalSetting:
 
 
 #: Primary leaderboard and training setting. See the GA README for calibration.
+#: Evaluation garbage is inserted directly after the scheduled piece (it does
+#: not go through the pending meter and cannot be cancelled by attacks), so the
+#: setting measures survival under a fixed incoming load.
 GARBAGE_SETTING = EvalSetting("garbage", max_pieces=500, garbage_every=3, garbage_rows=1)
 #: Secondary sanity check: no garbage, capped.
 PLAIN_SETTING = EvalSetting("plain", max_pieces=1000)
@@ -47,7 +50,7 @@ PLAIN_SETTING = EvalSetting("plain", max_pieces=1000)
 SETTINGS: dict[str, EvalSetting] = {s.name: s for s in (GARBAGE_SETTING, PLAIN_SETTING)}
 
 #: Fixed seeds for final reported numbers. Never used for training.
-HELD_OUT_SEEDS: tuple[int, ...] = tuple(range(900_000, 900_100))
+HELD_OUT_SEEDS: tuple[int, ...] = tuple(range(900_000, 900_500))
 
 
 @dataclass
@@ -119,13 +122,36 @@ def fitness(stats: Sequence[GameStats]) -> float:
     score per piece, which favors multi-line clears (and Tetrises at higher
     levels) over singles. See the GA README for the calibration runs.
     """
-    survival = np.mean([s.pieces / s.max_pieces for s in stats])
-    efficiency = np.mean([s.score_per_piece for s in stats]) / SCORE_PER_PIECE_SCALE
-    return float(survival + EFFICIENCY_WEIGHT * efficiency)
+    return float(np.mean([game_fitness(s) for s in stats]))
 
 
 #: Assumed play speed for attack-per-minute in headless runs (placements are instant).
 ASSUMED_PPS = 2.0
+
+
+def game_fitness(s: GameStats) -> float:
+    """Per-game fitness contribution (``fitness`` is the mean of these)."""
+    return s.pieces / s.max_pieces + EFFICIENCY_WEIGHT * s.score_per_piece / SCORE_PER_PIECE_SCALE
+
+
+def paired_bootstrap(
+    a: Sequence[GameStats], b: Sequence[GameStats], n_boot: int = 10_000, seed: int = 0
+) -> dict[str, tuple[float, float, float]]:
+    """Mean difference (a - b) and 95% interval for fitness and top-out rate.
+
+    ``a`` and ``b`` must be played on the same seeds in the same order.
+    """
+    if [s.seed for s in a] != [s.seed for s in b]:
+        raise ValueError("paired bootstrap needs the same seeds in the same order")
+    rng = np.random.default_rng(seed)
+    out = {}
+    for name, f in (("fitness", game_fitness), ("top_out_rate", lambda s: float(s.topped_out))):
+        d = np.array([f(x) - f(y) for x, y in zip(a, b, strict=True)])
+        idx = rng.integers(0, len(d), size=(n_boot, len(d)))
+        boots = d[idx].mean(axis=1)
+        lo, hi = np.percentile(boots, [2.5, 97.5])
+        out[name] = (float(d.mean()), float(lo), float(hi))
+    return out
 
 
 def summarize(stats: Sequence[GameStats]) -> dict[str, float]:

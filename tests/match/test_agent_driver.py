@@ -61,7 +61,7 @@ def test_agent_survives_gravity_with_slow_moves() -> None:
     match = watch(PRESETS["Easy"], gravity=3.0)
     run(match, 30.0)
     p = match.get_snapshot()["players"][0]
-    assert p["pieces"] >= 15
+    assert p["pieces"] >= 10 and not p["game_over"]  # Easy caps at 0.5 pieces/s
 
 
 def test_human_input_ignored_on_agent_board() -> None:
@@ -78,3 +78,21 @@ def test_epsilon_play_is_reproducible() -> None:
         return m.get_snapshot()["players"][0]["board"]
 
     assert final_board() == final_board()
+
+
+@pytest.mark.parametrize("seed", [950002, 950005])
+def test_slow_agent_never_stalls_under_high_gravity(seed: int) -> None:
+    """Regression: floor kicks plus gravity used to livelock a Medium agent."""
+    match = MatchController(
+        MatchConfig(
+            mode="eval", seed=seed, lockstep=True, eval_garbage_every=3, eval_max_pieces=500
+        ),
+        [PlayerSpec("a", "GA", "agent", "ga", PRESETS["Medium"])],
+    )
+    last, since = 0, 0.0
+    while not match.finished:
+        match.step(1 / 60)
+        pieces = match.players["a"].game.pieces_placed
+        since = 0.0 if pieces != last else since + 1 / 60
+        last = pieces
+        assert since < 10.0, f"stalled at piece {pieces}"

@@ -13,6 +13,7 @@ from tetris.ui.pygame.screens.base import Screen
 class MenuScreen(Screen):
     def __init__(self, app) -> None:
         super().__init__(app)
+        from tetris.ui.pygame.screens.opponents import OpponentSelectScreen
         from tetris.ui.pygame.screens.settings_screen import SettingsScreen
         from tetris.ui.pygame.screens.solo import SoloScreen
         from tetris.ui.pygame.screens.watch import WatchSelectScreen
@@ -21,8 +22,8 @@ class MenuScreen(Screen):
         self.items: list[tuple[str, Callable[[], None] | None, str]] = [
             ("Solo practice", lambda: app.push(SoloScreen(app)), ""),
             ("Watch AI", lambda: app.push(WatchSelectScreen(app)), ""),
-            ("Race", None, "Available in phase 3"),
-            ("Battle", None, "Available in phase 3"),
+            ("Race", lambda: app.push(OpponentSelectScreen(app, "race")), ""),
+            ("Battle", lambda: app.push(OpponentSelectScreen(app, "battle")), ""),
             ("Record Gameplay", None, "Available in phase 5"),
             ("Leaderboard", None, "Available in phase 7"),
             ("Settings", lambda: app.push(SettingsScreen(app)), ""),

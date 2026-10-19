@@ -135,6 +135,27 @@ def test_lock_delay_locks_grounded_piece() -> None:
     assert game.active is not None and game.board.any()
 
 
+def test_infinite_spin_is_prevented() -> None:
+    game = Game(0, GameConfig(gravity=20.0, lock_delay=0.5, max_lock_resets=15))
+    respawn(game, Piece.T)
+    for i in range(2000):
+        game.apply(Move.CW if i % 2 else Move.CCW)
+        game.tick(1 / 60)
+        if game.pieces_placed:
+            break
+    assert game.pieces_placed == 1, "spinning must not delay the lock forever"
+    assert i < 300
+
+
+def test_floor_kick_counts_toward_lock_resets() -> None:
+    game = Game(0, GameConfig(gravity=0.0))
+    while game.apply(Move.SOFT):
+        pass
+    assert game._lock_resets == 0
+    game.apply(Move.CW)  # grounded before the move: counts even if a kick lifts it
+    assert game._lock_resets == 1
+
+
 def test_gravity_moves_piece_down() -> None:
     game = Game(0, GameConfig(gravity=10.0))
     row = game.active.row

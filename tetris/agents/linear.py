@@ -110,5 +110,5 @@ class LinearAgent(Agent):
 
 class DellacherieAgent(LinearAgent):
     key = "dellacherie"
-    name = "Dellacherie (reference)"
-    description = "Hand-tuned classic evaluation; untrained reference baseline."
+    name = "Dellacherie (baseline)"
+    description = "Hand-tuned baseline: classic Dellacherie evaluation, not trained."

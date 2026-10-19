@@ -17,13 +17,40 @@ MAX_DT = 0.1
 SCREENSHOT_DIR = Path("screenshots")
 
 
+class FramePacer:
+    """Accurate frame pacing.
+
+    ``pygame.time.Clock.tick`` oversleeps on macOS (about 18.6 ms per frame at a
+    60 fps target). This sleeps for most of the remaining time and spins for
+    the last ~1.5 ms.
+    """
+
+    def __init__(self, fps: int) -> None:
+        self.fps = fps
+        self._next = time.perf_counter()
+        self._last = self._next
+
+    def wait(self) -> float:
+        """Wait for the next frame boundary; return seconds since the previous call."""
+        self._next += 1.0 / self.fps
+        remaining = self._next - time.perf_counter()
+        if remaining > 0.002:
+            time.sleep(remaining - 0.0015)
+        while time.perf_counter() < self._next:
+            pass
+        now = time.perf_counter()
+        if now - self._next > 0.1:  # fell far behind (debugger, sleep): resync
+            self._next = now
+        dt, self._last = now - self._last, now
+        return dt
+
+
 class App:
     def __init__(self, size: tuple[int, int] = WINDOW_SIZE) -> None:
         pygame.init()
         clear_font_cache()
         pygame.display.set_caption("Tetris ML Arena")
         self.surface = pygame.display.set_mode(size, pygame.RESIZABLE)
-        self.clock = pygame.time.Clock()
         self.settings = Settings.load()
         self.screens: list[Screen] = []
         self.running = True
@@ -74,10 +101,9 @@ class App:
         pygame.display.flip()
 
     def run(self) -> None:
-        self.clock.tick()
+        pacer = FramePacer(self.settings.fps)
         while self.running and self.screens:
-            dt = self.clock.tick(self.settings.fps) / 1000.0
-            self.frame(dt)
+            self.frame(pacer.wait())
         pygame.quit()
 
 

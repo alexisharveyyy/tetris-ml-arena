@@ -61,7 +61,7 @@ Seed protocol:
 - After training, the best individual of each of the last 10 generations is
   re-evaluated on 30 fixed selection seeds (800,000+) to pick the final
   weights.
-- Final numbers come from 100 held-out seeds (900,000+) that are never used
+- Final numbers come from 500 held-out seeds (900,000+) that are never used
   for any decision.
 
 Rollouts run in parallel worker processes (`cpu_count - 1` by default).
@@ -94,28 +94,29 @@ Writes `data/logs/ga/<setting>/seed_<seed>.jsonl.gz`. Each step stores the
 
 ## Results
 
-Held-out seeds 900000 to 900099. Garbage setting: one row every 3 pieces, 500-piece cap.
+Held-out seeds 900000 to 900499 (500 games). Garbage setting: one row every 3
+pieces, inserted directly (not cancellable), 500-piece cap.
 
 | Agent | Pieces survived | Mean lines | Score/piece | Lines/piece | Top-out rate | Fitness |
 |---|---|---|---|---|---|---|
-| Cross-entropy method | 474.5 | 325.8 | 1544 | 0.682 | 0.13 | 1.335 |
-| GA heuristic | 450.4 | 307.6 | 1473 | 0.672 | 0.20 | 1.269 |
-| Dellacherie (reference) | 443.0 | 301.6 | 1419 | 0.672 | 0.25 | 1.241 |
+| Cross-entropy method | 468.7 | 321.2 | 1522 | 0.681 | 0.15 | 1.318 |
+| GA heuristic | 457.9 | 313.1 | 1495 | 0.676 | 0.18 | 1.289 |
+| Dellacherie (baseline) | 427.5 | 289.7 | 1362 | 0.665 | 0.31 | 1.196 |
 
-Paired bootstrap on the same 100 seeds (95% intervals):
+Paired bootstrap on the same 500 seeds (95% intervals):
 
 | Comparison | Fitness difference | Top-out difference |
 |---|---|---|
-| CEM minus GA | +0.066 [-0.007, +0.143] | -0.07 [-0.17, +0.03] |
-| GA minus Dellacherie | +0.028 [-0.062, +0.118] | -0.05 [-0.16, +0.06] |
-| CEM minus Dellacherie | +0.094 [+0.029, +0.162] | -0.12 [-0.22, -0.02] |
+| CEM minus GA | +0.028 [-0.004, +0.061] | -0.032 [-0.078, +0.014] |
+| CEM minus Dellacherie | +0.122 [+0.085, +0.159] | -0.160 [-0.210, -0.110] |
+| GA minus Dellacherie | +0.094 [+0.055, +0.133] | -0.128 [-0.180, -0.076] |
 
-Only CEM's improvement over the hand-tuned reference is significant at 100
-games. CEM ranks above the GA, but that gap is not significant: the
-interval includes zero.
+Both trained agents beat the hand-tuned baseline significantly. CEM ranks
+above the GA, but even at 500 games that gap is not significant: the interval
+includes zero. (At 100 games, only CEM versus the baseline was significant.)
 
 Plain setting (no garbage, 1,000-piece cap, secondary sanity check): all three
-agents survive every game, with 398.5 to 398.8 lines out of a possible 400.
+agents survive every game, with 398.4 to 398.8 lines out of a possible 400.
 This saturation is why the garbage setting is the primary measure.
 
 Training time on 12 cores: about 15 minutes each, with 40 generations of 50
