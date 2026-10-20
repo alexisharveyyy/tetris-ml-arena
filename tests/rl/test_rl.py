@@ -378,3 +378,45 @@ def test_afterstate_policy_is_a_distribution_over_80_actions() -> None:
     with torch.no_grad():
         direct = net.scorer(unpack_boards_torch(cb[0, a : a + 1]), ce[0, a : a + 1])
     assert float(logits[0, a]) == pytest.approx(float(direct[0]), abs=1e-5)
+
+
+def test_dqn_soft_target_update_and_lr_schedule() -> None:
+    from tetris.agents.dqn.train import Learner, cosine_lr
+
+    cfg = {"gamma": GAMMA, "lr": 1e-4, "lr_final": 1e-5, "target_tau": 0.25}
+    learner = Learner(cfg, torch.device("cpu"))
+    with torch.no_grad():
+        for p in learner.online.parameters():
+            p.add_(1.0)
+    before = [p.clone() for p in learner.target.parameters()]
+    learner.sync_target()
+    for b, t, o in zip(
+        before, learner.target.parameters(), learner.online.parameters(), strict=True
+    ):
+        assert torch.allclose(t, b + 0.25 * (o - b))
+    assert learner.set_lr(0.0) == pytest.approx(1e-4)
+    assert learner.set_lr(0.5) == pytest.approx(5.5e-5)
+    assert learner.set_lr(1.0) == pytest.approx(1e-5)
+    assert learner.opt.param_groups[0]["lr"] == pytest.approx(1e-5)
+    assert cosine_lr(2.5e-4, None, 0.7) == 2.5e-4
+
+
+def test_dqn_hard_target_sync_without_tau() -> None:
+    from tetris.agents.dqn.train import Learner
+
+    learner = Learner({"gamma": GAMMA, "lr": 1e-4, "target_update": 2}, torch.device("cpu"))
+    with torch.no_grad():
+        for p in learner.online.parameters():
+            p.add_(1.0)
+    learner.updates = 1
+    learner.sync_target()
+    assert not all(
+        torch.equal(t, o)
+        for t, o in zip(learner.target.parameters(), learner.online.parameters(), strict=True)
+    )
+    learner.updates = 2
+    learner.sync_target()
+    assert all(
+        torch.equal(t, o)
+        for t, o in zip(learner.target.parameters(), learner.online.parameters(), strict=True)
+    )

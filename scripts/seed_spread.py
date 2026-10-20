@@ -32,6 +32,13 @@ def main() -> None:
         "held-out seeds in the garbage setting (1 direct garbage row every 3 pieces, "
         "500-piece cap).",
         "",
+        "The short runs have a 1-hour budget, not the main runs' 3 hours. Every schedule is "
+        "defined as a fraction of the budget, so it is scaled to 1 hour: epsilon decays over "
+        "the first 30% (18 minutes), the DQN learning rate follows the same cosine decay "
+        "(1e-4 to 1e-5) over the hour, and the PPO learning rate decays linearly over the "
+        "hour (to 5% of its start value). DQN short runs use the v2 config (soft target "
+        "update, LR schedule, 2M replay; see reports/dqn_overestimation.md).",
+        "",
         "| Agent | Run | Selected at | Selection fitness | Held-out fitness | Top-out rate "
         "| Pieces |",
         "|---|---|---|---|---|---|---|",

@@ -11,13 +11,14 @@ envs_per_worker: 8           # 64 parallel games
 
 # Learning
 gamma: 0.99
-lr: 2.5e-4
+lr: 1.0e-4                   # cosine-decayed to lr_final over the budget
+lr_final: 1.0e-5
 batch_size: 256
 next_candidates: 8           # K next-state afterstates stored per transition
-replay_capacity: 400000
+replay_capacity: 2000000     # about 36 minutes of play (~1.7 GB)
 warmup: 20000                # transitions before learning starts
 updates_per_step: 2          # gradient updates per vector step (64 transitions)
-target_update: 500           # gradient updates between target-network syncs
+target_tau: 0.001            # Polyak target update per gradient step (v1: hard sync every 500)
 n_step: 5                    # n-step returns (bootstrap from the 5th next state)
 grad_clip: 10.0
 per_alpha: 0.6

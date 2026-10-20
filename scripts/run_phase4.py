@@ -1,6 +1,9 @@
 """Run the remaining Phase 4 training and evaluation steps in order, unattended.
 
-Each step is a separate process; nothing runs in parallel with GPU training.
+Order: DQN v2 (3 h) and the v1/v2 choice, PPO smoke, raw PPO tuning, raw PPO
+(1 h), afterstate PPO (3 h), leaderboard, DQN and PPO 1-hour seed runs, seed
+spread. Each step is a separate process; nothing runs in parallel with GPU
+training.
 Progress goes to ``logs/phase4_queue.log`` and each step's own log in ``logs/``.
 Steps whose output already exists are skipped, so the script can be rerun
 after an interruption.
@@ -13,6 +16,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import shutil
 import subprocess
 import sys
 import time
@@ -53,6 +57,23 @@ def selection_fitness(agent: str, run_name: str) -> float:
     return json.loads((CKPT / agent / run_name / "selection.json").read_text())["selection_fitness"]
 
 
+def choose_dqn() -> None:
+    """Leaderboard DQN: v1 (seed0) unless v2 (seed0_v2) has a strictly higher selection fitness.
+
+    Both checkpoints were chosen on the selection seeds only, so the held-out
+    seeds play no part in this choice.
+    """
+    fits = {run: selection_fitness("dqn", run) for run in ("seed0", "seed0_v2")}
+    chosen = "seed0_v2" if fits["seed0_v2"] > fits["seed0"] else "seed0"
+    sel = json.loads((CKPT / "dqn" / chosen / "selection.json").read_text())
+    shutil.copy(sel["selected_checkpoint"], CKPT / "dqn" / "best.pt")
+    (CKPT / "dqn" / "selection.json").write_text(json.dumps(sel, indent=2))
+    (CKPT / "dqn" / "version_choice.json").write_text(
+        json.dumps({"selection_fitness": fits, "chosen": chosen}, indent=2)
+    )
+    log(f"leaderboard DQN: {fits} -> {chosen} ({Path(sel['selected_checkpoint']).name})")
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(
         description=__doc__, formatter_class=argparse.RawTextHelpFormatter
@@ -71,6 +92,14 @@ def main() -> None:
     if not (CKPT / "dqn" / "best.pt").exists():
         log("DQN main run did not produce checkpoints/dqn/best.pt; stopping")
         raise SystemExit(1)
+
+    # DQN v2: the stability fix (reports/dqn_overestimation.md), fresh 3-hour run.
+    run(
+        "dqn_v2",
+        ["-m", "tetris.agents.dqn.train", "--run-name", "seed0_v2", "--no-promote"],
+        CKPT / "dqn" / "seed0_v2" / "selection.json",
+    )
+    choose_dqn()
 
     train_ppo = ["-m", "tetris.agents.ppo.train"]
     run(

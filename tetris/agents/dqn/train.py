@@ -17,12 +17,19 @@ and evaluates the choice with the target network:
 
 Hitting the piece cap is truncation, not termination: the next state is the
 final state of the episode and the target bootstraps from it.
+
+Stability (v2, see reports/dqn_overestimation.md): the target network follows
+the online network by Polyak averaging (``target_tau``), the learning rate is
+cosine-decayed over the budget (``lr`` to ``lr_final``), and the replay buffer
+holds about 36 minutes of play. Configs without ``target_tau`` fall back to a
+hard sync every ``target_update`` updates.
 """
 
 from __future__ import annotations
 
 import argparse
 import copy
+import math
 import time
 from pathlib import Path
 from typing import Any
@@ -95,6 +102,24 @@ class Learner:
         fused = device.type in ("cuda", "mps")
         self.opt = torch.optim.Adam(self.online.parameters(), lr=float(cfg["lr"]), fused=fused)
         self.updates = 0
+        self.tau = cfg.get("target_tau")
+        self._online_params = list(self.online.parameters())
+        self._target_params = list(self.target.parameters())
+
+    def set_lr(self, fraction: float) -> float:
+        """Learning rate for this point in the budget (cosine from ``lr`` to ``lr_final``)."""
+        lr = cosine_lr(float(self.cfg["lr"]), self.cfg.get("lr_final"), fraction)
+        for group in self.opt.param_groups:
+            group["lr"] = lr
+        return lr
+
+    @torch.no_grad()
+    def sync_target(self) -> None:
+        """Soft update ``target += tau * (online - target)``, or a periodic hard copy."""
+        if self.tau is not None:
+            torch._foreach_lerp_(self._target_params, self._online_params, float(self.tau))
+        elif self.updates % self.cfg["target_update"] == 0:
+            self.target.load_state_dict(self.online.state_dict())
 
     @torch.no_grad()
     def values(self, boards_packed: np.ndarray, extras: np.ndarray) -> np.ndarray:
@@ -172,11 +197,11 @@ class Learner:
         torch.nn.utils.clip_grad_norm_(self.online.parameters(), cfg["grad_clip"])
         self.opt.step()
         self.updates += 1
-        if self.updates % cfg["target_update"] == 0:
-            self.target.load_state_dict(self.online.state_dict())
+        self.sync_target()
 
         out = self.flush(replay)
-        self._prev = (idx, td, loss.detach(), pred.detach().mean())
+        p = pred.detach()
+        self._prev = (idx, td, loss.detach(), p.mean(), p.max())
         return out
 
     def flush(self, replay: PrioritizedReplay) -> dict[str, float] | None:
@@ -184,11 +209,11 @@ class Learner:
         prev = getattr(self, "_prev", None)
         if prev is None:
             return None
-        idx, td, loss, v_mean = prev
+        idx, td, loss, v_mean, v_max = prev
         self._prev = None
-        stats = torch.stack([loss, v_mean]).cpu().numpy()
+        stats = torch.stack([loss, v_mean, v_max]).cpu().numpy()
         replay.update_priorities(idx, td.cpu().numpy())
-        return {"loss": float(stats[0]), "v_mean": float(stats[1])}
+        return {"loss": float(stats[0]), "v_mean": float(stats[1]), "v_max": float(stats[2])}
 
     def state(self) -> dict[str, Any]:
         return to_cpu(
@@ -280,6 +305,14 @@ class NStepTracker:
         self.pending[i] = []
 
 
+def cosine_lr(lr: float, lr_final: float | None, fraction: float) -> float:
+    """Cosine decay from ``lr`` to ``lr_final`` over the budget; constant if no final value."""
+    if lr_final is None:
+        return lr
+    frac = min(1.0, max(0.0, fraction))
+    return float(lr_final) + 0.5 * (lr - float(lr_final)) * (1.0 + math.cos(math.pi * frac))
+
+
 def epsilon(cfg: dict[str, Any], fraction: float) -> float:
     frac = min(1.0, fraction / cfg["eps_decay_frac"])
     return cfg["eps_start"] + (cfg["eps_end"] - cfg["eps_start"]) * frac
@@ -369,6 +402,7 @@ def train(
     try:
         while not budget.done:
             eps = epsilon(cfg, budget.fraction)
+            lr = learner.set_lr(budget.fraction)
             counts = [len(p["rewards"]) for p in packages]
             all_boards = np.concatenate([p["boards"] for p in packages])
             all_extras = np.concatenate([p["extras"] for p in packages])
@@ -415,7 +449,9 @@ def train(
                     logger.scalar(
                         "train/v_mean", float(np.mean([s["v_mean"] for s in stats])), steps
                     )
+                    logger.scalar("train/v_max", float(np.max([s["v_max"] for s in stats])), steps)
                 logger.scalar("train/epsilon", eps, steps)
+                logger.scalar("train/lr", lr, steps)
                 logger.scalar("train/steps_per_second", rate, steps)
                 loss = np.mean([s["loss"] for s in stats]) if stats else 0.0
                 print(

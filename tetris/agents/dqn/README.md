@@ -54,10 +54,28 @@ every 3 pieces, 500-piece cap), the same one used for the leaderboard.
 
 - 64 games in 8 worker processes.
 - Learning on MPS, overlapped with environment stepping.
-- Proportional prioritized replay (alpha 0.6, beta 0.4 to 1.0), 400k
-  transitions.
+- Proportional prioritized replay (alpha 0.6, beta 0.4 to 1.0), 2M
+  transitions (about 36 minutes of play).
 - Epsilon decays from 0.2 to 0.005 over the first 30% of the budget.
-- Target sync every 500 updates.
+- Adam, learning rate cosine-decayed from 1e-4 to 1e-5 over the budget.
+- Soft target update: `target += 0.001 * (online - target)` after every
+  gradient step.
+- Huber loss, gradient-norm clipping at 10.
+
+## Stability fix (v2)
+
+The first 3-hour run (v1, `seed0`) peaked at 25 minutes (selection fitness
+1.340) and then declined to 0.49-0.77. Its value function became
+overestimated: offline, boards 20 pieces before a top-out were valued about 65
+above the discounted return they actually delivered, and the gap between the
+best and second-best placement shrank to about 0.2. v1 used a hard target sync
+every 500 updates (about 17 s), a constant learning rate of 2.5e-4 and a 400k
+replay buffer (about 7 minutes of play). v2 changes only those three settings,
+as listed above. The diagnosis and a v1/v2 comparison are in
+`reports/dqn_overestimation.md`.
+
+The leaderboard DQN is whichever run has the higher selection fitness (v1 if
+v2 does not beat it); `checkpoints/dqn/version_choice.json` records the choice.
 
 ## Device choice
 
