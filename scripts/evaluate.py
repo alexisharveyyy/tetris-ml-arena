@@ -95,6 +95,12 @@ def main() -> None:
     parser.add_argument(
         "--marathon-games", type=int, default=100, help="0 skips the Marathon section"
     )
+    parser.add_argument(
+        "--marathon-presets",
+        nargs="+",
+        default=["Easy", "Medium", "Hard"],
+        help="difficulty presets for the Marathon section (Unlimited only measures the cap)",
+    )
     parser.add_argument("--skip-garbage", action="store_true", help="only run the Marathon section")
     args = parser.parse_args()
 
