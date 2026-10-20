@@ -14,6 +14,9 @@ from tetris.rl.encoding import AFTERSTATE_EXTRA_DIM, OBS_EXTRA_DIM
 #: Logit for illegal actions. Large and negative but finite, so softmax gives
 #: exactly zero probability without producing NaN in log-probabilities or entropy.
 MASKED_LOGIT = -1e9
+#: Largest number of afterstates the PPO scorer evaluates in one call (see
+#: AfterstateActorCritic.forward). MPS gradients matched the CPU up to 8,192.
+SCORER_CHUNK = 4096
 
 
 class Conv3x3(nn.Conv2d):
@@ -179,8 +182,22 @@ class AfterstateActorCritic(nn.Module):
         Only legal entries are scored. Returns masked logits ``(B, 80)`` and values ``(B,)``.
         """
         rows, cols = mask.nonzero(as_tuple=True)
-        scores = self.scorer(
-            unpack_boards_torch(cand_boards[rows, cols]), cand_extras[rows, cols].float()
+        boards_c, extras_c = cand_boards[rows, cols], cand_extras[rows, cols].float()
+        # Score in chunks: one PPO minibatch has about 115k legal afterstates, and
+        # MPS convolution backward silently returns wrong (often zero) weight
+        # gradients at that size. Chunks of SCORER_CHUNK match the CPU (tested).
+        scores = (
+            torch.cat(
+                [
+                    self.scorer(
+                        unpack_boards_torch(boards_c[i : i + SCORER_CHUNK]),
+                        extras_c[i : i + SCORER_CHUNK],
+                    )
+                    for i in range(0, len(rows), SCORER_CHUNK)
+                ]
+            )
+            if len(rows)
+            else boards_c.new_zeros(0, dtype=torch.float32)
         )
         logits = torch.full(mask.shape, MASKED_LOGIT, device=mask.device, dtype=scores.dtype)
         logits = logits.index_put((rows, cols), scores)

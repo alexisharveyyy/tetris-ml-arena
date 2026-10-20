@@ -9,10 +9,12 @@ from tetris.agents.evaluation import EvalSetting
 from tetris.agents.ppo.train import compute_gae
 from tetris.agents.registry import create_agent
 from tetris.engine import Game, Placement
+from tetris.engine.placement import NUM_ACTIONS
 from tetris.env import action_mask, enumerate_afterstates
 from tetris.rl.encoding import (
     AFTERSTATE_EXTRA_DIM,
     OBS_EXTRA_DIM,
+    PACKED_BOARD_BYTES,
     action_afterstate_arrays,
     afterstate_arrays,
     observation_arrays,
@@ -25,6 +27,7 @@ from tetris.rl.nets import (
     ActorCritic,
     AfterstateActorCritic,
     AfterstateValueNet,
+    build,
     masked_log_probs,
     save_checkpoint,
     unpack_boards_torch,
@@ -420,3 +423,74 @@ def test_dqn_hard_target_sync_without_tau() -> None:
         torch.equal(t, o)
         for t, o in zip(learner.target.parameters(), learner.online.parameters(), strict=True)
     )
+
+
+def _afterstate_batch(n_states: int, seed: int = 0):
+    """Random PPO afterstate-policy inputs with about 70% of actions legal."""
+    g = torch.Generator().manual_seed(seed)
+    mask = torch.rand(n_states, NUM_ACTIONS, generator=g) < 0.7
+    mask[:, 0] = True
+    return [
+        torch.randint(0, 2, (n_states, 24, 10), generator=g).float(),
+        torch.rand(n_states, OBS_EXTRA_DIM, generator=g),
+        mask,
+        torch.randint(
+            0, 256, (n_states, NUM_ACTIONS, PACKED_BOARD_BYTES), dtype=torch.uint8, generator=g
+        ),
+        torch.rand(n_states, NUM_ACTIONS, AFTERSTATE_EXTRA_DIM, generator=g),
+    ]
+
+
+def _scorer_grads(net, inputs, actions, adv):
+    net.zero_grad(set_to_none=True)
+    logits, _ = net(*inputs)
+    logp, entropy = masked_log_probs(logits, inputs[2])
+    loss = -(adv * logp.gather(1, actions[:, None]).squeeze(1)).mean() - 0.01 * entropy.mean()
+    loss.backward()
+    return logits.detach().cpu(), {
+        n: p.grad.detach().cpu() for n, p in net.scorer.named_parameters()
+    }
+
+
+def test_afterstate_policy_chunked_scoring_matches_single_pass(monkeypatch) -> None:
+    import tetris.rl.nets as nets
+
+    inputs = _afterstate_batch(24)
+    actions = torch.multinomial(inputs[2].float(), 1).squeeze(1)
+    adv = torch.randn(24, generator=torch.Generator().manual_seed(1))
+    torch.manual_seed(0)
+    net = build("ppo", {})
+    monkeypatch.setattr(nets, "SCORER_CHUNK", 10**9)
+    logits_one, grads_one = _scorer_grads(net, inputs, actions, adv)
+    monkeypatch.setattr(nets, "SCORER_CHUNK", 37)
+    logits_chunked, grads_chunked = _scorer_grads(net, inputs, actions, adv)
+    assert torch.allclose(logits_one, logits_chunked, atol=1e-5)
+    for name, g in grads_one.items():
+        assert torch.allclose(g, grads_chunked[name], rtol=1e-4, atol=1e-6), name
+
+
+@pytest.mark.skipif(not torch.backends.mps.is_available(), reason="needs MPS")
+def test_afterstate_policy_mps_gradients_match_cpu_at_training_scale() -> None:
+    """Regression: one PPO minibatch (2,048 states, about 115k legal afterstates)
+    scored in a single call gave wrong convolution gradients on MPS (relative
+    error about 6e8), so the afterstate policy never trained. Scoring in chunks
+    of SCORER_CHUNK fixes it. Compared as one vector: the last bias has an
+    analytic gradient of zero, so per-parameter relative errors are noise."""
+    n = 2048
+    inputs = _afterstate_batch(n)
+    actions = torch.multinomial(inputs[2].float(), 1).squeeze(1)
+    adv = torch.randn(n, generator=torch.Generator().manual_seed(1))
+    torch.manual_seed(0)
+    cpu_net = build("ppo", {})
+    mps_net = build("ppo", {})
+    mps_net.load_state_dict(cpu_net.state_dict())
+    mps_net.to("mps")
+    _, grads_cpu = _scorer_grads(cpu_net, inputs, actions, adv)
+    _, grads_mps = _scorer_grads(
+        mps_net, [x.to("mps") for x in inputs], actions.to("mps"), adv.to("mps")
+    )
+    g_cpu = torch.cat([g.flatten() for g in grads_cpu.values()])
+    g_mps = torch.cat([grads_mps[k].flatten() for k in grads_cpu])
+    assert torch.isfinite(g_mps).all()
+    rel = float((g_cpu - g_mps).norm() / g_cpu.norm())
+    assert rel < 1e-3, f"relative gradient difference {rel:.2e}"

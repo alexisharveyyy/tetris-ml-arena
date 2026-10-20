@@ -93,6 +93,16 @@ python -m tetris.agents.ppo.train --budget-minutes 60 --seed 1 --run-name seed1 
 tensorboard --logdir runs/ppo
 ```
 
+## MPS gradient bug (fixed)
+
+The first 3-hour afterstate PPO run and its three 1-hour seed runs never
+trained. One minibatch scored about 115k afterstates in a single call, and at
+that size MPS returned wrong convolution gradients (relative error about 6e8
+against the CPU). The scorer now runs in chunks of 4,096 afterstates
+(`SCORER_CHUNK` in `tetris/rl/nets.py`), with a regression test that compares
+MPS and CPU gradients at the training size. Diagnosis and the check run:
+`reports/ppo_mps_bug.md`.
+
 ## Results
 
 See the end of this file (filled in after training).

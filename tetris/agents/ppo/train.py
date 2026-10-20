@@ -78,6 +78,19 @@ def compute_gae(
     return adv, adv + values
 
 
+def explained_variance(values: np.ndarray, returns: np.ndarray) -> float:
+    """1 - Var(returns - values) / Var(returns); 1 is perfect, 0 is no better than a constant."""
+    var = float(np.var(returns))
+    return float("nan") if var == 0 else 1.0 - float(np.var(returns - values)) / var
+
+
+def policy_parameters(net: torch.nn.Module):
+    """Parameters that produce the logits: the afterstate scorer, or the raw policy's own."""
+    if hasattr(net, "scorer"):
+        return net.scorer.parameters()
+    return (p for n, p in net.named_parameters() if not n.startswith(("value", "critic")))
+
+
 #: Package fields fed to each policy type, in network-argument order (mask is third).
 POLICY_INPUTS = {
     "raw": ("board", "extras", "mask"),
@@ -248,8 +261,13 @@ def train(
                 "entropy": 0.0,
                 "approx_kl": 0.0,
                 "clip_frac": 0.0,
+                "policy_grad_norm": 0.0,
             }
             n_mb = 0
+            # Ratio check: at the first minibatch of the first epoch the policy has
+            # not changed yet, so recomputed log-probs must equal the rollout ones.
+            first_ratio_dev = None
+            policy_params = list(policy_parameters(net))
             for _ in range(int(cfg["epochs"])):
                 perm = torch.randperm(flat, device=device)
                 for start in range(0, flat, mb):
@@ -258,6 +276,8 @@ def train(
                     logp_all, entropy = masked_log_probs(logits, fm[j])
                     logp = logp_all.gather(1, fa[j][:, None]).squeeze(1)
                     ratio = (logp - flogp[j]).exp()
+                    if first_ratio_dev is None:
+                        first_ratio_dev = (ratio.detach() - 1).abs().max()
                     a_n = fadv[j]
                     a_n = (a_n - a_n.mean()) / (a_n.std() + 1e-8)
                     pg = torch.max(
@@ -269,6 +289,15 @@ def train(
                     loss = pg + cfg["vf_coef"] * vl - cfg["ent_coef"] * ent
                     opt.zero_grad(set_to_none=True)
                     loss.backward()
+                    pgn = torch.linalg.vector_norm(
+                        torch.stack(
+                            [
+                                torch.linalg.vector_norm(q.grad)
+                                for q in policy_params
+                                if q.grad is not None
+                            ]
+                        )
+                    )
                     torch.nn.utils.clip_grad_norm_(net.parameters(), cfg["max_grad_norm"])
                     opt.step()
                     with torch.no_grad():
@@ -277,9 +306,13 @@ def train(
                         log["entropy"] += ent
                         log["approx_kl"] += (flogp[j] - logp).mean()
                         log["clip_frac"] += ((ratio - 1).abs() > cfg["clip"]).float().mean()
+                        log["policy_grad_norm"] += pgn
                     n_mb += 1
             updates += 1
             vals = {k: float(v) / n_mb for k, v in log.items()}
+            vals["first_ratio_dev"] = float(first_ratio_dev)
+            vals["explained_variance"] = explained_variance(buf_v, ret)
+            vals["adv_mean"], vals["adv_std"] = float(adv.mean()), float(adv.std())
             if any(np.isnan(v) for v in vals.values()):
                 raise FloatingPointError(f"NaN in PPO update: {vals}")
             ep = mean_episode_stats(episodes[-200:])
@@ -292,7 +325,9 @@ def train(
                     f"{budget.elapsed / 60:6.1f} min  steps {steps:9d}  {sps:6.0f}/s"
                     f" (rollout {t_roll:.1f}s)  pieces {ep.get('pieces', 0):6.1f}"
                     f"  top-out {ep.get('top_out_rate', 0):.2f}  ent {vals['entropy']:.2f}"
-                    f"  kl {vals['approx_kl']:.4f}  vloss {vals['value_loss']:.3f}",
+                    f"  kl {vals['approx_kl']:.4f}  clip {vals['clip_frac']:.3f}"
+                    f"  ratio0 {vals['first_ratio_dev']:.1e}  pgrad {vals['policy_grad_norm']:.2e}"
+                    f"  ev {vals['explained_variance']:.2f}  vloss {vals['value_loss']:.3f}",
                     flush=True,
                 )
             if budget.elapsed >= next_eval:
