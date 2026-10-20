@@ -100,4 +100,88 @@ than v1's 1.340. Otherwise v1 stays. The choice is recorded in
 
 ## v1 versus v2
 
-Filled in after the v2 run.
+### Selection curves (30 selection seeds, garbage setting)
+
+| Minutes | 5 | 15 | 25 | 35 | 45 | 55 | 65 | 75 | 85 | 95 | 105 |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| v1 fitness | 0.17 | 1.28 | **1.34** | 1.34 | 1.07 | 1.09 | 0.75 | 0.91 | 0.83 | 0.97 | 0.62 |
+| v2 fitness | 0.15 | 0.82 | 1.25 | 1.19 | 1.20 | **1.25** | 1.13 | 1.16 | 1.03 | 0.64 | 0.86 |
+
+| Minutes | 115 | 125 | 135 | 145 | 155 | 165 | 175 | 180 |
+|---|---|---|---|---|---|---|---|---|
+| v1 fitness | 0.64 | 0.77 | 0.49 | 0.75 | 0.37 | 0.57 | 0.98 | 0.44 |
+| v2 fitness | 0.93 | 0.69 | 0.84 | 1.10 | 0.76 | 0.72 | 0.74 | 0.94 |
+
+v2 held a plateau of about 1.13 to 1.25 until 75 minutes, while v1 had
+dropped to 0.75 by 65 minutes. v2 then declined from 85 minutes and spent the
+rest of the run between 0.64 and 1.10.
+
+**Result: v2 did not beat v1.** v2's best selection fitness is 1.253 (55
+minutes), below v1's 1.340 (25 minutes). v1's 25-minute checkpoint stays the
+leaderboard DQN (`checkpoints/dqn/version_choice.json`). v2's later evaluations
+were higher on average than v1's over the same period, but that does not
+matter for the choice, because only the best checkpoint of each run is used.
+
+### Training scalars (v2)
+
+| Steps | Time | Training pieces | Training top-out | Loss | Mean V | Max V (batch) | LR |
+|---|---|---|---|---|---|---|---|
+| 1.0M | ~17 min | 59 | 1.00 | 1.04 | 26 | 58 | 9.7e-5 |
+| 2.0M | ~37 min | 140 | 0.99 | 1.69 | 41 | 127 | 8.8e-5 |
+| 3.0M | ~60 min | 374 | 0.57 | 2.23 | 88 | 165 | 7.4e-5 |
+| 4.0M | ~83 min | 268 | 0.76 | 1.35 | 124 | 171 | 5.6e-5 |
+| 5.0M | ~105 min | 218 | 0.81 | 1.06 | 126 | 173 | 4.1e-5 |
+
+Mean V rose more slowly than in v1, but ended at the same level, about 125
+(v1: 111 to 124). The training games peaked at 3.0M steps and then declined,
+as in v1.
+
+### Offline Q calibration (same method and seeds as above)
+
+| Run | Checkpoint | Pieces | Top-out | Mean Q | Actual return | Bias | Bias, last 20 pieces before top-out | Best vs 2nd-best gap |
+|---|---|---|---|---|---|---|---|---|
+| v1 | 25 min | 499 | 0.08 | 64 | 130 | -65 | +1 | 0.71 |
+| v1 | 65 min | 284 | 0.75 | 127 | 92 | +34 | +63 | 0.30 |
+| v1 | 135 min | 225 | 0.83 | 128 | 86 | +42 | +66 | 0.19 |
+| v2 | 25 min | 430 | 0.50 | 49 | 112 | -63 | +11 | 0.63 |
+| v2 | 55 min (peak) | 434 | 0.25 | 94 | 120 | -26 | +10 | 0.97 |
+| v2 | 75 min | 450 | 0.25 | 119 | 121 | -2 | +36 | 0.67 |
+| v2 | 95 min | 228 | 1.00 | 128 | 86 | +42 | +53 | 0.45 |
+| v2 | 145 min (late high, 1.10) | 407 | 0.25 | 128 | 122 | +6 | +40 | 0.20 |
+| v2 | 180 min (final) | 376 | 0.33 | 130 | 117 | +13 | +60 | 0.18 |
+
+v2 reproduces v1's pattern, about 50 minutes later:
+
+- **Good checkpoints underestimate.** The best checkpoints of both runs
+  underestimate their overall value and are roughly calibrated near a top-out.
+- **Mean Q climbs regardless of play.** Mean Q rises steadily to about 125-128
+  whether or not play improves.
+- **Decline starts when Q passes the actual return.** It begins once mean Q
+  reaches the actual return. That point is 75 minutes in v2, with bias -2 and
+  near-top-out bias +36.
+- **Same end state as v1.** By 95 minutes v2 has the same overall bias as v1
+  at 135 minutes (+42), with +53 near a top-out.
+
+The fix slowed the drift but did not remove it.
+
+### Replay composition hypothesis
+
+The hypothesis is that the decline starts when the replay buffer holds only
+data from after epsilon reached its floor:
+
+- **Floor.** Epsilon reaches its floor of 0.005 at 54 minutes (about step
+  2.75M). It is already below 0.04 from about 45 minutes.
+- **Buffer age.** v2 ran at about 730 environment steps per second, slower than
+  the 920 assumed when sizing the buffer. The 2M buffer therefore holds about
+  45 minutes of play, not 36.
+- **Post-floor share.** The share of the buffer collected after the floor was
+  about 50% at 75 minutes and about 70% at 85 minutes. It was about 90% at
+  95 minutes, and 100% from about 100 minutes (step 4.75M).
+
+The decline (85 minutes) starts while the buffer is still about 30%
+pre-floor, and it gets steep (95 minutes) as the buffer approaches 100%
+post-floor. The timing fits the hypothesis, but one run cannot separate it from
+a second explanation that fits equally well: Q reaches the actual return at
+the same time. These measurements cannot tell the two apart. Neither the
+lower learning rate (still 5.6e-5 at 85 minutes) nor the slower target stopped
+mean V from rising.

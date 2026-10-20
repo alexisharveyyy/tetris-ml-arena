@@ -1,0 +1,90 @@
+{
+  "dqn": [
+    {
+      "run": "short0",
+      "selected_minutes": 15.01782949026674,
+      "selection_fitness": 1.177015860563236,
+      "games": 500,
+      "fitness": 1.0971717510797183,
+      "mean_pieces": 386.39,
+      "mean_lines": 258.168,
+      "mean_score": 581427.692,
+      "score_per_piece": 1297.567004318873,
+      "lines_per_piece": 0.6442143766860854,
+      "top_out_rate": 0.458,
+      "attack_per_minute": 43.79298346600319
+    },
+    {
+      "run": "short1",
+      "selected_minutes": 15.017991561101129,
+      "selection_fitness": 1.179021587439069,
+      "games": 500,
+      "fitness": 1.2039443067943885,
+      "mean_pieces": 422.57,
+      "mean_lines": 284.812,
+      "mean_score": 672343.552,
+      "score_per_piece": 1435.217227177554,
+      "lines_per_piece": 0.6552062967252901,
+      "top_out_rate": 0.322,
+      "attack_per_minute": 46.40958556245737
+    },
+    {
+      "run": "short2",
+      "selected_minutes": 15.017974311099776,
+      "selection_fitness": 1.2413333639270532,
+      "games": 500,
+      "fitness": 1.2174641627012461,
+      "mean_pieces": 427.738,
+      "mean_lines": 288.018,
+      "mean_score": 672409.004,
+      "score_per_piece": 1447.9526508049837,
+      "lines_per_piece": 0.6609040895565691,
+      "top_out_rate": 0.342,
+      "attack_per_minute": 46.44083120980706
+    }
+  ],
+  "ppo": [
+    {
+      "run": "short0",
+      "selected_minutes": 25.336640081950463,
+      "selection_fitness": 0.06248011755889798,
+      "games": 500,
+      "fitness": 0.060736210983914726,
+      "mean_pieces": 26.632,
+      "mean_lines": 2.56,
+      "mean_score": 821.552,
+      "score_per_piece": 29.88884393565889,
+      "lines_per_piece": 0.08856024818529003,
+      "top_out_rate": 1.0,
+      "attack_per_minute": 1.2722512149798486
+    },
+    {
+      "run": "short1",
+      "selected_minutes": 15.254169422234797,
+      "selection_fitness": 0.033300933487808486,
+      "games": 500,
+      "fitness": 0.03148812615130024,
+      "mean_pieces": 12.954,
+      "mean_lines": 0.432,
+      "mean_score": 293.312,
+      "score_per_piece": 22.320504605200963,
+      "lines_per_piece": 0.029180219859783058,
+      "top_out_rate": 1.0,
+      "attack_per_minute": 0.5851720621999261
+    },
+    {
+      "run": "short2",
+      "selected_minutes": 15.228177494448998,
+      "selection_fitness": 0.047812644267123665,
+      "games": 500,
+      "fitness": 0.04728933782598575,
+      "mean_pieces": 20.928,
+      "mean_lines": 0.352,
+      "mean_score": 457.524,
+      "score_per_piece": 21.73335130394301,
+      "lines_per_piece": 0.01545004697266509,
+      "top_out_rate": 1.0,
+      "attack_per_minute": 0.2428745380223641
+    }
+  ]
+}

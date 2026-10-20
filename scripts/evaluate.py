@@ -63,19 +63,36 @@ def marathon_section(
         "",
         f"{games} headless games per agent and preset on held-out seeds {seeds[0]}..{seeds[-1]}, "
         "lockstep with a simulated 60 fps clock, so speed caps, reaction delays, move rates and "
-        "mistakes apply exactly as in real-time play. To win a Marathon match you need a higher "
-        f"score than the agent when you top out. Runtime: {minutes:.0f} minutes.",
+        "mistakes apply exactly as in real-time play. Runtime: "
+        f"{minutes:.0f} minutes.",
         "",
-        "| Agent | Preset | Mean score | Mean lines | Mean level | Mean pieces | Cap-hit rate "
-        "| Mean survival |",
-        "|---|---|---|---|---|---|---|---|",
+        "A Marathon match ends when the human tops out, so the numbers that matter are the "
+        "agent's score and lines at the moment you top out. The table gives the agent's mean "
+        "score and lines after 1, 3, 5 and 10 minutes of play (after the countdown). An agent "
+        "that has already topped out keeps its final score. If you top out at 3 minutes with "
+        "more points than the 3-minute score, you beat the average game of that agent.",
+        "",
+        "At Easy, the heuristic agents (Dellacherie, GA, CEM) and DQN are all limited by the "
+        "preset's speed cap and reaction delay rather than by their placement choices, so they "
+        "score almost the same.",
+        "",
+        "Time to top-out is the mean time until the agent tops out. Games that reach the "
+        f"{MARATHON_MAX_PIECES}-piece cap count at the time they reached it, so where the "
+        "cap-hit rate is above 0 the mean is a lower bound (marked >=).",
+        "",
+        "| Agent | Preset | Score 1 min | Score 3 min | Score 5 min | Score 10 min "
+        "| Lines 1 / 3 / 5 / 10 min | Time to top-out | Cap-hit rate |",
+        "|---|---|---|---|---|---|---|---|---|",
     ]
     for r in rows:
         survival = r["mean_survival_s"]
+        bound = ">= " if r["cap_hit_rate"] > 0 else ""
+        lines = " / ".join(f"{r[f'lines_{m}min']:.0f}" for m in (1, 3, 5, 10))
         md.append(
-            f"| {r['agent']} | {r['preset']} | {r['mean_score']:,.0f} | {r['mean_lines']:.1f} | "
-            f"{r['mean_level']:.1f} | {r['mean_pieces']:.0f} | {r['cap_hit_rate']:.2f} | "
-            f"{int(survival // 60)}:{int(survival % 60):02d} |"
+            f"| {r['agent']} | {r['preset']} | "
+            + " | ".join(f"{r[f'score_{m}min']:,.0f}" for m in (1, 3, 5, 10))
+            + f" | {lines} | {bound}{int(survival // 60)}:{int(survival % 60):02d} "
+            f"| {r['cap_hit_rate']:.2f} |"
         )
     md.append("")
     print(f"marathon: {len(results)} games in {minutes:.1f} min", flush=True)
@@ -121,10 +138,14 @@ def main() -> None:
         "",
     ]
     all_stats: dict[tuple[str, str], list] = {}
-    for setting, title in (
-        (GARBAGE_SETTING, "Primary: garbage"),
-        (PLAIN_SETTING, "Secondary: plain"),
-    ):
+    settings = ((GARBAGE_SETTING, "Primary: garbage"), (PLAIN_SETTING, "Secondary: plain"))
+    if args.skip_garbage:
+        # Keep the existing garbage and plain sections; only the Marathon section is redone.
+        settings = ()
+        old = out / "leaderboard.md"
+        if old.exists():
+            md = old.read_text().split("## Marathon")[0].rstrip("\n").split("\n") + [""]
+    for setting, title in settings:
         rows = []
         for key in keys:
             t0 = time.time()
@@ -158,11 +179,18 @@ def main() -> None:
                 "|---|---|---|",
             ]
             ordered = [r["key"] for r in rows]
+            ties = []
             for i, a in enumerate(ordered):
                 for b in ordered[i + 1 :]:
                     res = paired_bootstrap(
                         all_stats[(setting.name, a)], all_stats[(setting.name, b)]
                     )
+                    _, lo, hi = res["fitness"]
+                    if b == ordered[i + 1] and lo <= 0 <= hi:
+                        ties.append(
+                            f"{AGENTS[a].name} and {AGENTS[b].name} "
+                            f"(interval {lo:+.3f} to {hi:+.3f})"
+                        )
                     cells = []
                     for metric in ("fitness", "top_out_rate"):
                         mean, lo, hi = res[metric]
@@ -172,6 +200,12 @@ def main() -> None:
                         f"| {AGENTS[a].name} minus {AGENTS[b].name} | {cells[0]} | {cells[1]} |"
                     )
             md.append("")
+            if ties:
+                md += [
+                    "Adjacent ranks whose fitness interval includes 0 are statistically tied; "
+                    "their order in the table is not a result: " + "; ".join(ties) + ".",
+                    "",
+                ]
     if args.marathon_games > 0:
         md += marathon_section(keys, args.marathon_games, args.workers, out, args.marathon_presets)
     (out / "leaderboard.md").write_text("\n".join(md))

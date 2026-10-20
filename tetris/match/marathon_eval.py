@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import multiprocessing as mp
 from collections.abc import Sequence
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, field
 from typing import Any
 
 import numpy as np
@@ -19,6 +19,10 @@ from tetris.match.controller import MatchConfig, MatchController, PlayerSpec
 
 MARATHON_MAX_PIECES = 2000
 DT = 1 / 60
+#: Play times (seconds, after the countdown) at which score and lines are recorded.
+#: A Marathon match ends when the human tops out, so these are what a human
+#: has to beat, not the agent's final score.
+CHECKPOINT_SECONDS = (60, 180, 300, 600)
 
 
 @dataclass
@@ -33,6 +37,10 @@ class MarathonResult:
     tetrises: int
     survival_time: float
     hit_cap: bool
+    #: Score and lines at each of CHECKPOINT_SECONDS (final values if the
+    #: game ended earlier).
+    checkpoint_scores: list[int] = field(default_factory=list)
+    checkpoint_lines: list[int] = field(default_factory=list)
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
@@ -45,9 +53,19 @@ def play_marathon(
         MatchConfig(mode="marathon", seed=seed, lockstep=True, eval_max_pieces=max_pieces),
         [PlayerSpec("a", agent_key, "agent", agent_key, PRESETS[preset], preset=preset)],
     )
+    game = match.players["a"].game
+    scores: list[int] = []
+    lines: list[int] = []
     while not match.finished:
         match.step(DT)
+        while (
+            len(scores) < len(CHECKPOINT_SECONDS) and match.time >= CHECKPOINT_SECONDS[len(scores)]
+        ):
+            scores.append(game.score)
+            lines.append(game.lines)
     row = match.standings[0]
+    scores += [row["score"]] * (len(CHECKPOINT_SECONDS) - len(scores))
+    lines += [row["lines"]] * (len(CHECKPOINT_SECONDS) - len(lines))
     match.close()
     return MarathonResult(
         agent_key,
@@ -60,6 +78,8 @@ def play_marathon(
         row["tetrises"],
         row["survival_time"],
         not row["topped_out"] and row["pieces"] >= max_pieces,
+        scores,
+        lines,
     )
 
 
@@ -99,4 +119,16 @@ def summarize_marathon(results: Sequence[MarathonResult]) -> dict[str, float]:
         "mean_pieces": float(np.mean([r.pieces for r in results])),
         "cap_hit_rate": float(np.mean([r.hit_cap for r in results])),
         "mean_survival_s": float(np.mean([r.survival_time for r in results])),
+        **{
+            f"score_{t // 60}min": float(np.mean([r.checkpoint_scores[k] for r in results]))
+            for k, t in enumerate(CHECKPOINT_SECONDS)
+        },
+        **{
+            f"lines_{t // 60}min": float(np.mean([r.checkpoint_lines[k] for r in results]))
+            for k, t in enumerate(CHECKPOINT_SECONDS)
+        },
+        **{
+            f"alive_{t // 60}min": float(np.mean([r.survival_time >= t for r in results]))
+            for k, t in enumerate(CHECKPOINT_SECONDS)
+        },
     }
