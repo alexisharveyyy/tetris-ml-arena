@@ -14,6 +14,7 @@ class MenuScreen(Screen):
     def __init__(self, app) -> None:
         super().__init__(app)
         from tetris.ui.pygame.screens.opponents import OpponentSelectScreen
+        from tetris.ui.pygame.screens.record import RecordScreen
         from tetris.ui.pygame.screens.settings_screen import SettingsScreen
         from tetris.ui.pygame.screens.solo import SoloScreen
         from tetris.ui.pygame.screens.watch import WatchSelectScreen
@@ -24,7 +25,7 @@ class MenuScreen(Screen):
             ("Watch AI", lambda: app.push(WatchSelectScreen(app)), ""),
             ("Race", lambda: app.push(OpponentSelectScreen(app, "race")), ""),
             ("Marathon", lambda: app.push(OpponentSelectScreen(app, "marathon")), ""),
-            ("Record Gameplay", None, "Available in phase 5"),
+            ("Record Gameplay", lambda: app.push(RecordScreen(app)), ""),
             ("Leaderboard", None, "Available in phase 7"),
             ("Settings", lambda: app.push(SettingsScreen(app)), ""),
             ("Quit", app.quit, ""),

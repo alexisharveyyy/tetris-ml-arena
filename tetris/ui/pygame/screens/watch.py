@@ -7,7 +7,7 @@ import random
 import pygame
 
 from tetris.agents.difficulty import PRESET_NAMES, PRESETS, nudge_pps
-from tetris.agents.registry import AgentSpec, available_agents
+from tetris.agents.registry import AgentSpec, playable_agents
 from tetris.match import MatchConfig, MatchController, PlayerSpec
 from tetris.ui.pygame.render import (
     ACCENT,
@@ -31,7 +31,7 @@ class WatchSelectScreen(Screen):
 
     def __init__(self, app) -> None:
         super().__init__(app)
-        self.agents: list[AgentSpec] = available_agents()
+        self.agents: list[AgentSpec] = playable_agents()
         self.selected = 0
 
     def handle_event(self, event: pygame.event.Event) -> None:

@@ -33,6 +33,8 @@ def linear_agents(tmp_path):
             continue  # test doubles registered by other test modules
         if spec.checkpoint and not spec.checkpoint.endswith(".json"):
             continue  # learned agents are covered in tests/rl
+        if "neuroevolution" in spec.factory:
+            continue  # NEAT genomes are covered in tests/agents/test_phase5.py
         ckpt = None
         if spec.checkpoint:
             ckpt = tmp_path / f"{key}.json"

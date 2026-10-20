@@ -29,11 +29,14 @@ class SoloScreen(Screen):
     def __init__(self, app, seed: int | None = None) -> None:
         super().__init__(app)
         self.seed = seed if seed is not None else random.randrange(2**31)
-        self.match = MatchController(
-            MatchConfig(mode="solo", seed=self.seed), [PlayerSpec(PLAYER_ID, "You")]
-        )
+        self.match = self._make_match()
         self.input = KeyboardInput(app.settings, self._on_move, self._toggle_pause)
         self.pause_index = 0
+
+    def _make_match(self) -> MatchController:
+        return MatchController(
+            MatchConfig(mode="solo", seed=self.seed), [PlayerSpec(PLAYER_ID, "You")]
+        )
 
     # ------------------------------------------------------------- input
 
@@ -109,7 +112,10 @@ class SoloScreen(Screen):
         draw_text(surface, f"{minutes:02d}:{seconds:02d}", (w - 20, 16), 32, TEXT, "topright")
         draw_text(surface, f"Seed {self.seed}", (20, 16), 22, MUTED)
         draw_text(surface, "Esc: pause", (20, h - 28), 22, MUTED)
+        self._draw_overlays(surface, snap, player)
 
+    def _draw_overlays(self, surface: pygame.Surface, snap: dict, player: dict) -> None:
+        w, h = surface.get_size()
         if snap["paused"]:
             draw_overlay(surface)
             draw_text(surface, "PAUSED", (w // 2, h // 2 - 110), 64, ACCENT, "center")

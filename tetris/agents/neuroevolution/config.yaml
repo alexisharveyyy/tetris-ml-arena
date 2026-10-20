@@ -1,0 +1,18 @@
+# NEAT over the 13 afterstate features (see README.md and neat_config.ini).
+seed: 0
+budget_minutes: 180          # wall-clock, CPU only
+workers: null                # null = cpu_count - 1
+neat_config: tetris/agents/neuroevolution/neat_config.ini
+
+# Fitness: same setting, fitness and seed protocol as GA and CEM.
+setting: garbage             # 1 direct garbage row every 3 pieces, 500-piece cap
+games_per_eval: 10           # new seeds each generation, shared by every genome
+
+# Checkpoint selection: every select_every generations the generation's best
+# genome is evaluated on the 30 selection seeds; the best of those is kept.
+select_every: 5
+selection_games: 30
+
+play:
+  decision_timeout: 2.0
+  startup_timeout: 60.0

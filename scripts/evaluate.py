@@ -24,7 +24,7 @@ from tetris.agents.evaluation import (
     paired_bootstrap,
     summarize,
 )
-from tetris.agents.registry import AGENTS, ROOT, available_agents
+from tetris.agents.registry import AGENTS, ROOT, leaderboard_agents
 from tetris.match.marathon_eval import MARATHON_MAX_PIECES, evaluate_marathon, summarize_marathon
 
 COLUMNS = (
@@ -121,7 +121,7 @@ def main() -> None:
     parser.add_argument("--skip-garbage", action="store_true", help="only run the Marathon section")
     args = parser.parse_args()
 
-    keys = args.agents or [a.key for a in available_agents()]
+    keys = args.agents or [a.key for a in leaderboard_agents()]
     seeds = list(HELD_OUT_SEEDS[: args.games])
     out = Path(args.out)
     out.mkdir(parents=True, exist_ok=True)

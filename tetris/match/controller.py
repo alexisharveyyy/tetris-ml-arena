@@ -17,6 +17,7 @@ Two clock modes:
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from typing import Any
 
@@ -124,6 +125,9 @@ class MatchController:
         self.specs = list(players)
         self.top_k = top_k
         self.runner = runner
+        #: Called as ``fn(player_id, game, lock_data)`` after every lock is fully
+        #: processed (garbage applied, next piece spawned). Used by recording mode.
+        self.lock_listeners: list[Callable[[str, Game, dict[str, Any]], None]] = []
         agents = [p for p in players if p.kind == "agent"]
         if agents and self.runner is None:
             self.runner = InlineRunner()
@@ -298,6 +302,8 @@ class MatchController:
         if cfg.eval_max_pieces and game.pieces_placed >= cfg.eval_max_pieces and not game.game_over:
             player.done = True
             player.finish_time = self.time
+        for listener in self.lock_listeners:
+            listener(player.spec.player_id, game, data)
         race = cfg.race
         if (
             cfg.mode == "race"

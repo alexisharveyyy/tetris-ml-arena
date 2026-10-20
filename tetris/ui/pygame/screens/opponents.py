@@ -5,7 +5,7 @@ from __future__ import annotations
 import pygame
 
 from tetris.agents.difficulty import nudge_pps
-from tetris.agents.registry import AGENTS, available_agents
+from tetris.agents.registry import AGENTS, playable_agents
 from tetris.match.history import MarathonHistory
 from tetris.match.lobby import CUSTOM, DIFFICULTY_CHOICES, MAX_OPPONENTS, Lobby, OpponentSlot
 from tetris.match.rules import (
@@ -31,7 +31,7 @@ class OpponentSelectScreen(Screen):
     def __init__(self, app, mode: str) -> None:
         super().__init__(app)
         self.mode = mode
-        self.available = [a.key for a in available_agents()]
+        self.available = [a.key for a in playable_agents()]
         saved = app.settings.last_match.get(mode)
         self.lobby = (
             Lobby.from_dict(mode, saved, self.available)

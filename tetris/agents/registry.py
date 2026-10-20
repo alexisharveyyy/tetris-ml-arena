@@ -32,6 +32,10 @@ class AgentSpec:
     supports_target_return: bool = False
     #: Agent config YAML (relative to the repo root) holding a ``play`` section.
     config: str | None = None
+    #: Offered as an opponent in Watch AI, Race and Marathon.
+    playable: bool = True
+    #: Listed on the leaderboard (False for an alias of another entry's checkpoint).
+    leaderboard: bool = True
 
     @property
     def play_config(self) -> dict:
@@ -112,13 +116,66 @@ AGENTS: dict[str, AgentSpec] = {
             "best.pt",
             config="tetris/agents/ppo/config_raw.yaml",
         ),
+        AgentSpec(
+            "bc",
+            "Imitation (BC)",
+            "Behavior cloning of the GA heuristic; the better of pure BC and BC + DAgger.",
+            "tetris.agents.imitation.agent:BCAgent",
+            "best.pt",
+            config="tetris/agents/imitation/config.yaml",
+            leaderboard=False,  # a copy of bc_pure or bc_dagger (version_choice.json)
+        ),
+        AgentSpec(
+            "bc_pure",
+            "Imitation (pure BC)",
+            "Behavior cloning on logged GA games only.",
+            "tetris.agents.imitation.agent:BCAgent",
+            "best.pt",
+            config="tetris/agents/imitation/config.yaml",
+            playable=False,
+        ),
+        AgentSpec(
+            "bc_dagger",
+            "Imitation (BC + DAgger)",
+            "Behavior cloning plus two DAgger rounds with the GA labeling the agent's own states.",
+            "tetris.agents.imitation.agent:BCAgent",
+            "best.pt",
+            config="tetris/agents/imitation/config.yaml",
+            playable=False,
+        ),
+        AgentSpec(
+            "bc_you",
+            "BC (you)",
+            "Behavior cloning of your recorded games, fine-tuned from the GA-trained BC model.",
+            "tetris.agents.imitation.agent:BCAgent",
+            "best.pt",
+            config="tetris/agents/imitation/config.yaml",
+        ),
+        AgentSpec(
+            "neat",
+            "NEAT",
+            "Evolved network scoring each afterstate from the same 13 features as GA and CEM.",
+            "tetris.agents.neuroevolution.agent:NEATAgent",
+            "best.json",
+            config="tetris/agents/neuroevolution/config.yaml",
+        ),
     )
 }
 
 
 def available_agents() -> list[AgentSpec]:
-    """Agents that can play now (checkpoint present or none needed)."""
+    """Agents with a checkpoint present (or none needed)."""
     return [spec for spec in AGENTS.values() if spec.available]
+
+
+def playable_agents() -> list[AgentSpec]:
+    """Available agents offered as opponents."""
+    return [spec for spec in available_agents() if spec.playable]
+
+
+def leaderboard_agents() -> list[AgentSpec]:
+    """Available agents evaluated on the leaderboard."""
+    return [spec for spec in available_agents() if spec.leaderboard]
 
 
 def register_agent(spec: AgentSpec) -> None:

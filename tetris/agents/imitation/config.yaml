@@ -1,0 +1,50 @@
+# Behavior cloning over the 80-action placement space (see README.md).
+# The policy is the afterstate scorer used by PPO: each legal action's logit is
+# a shared network's score of that action's afterstate.
+seed: 0
+device: mps                  # with the MPS pre-flight check and the progress watchdog
+torch_threads: 2
+
+# Data: logged GA games (scripts/log_games.py), 100 garbage + 100 plain episodes.
+teacher: ga
+log_dirs: [data/logs/ga]
+cache_dir: data/imitation
+val_fraction: 0.1            # validation episodes (agreement metrics only)
+
+# Learning
+lr: 3.0e-4                   # cosine-decayed to lr_final over each training phase
+lr_final: 3.0e-5
+weight_decay: 1.0e-5
+batch_states: 256            # about 17.6k legal afterstates per batch
+grad_clip: 1.0
+
+# Pure BC
+budget_minutes: 30
+
+# DAgger: starts from the pure BC model; each round the BC policy plays,
+# the GA labels every state it visits, and training continues on all data.
+dagger_rounds: 2
+dagger_games_per_setting: 50 # garbage and plain, new seeds each round
+dagger_round_minutes: 10
+
+# BC (you): fine-tuned from the chosen GA-trained model on your recordings.
+you_min_placements: 2000
+you_minutes: 10
+you_lr: 1.0e-4
+you_val_fraction: 0.1        # recorded games used to pick the checkpoint
+you_test_fraction: 0.2       # held-out recorded games for the agreement report
+
+model:
+  board_dim: 128
+  extra_dim: 64
+  hidden: 128
+  critic_hidden: 256         # unused by BC; keeps the checkpoint loadable as a PPO policy
+
+# Checkpoint selection on the 30 selection seeds (garbage setting).
+first_eval_minutes: 3
+eval_every_minutes: 3
+eval_workers: 3
+
+play:
+  decision_timeout: 2.0
+  startup_timeout: 60.0

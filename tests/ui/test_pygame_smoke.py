@@ -144,3 +144,37 @@ def test_opponent_selection_match_and_results(app, monkeypatch, tmp_path, mode: 
     # A new opponent selection screen restores the saved lobby.
     again = OpponentSelectScreen(app, mode)
     assert again.lobby.to_dict()["slots"] == saved[mode]["slots"]
+
+
+def test_record_gameplay_flow(app, tmp_path, monkeypatch) -> None:
+    import tetris.match.recording as recording
+    from tetris.agents.game_log import read_episode
+    from tetris.ui.pygame.screens.menu import MenuScreen
+    from tetris.ui.pygame.screens.record import RecordScreen
+
+    monkeypatch.setattr(recording, "RECORDINGS_DIR", tmp_path / "rec")
+    app.push(MenuScreen(app))
+    menu = app.screen
+    menu.selected = [label for label, *_ in menu.items].index("Record Gameplay")
+    press(pygame.K_RETURN)
+    app.frame(1 / 60)
+    assert isinstance(app.screen, RecordScreen)
+    screen = app.screen
+    assert screen.setting == "plain"  # default
+    press(pygame.K_RETURN)  # start
+    app.frame(1 / 60)
+    assert screen.phase == "playing"
+    frames = 0
+    while screen.phase == "playing" and frames < 3000:
+        if frames % 3 == 2:
+            screen._on_move(Move.HARD)  # stack straight down until topping out
+        app.frame(1 / 60)
+        frames += 1
+    assert screen.phase == "review"
+    n = len(screen.recorder.steps)
+    assert n >= 5 and screen.recorder.on_space == n
+    press(pygame.K_s)
+    app.frame(1 / 60)
+    assert screen.saved_path is not None
+    assert recording.recording_totals()["on_space"] == n
+    assert sum(r["type"] == "step" for r in read_episode(screen.saved_path)) == n
