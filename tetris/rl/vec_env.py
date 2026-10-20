@@ -78,17 +78,44 @@ def _package(game: Game, mode: str, include_hold: bool) -> dict[str, np.ndarray]
     return {"board": board, "extras": extras, "mask": action_mask(game, include_hold)}
 
 
+class IllegalActionError(RuntimeError):
+    """A policy sent an action the environment's own legality check rejects."""
+
+
 class _EnvSlot:
     def __init__(self, rng: Rng, setting: EvalSetting) -> None:
         self.rng = rng
         self.setting = setting
         self.game: Game | None = None
         self.episode_reward = 0.0
+        self.seed: int | None = None
+        #: Steps since this env's last reset, and how its previous episode ended.
+        self.steps_since_reset = 0
+        self.last_end = "start"
 
-    def reset(self) -> Game:
-        self.game = Game(self.rng.randbelow(TRAIN_SEED_RANGE))
+    def reset(self, reason: str = "start") -> Game:
+        self.seed = self.rng.randbelow(TRAIN_SEED_RANGE)
+        self.game = Game(self.seed)
         self.episode_reward = 0.0
+        self.steps_since_reset = 0
+        self.last_end = reason
         return self.game
+
+    def illegal_report(self, index: int, action: int) -> dict[str, Any]:
+        g = self.game
+        return {
+            "env": index,
+            "action": int(action),
+            "placement": repr(Placement.from_index(int(action))),
+            "piece": g.active.piece.letter if g.active else None,
+            "hold": g.hold.letter if g.hold else None,
+            "can_hold": g.can_hold,
+            "legal_actions": int(action_mask(g, self.setting.include_hold).sum()),
+            "steps_since_reset": self.steps_since_reset,
+            "previous_episode_end": self.last_end,
+            "game_seed": self.seed,
+            "pieces_placed": g.pieces_placed,
+        }
 
     def has_moves(self) -> bool:
         g = self.game
@@ -111,6 +138,16 @@ def _worker(conn, mode: str, n_envs: int, seed: int, setting_d: dict[str, Any]) 
                 packages.append(_package(slot.game, mode, setting.include_hold))
             conn.send(packages)
         elif cmd == "step":
+            # Check every action against the env's own legality first, independent of
+            # the mask the policy used; report instead of crashing the worker.
+            illegal = [
+                slot.illegal_report(i, a)
+                for i, (slot, a) in enumerate(zip(slots, payload, strict=True))
+                if not action_mask(slot.game, slot.setting.include_hold)[int(a)]
+            ]
+            if illegal:
+                conn.send({"illegal": illegal})
+                continue
             results = []
             for slot, action in zip(slots, payload, strict=True):
                 g = slot.game
@@ -132,7 +169,9 @@ def _worker(conn, mode: str, n_envs: int, seed: int, setting_d: dict[str, Any]) 
                         "topped_out": terminated,
                         "return": slot.episode_reward,
                     }
-                    slot.reset()
+                    slot.reset("terminated" if terminated else "truncated")
+                else:
+                    slot.steps_since_reset += 1
                 results.append(
                     StepResult(
                         reward,
@@ -206,7 +245,19 @@ class VecEnv:
 
     def step_wait(self) -> list[StepResult]:
         self._waiting = False
-        return [r for c in self._conns for r in c.recv()]
+        replies = [c.recv() for c in self._conns]
+        illegal = []
+        for w, reply in enumerate(replies):
+            if isinstance(reply, dict) and "illegal" in reply:
+                for r in reply["illegal"]:
+                    illegal.append({**r, "env": w * self.envs_per_worker + r["env"]})
+        if illegal:
+            details = "\n".join(str(r) for r in illegal)
+            raise IllegalActionError(
+                f"{len(illegal)} env(s) rejected the policy's action (env state unchanged):\n"
+                f"{details}"
+            )
+        return [r for reply in replies for r in reply]
 
     def step(self, actions: list[int] | np.ndarray) -> list[StepResult]:
         self.step_async(actions)

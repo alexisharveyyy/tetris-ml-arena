@@ -494,3 +494,24 @@ def test_afterstate_policy_mps_gradients_match_cpu_at_training_scale() -> None:
     assert torch.isfinite(g_mps).all()
     rel = float((g_cpu - g_mps).norm() / g_cpu.norm())
     assert rel < 1e-3, f"relative gradient difference {rel:.2e}"
+
+
+def test_vec_env_rejects_illegal_action_with_report() -> None:
+    from tetris.rl.vec_env import IllegalActionError
+
+    setting = EvalSetting("short", max_pieces=6)
+    vec = VecEnv("action_afterstate", 2, 2, setting, 5)
+    try:
+        packages = vec.reset()
+        actions = [int(np.flatnonzero(p["mask"])[0]) for p in packages]
+        illegal = int(np.flatnonzero(~packages[3]["mask"])[0])
+        with pytest.raises(IllegalActionError) as err:
+            vec.step([*actions[:3], illegal])
+        msg = str(err.value)
+        assert "'env': 3" in msg and f"'action': {illegal}" in msg
+        assert "'steps_since_reset': 0" in msg and "'previous_episode_end': 'start'" in msg
+        # Nothing was applied: the same legal actions still work.
+        results = vec.step(actions)
+        assert all(r.package["mask"].any() for r in results)
+    finally:
+        vec.close()
