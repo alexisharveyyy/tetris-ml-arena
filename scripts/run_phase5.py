@@ -1,7 +1,7 @@
 """Run the Phase 5 training and evaluation steps in order, unattended.
 
 Order: pure BC (30 min, MPS), BC + DAgger (2 rounds), the Imitation (BC)
-version choice, BC (you) (skipped below about 2,000 recorded placements),
+version choice, BC (you) (skipped below 800 on-space placements or 3 games),
 NEAT (3 hours, CPU), then the full leaderboard with Marathon. Each step is a
 separate process; nothing runs in parallel with GPU training. Meant to run
 from a git worktree pinned to a commit, like scripts/run_ppo_rerun.py.

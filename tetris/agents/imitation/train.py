@@ -4,7 +4,7 @@ Usage:
     python -m tetris.agents.imitation.train pure    [--budget-minutes M] [--config PATH]
     python -m tetris.agents.imitation.train dagger  [--rounds N] [--round-minutes M]
     python -m tetris.agents.imitation.train choose  # bc = better of bc_pure, bc_dagger
-    python -m tetris.agents.imitation.train you     # needs about 2,000 recorded placements
+    python -m tetris.agents.imitation.train you     # needs 800 on-space placements in 3+ games
 
 The policy is the PPO afterstate policy (each legal action's logit scores its
 afterstate). The loss is the negative log of the total probability of the
@@ -20,9 +20,10 @@ actions whose afterstate equals the teacher's (see dataset.py).
 * ``choose``: the playable ``bc`` agent is whichever of the two has the higher
   selection fitness; recorded in ``checkpoints/bc/version_choice.json``.
 * ``you``: fine-tunes the chosen model on your recordings (on-space steps
-  only). Games are split into train, validation (picks the checkpoint) and
-  held-out test games, and top-1 and top-3 agreement on the test games are
-  reported in ``reports/bc_you.json``.
+  only, at least 800 in 3 games) at a low learning rate. Games are split into
+  train, validation (early stopping) and test games; ``reports/bc_you.json``
+  gives top-1 and top-3 agreement on the test games for the GA-trained model
+  and the fine-tuned one, with a paired bootstrap interval over games.
 
 Every run on MPS starts with the gradient pre-flight check and runs under the
 parameter-change watchdog (tetris/rl/safeguards.py).
@@ -119,7 +120,8 @@ def agreement(
     states: np.ndarray,
     device: torch.device,
     batch_states: int = 512,
-) -> dict[str, float]:
+    per_state: bool = False,
+) -> dict[str, Any]:
     """Top-1 and top-3 agreement with the teacher, and the loss, on ``states``.
 
     Ranks are over distinct afterstates: equivalent actions have identical
@@ -128,7 +130,8 @@ def agreement(
     than the teacher's afterstate.
     """
     net.eval()
-    top1 = top3 = 0
+    hits1: list[bool] = []
+    hits3: list[bool] = []
     loss_sum = 0.0
     for i in range(0, len(states), batch_states):
         chunk = states[i : i + batch_states]
@@ -143,11 +146,18 @@ def agreement(
             best_target = s[t].max()
             others = np.unique(np.round(s[~t], 6))
             better = int((others > best_target + 1e-6).sum())
-            top1 += better == 0
-            top3 += better < 3
+            hits1.append(better == 0)
+            hits3.append(better < 3)
     net.train()
     n = max(len(states), 1)
-    return {"top1": float(top1 / n), "top3": float(top3 / n), "loss": loss_sum / n}
+    out: dict[str, Any] = {
+        "top1": float(np.sum(hits1) / n),
+        "top3": float(np.sum(hits3) / n),
+        "loss": loss_sum / n,
+    }
+    if per_state:
+        out["hits1"], out["hits3"] = np.array(hits1, bool), np.array(hits3, bool)
+    return out
 
 
 # ------------------------------------------------------------------ data
@@ -240,7 +250,8 @@ class Trainer:
         tick_seconds: float = 180.0,
         first_tick: float | None = None,
     ) -> None:
-        """Train for ``minutes``; ``on_tick(trainer)`` runs every ``tick_seconds``."""
+        """Train for ``minutes``; ``on_tick(trainer, elapsed)`` runs every ``tick_seconds``
+        and stops training early by returning True."""
         cfg = self.cfg
         net = self.net
         net.train()
@@ -284,7 +295,8 @@ class Trainer:
                 )
                 next_log = budget.elapsed + 30.0
             if on_tick is not None and budget.elapsed >= next_tick:
-                on_tick(self, self.elapsed + budget.elapsed)
+                if on_tick(self, self.elapsed + budget.elapsed):
+                    break  # early stopping
                 next_tick = budget.elapsed + tick_seconds
         self.elapsed += budget.elapsed
 
@@ -436,37 +448,64 @@ def choose_version() -> dict:
 
 
 def train_you(cfg: dict[str, Any], run_name: str = "seed0") -> dict:
-    """Fine-tune on your recordings; report agreement on held-out recorded games."""
+    """Fine-tune the GA-trained BC model on your recordings.
+
+    Your games are split by game, in recording order: the most recent games
+    are the test set, the ones before them the validation set, the rest
+    training data. Training uses a low learning rate and stops early when
+    top-1 agreement on the validation games has not improved for
+    ``you_patience`` checks (every 30 s); the best validation checkpoint is
+    kept. The report compares top-1 and top-3 agreement on the test games for
+    the GA-trained BC model (the baseline) and the fine-tuned model, with a
+    95% bootstrap interval over test games for the paired difference.
+    """
     from tetris.match.recording import recording_files, recording_totals
 
     report_path = ROOT / "reports" / "bc_you.json"
     totals = recording_totals()
     need = int(cfg["you_min_placements"])
+    skip = None
     if totals["on_space"] < need:
-        msg = f"{totals['on_space']} on-space placements recorded; BC (you) needs about {need}"
-        print(f"skipping BC (you): {msg}", flush=True)
-        report_path.write_text(json.dumps({"skipped": msg, "recordings": totals}, indent=2))
-        return {"skipped": msg}
+        skip = f"{totals['on_space']} on-space placements recorded; BC (you) needs {need}"
+    elif totals["games"] < 3:
+        skip = f"{totals['games']} recorded games; the split by game needs at least 3"
+    if skip:
+        print(f"skipping BC (you): {skip}", flush=True)
+        report_path.write_text(json.dumps({"skipped": skip, "recordings": totals}, indent=2))
+        return {"skipped": skip}
     init = CHECKPOINT_DIR / "bc" / "best.pt"
-    files = recording_files()
-    data = cached_dataset(files, Path(cfg["cache_dir"]), "human")
+    data = cached_dataset(recording_files(), Path(cfg["cache_dir"]), "human")
     train_idx, val_idx, test_idx = split_recordings(
         data, float(cfg["you_val_fraction"]), float(cfg["you_test_fraction"])
     )
     trainer = Trainer(cfg, "bc_you", run_name, init=str(init))
     trainer.check_device(data)
-    before = agreement(trainer.net, data, test_idx, trainer.device)
-    best = {"top1": -1.0}
+    baseline = agreement(trainer.net, data, test_idx, trainer.device, per_state=True)
+    patience = int(cfg["you_patience"])
+    best: dict[str, Any] = {"top1": -1.0}
     best_state: dict[str, torch.Tensor] = {}
+    curve: list[dict[str, float]] = []
+    stale = 0
 
-    def tick(tr: Trainer, elapsed: float) -> None:
-        nonlocal best, best_state
+    def tick(tr: Trainer, elapsed: float) -> bool:
+        nonlocal best, best_state, stale
         m = agreement(tr.net, data, val_idx, tr.device)
-        print(f"   validation top-1 {m['top1']:.3f}  top-3 {m['top3']:.3f}", flush=True)
+        curve.append({"minutes": elapsed / 60, "top1": m["top1"], "top3": m["top3"]})
+        tr.logger.scalar("val/top1", m["top1"], tr.steps)
+        tr.logger.scalar("val/top3", m["top3"], tr.steps)
+        print(
+            f"   {elapsed / 60:4.1f} min  validation top-1 {m['top1']:.3f}  top-3 {m['top3']:.3f}",
+            flush=True,
+        )
         if m["top1"] > best["top1"]:
             best = {**m, "minutes": elapsed / 60}
             best_state = copy.deepcopy({k: v.cpu() for k, v in tr.net.state_dict().items()})
+            stale = 0
+        else:
+            stale += 1
+        return stale >= patience
 
+    tick(trainer, 0.0)  # the first check is the GA-trained model itself
     trainer.fit(
         data,
         train_idx,
@@ -475,26 +514,59 @@ def train_you(cfg: dict[str, Any], run_name: str = "seed0") -> dict:
         float(cfg["you_lr"]) * 0.1,
         tick,
         tick_seconds=30.0,
-        first_tick=0.0,
     )
-    tick(trainer, trainer.elapsed)
+    if stale < patience:  # ended on the time limit: check the final weights too
+        tick(trainer, trainer.elapsed)
     trainer.net.load_state_dict(best_state)
-    after = agreement(trainer.net, data, test_idx, trainer.device)
+    tuned = agreement(trainer.net, data, test_idx, trainer.device, per_state=True)
     trainer.net.cpu()
     path = trainer.save("best.pt", validation=best)
     shutil.copy(path, CHECKPOINT_DIR / "bc_you" / "best.pt")
+    episodes = data.episode[test_idx]
     report = {
         "recordings": totals,
-        "states": {"train": len(train_idx), "validation": len(val_idx), "test": len(test_idx)},
-        "test_agreement_before_fine_tuning": before,
-        "test_agreement": after,
-        "validation_best": best,
+        "split_by_game": {
+            "train": {
+                "games": int(len(np.unique(data.episode[train_idx]))),
+                "states": len(train_idx),
+            },
+            "validation": {
+                "games": int(len(np.unique(data.episode[val_idx]))),
+                "states": len(val_idx),
+            },
+            "test": {"games": int(len(np.unique(episodes))), "states": len(test_idx)},
+        },
+        "baseline_ga_trained_bc": {k: baseline[k] for k in ("top1", "top3", "loss")},
+        "fine_tuned": {k: tuned[k] for k in ("top1", "top3", "loss")},
+        "difference_fine_tuned_minus_baseline": {
+            k: paired_game_bootstrap(tuned[f"hits{k[-1]}"], baseline[f"hits{k[-1]}"], episodes)
+            for k in ("top1", "top3")
+        },
+        "selected_on_validation": best,
+        "early_stopping": {"patience_checks": patience, "checks": len(curve)},
+        "validation_curve": curve,
+        "learning_rate": float(cfg["you_lr"]),
         "initialized_from": str(init),
     }
-    report_path.write_text(json.dumps(report, indent=2))
+    report_path.write_text(json.dumps(report, indent=2, default=float))
     trainer.logger.close()
-    print(json.dumps(report, indent=2), flush=True)
+    print(json.dumps(report, indent=2, default=float), flush=True)
     return report
+
+
+def paired_game_bootstrap(
+    a: np.ndarray, b: np.ndarray, games: np.ndarray, n: int = 10_000, seed: int = 0
+) -> dict[str, float]:
+    """Mean of ``a - b`` per state with a 95% interval, resampling whole games."""
+    ids = np.unique(games)
+    diff = a.astype(float) - b.astype(float)
+    sums = np.array([diff[games == g].sum() for g in ids])
+    counts = np.array([(games == g).sum() for g in ids])
+    rng = np.random.default_rng(seed)
+    pick = rng.integers(0, len(ids), size=(n, len(ids)))
+    boot = sums[pick].sum(1) / counts[pick].sum(1)
+    lo, hi = np.percentile(boot, [2.5, 97.5])
+    return {"mean": float(diff.mean()), "ci95_low": float(lo), "ci95_high": float(hi)}
 
 
 def split_recordings(

@@ -206,7 +206,7 @@ def test_bc_you_skips_below_the_placement_minimum(tmp_path, monkeypatch) -> None
     monkeypatch.setattr(recording, "RECORDINGS_DIR", tmp_path / "rec")
     monkeypatch.setattr(bc_train, "ROOT", tmp_path)
     (tmp_path / "reports").mkdir()
-    out = bc_train.train_you({"you_min_placements": 2000})
+    out = bc_train.train_you({"you_min_placements": 800})
     assert "skipped" in out
     assert (
         "0 on-space placements"
@@ -308,3 +308,43 @@ def test_neat_agent_legal_deterministic_and_plotted(neat_genomes, tmp_path) -> N
     assert a == b  # fitness evaluation is deterministic for a seed
     png = plot_topology(ckpt, tmp_path / "topology.png")
     assert png.exists() and png.stat().st_size > 10_000
+
+
+def test_bc_you_fine_tunes_with_game_split_and_reports_baseline(tmp_path, monkeypatch) -> None:
+    import tetris.agents.imitation.train as bc_train
+    import tetris.match.recording as recording
+    import tetris.rl.training as rl_training
+
+    rec_root = tmp_path / "rec"
+    monkeypatch.setattr(recording, "RECORDINGS_DIR", rec_root)
+    for name in ("CHECKPOINT_DIR",):
+        monkeypatch.setattr(bc_train, name, tmp_path / "ckpt")
+    monkeypatch.setattr(bc_train, "ROOT", tmp_path)
+    monkeypatch.setattr(rl_training, "ROOT", tmp_path)
+    (tmp_path / "reports").mkdir()
+    (tmp_path / "ckpt" / "bc").mkdir(parents=True)
+    (tmp_path / "ckpt" / "bc_you").mkdir(parents=True)
+    save_checkpoint(tmp_path / "ckpt" / "bc" / "best.pt", "ppo", AfterstateActorCritic())
+    for seed in range(5):  # five recorded games
+        match, recorder, _ = _recorded_match(10, seed=seed)
+        recorder.save(match.players["h"].game, root=rec_root)
+    cfg = {
+        **bc_train.load_config(bc_train.DEFAULT_CONFIG),
+        "device": "cpu",
+        "cache_dir": str(tmp_path / "cache"),
+        "you_min_placements": 40,
+        "you_minutes": 0.15,
+        "you_patience": 2,
+        "batch_states": 16,
+    }
+    report = bc_train.train_you(cfg, "test")
+    split = report["split_by_game"]
+    assert split["test"]["games"] >= 1 and split["validation"]["games"] >= 1
+    assert sum(v["games"] for v in split.values()) == 5
+    for key in ("baseline_ga_trained_bc", "fine_tuned"):
+        assert 0.0 <= report[key]["top1"] <= report[key]["top3"] <= 1.0
+    diff = report["difference_fine_tuned_minus_baseline"]["top1"]
+    assert diff["ci95_low"] <= diff["mean"] <= diff["ci95_high"]
+    assert report["validation_curve"][0]["minutes"] == 0.0  # first check: the baseline model
+    assert (tmp_path / "ckpt" / "bc_you" / "best.pt").exists()
+    assert json.loads((tmp_path / "reports" / "bc_you.json").read_text())["fine_tuned"]

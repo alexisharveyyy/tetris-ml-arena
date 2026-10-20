@@ -27,12 +27,15 @@ dagger_rounds: 2
 dagger_games_per_setting: 50 # garbage and plain, new seeds each round
 dagger_round_minutes: 10
 
-# BC (you): fine-tuned from the chosen GA-trained model on your recordings.
-you_min_placements: 2000
-you_minutes: 10
-you_lr: 1.0e-4
-you_val_fraction: 0.1        # recorded games used to pick the checkpoint
-you_test_fraction: 0.2       # held-out recorded games for the agreement report
+# BC (you): fine-tuned from the chosen GA-trained model on your recordings,
+# split by game. Early stopping on validation-game top-1 agreement; the
+# report uses the separate test games.
+you_min_placements: 800      # on-space placements; also needs at least 3 games
+you_minutes: 10              # upper bound; early stopping usually ends sooner
+you_lr: 3.0e-5               # 10x below BC (cosine-decayed to 3e-6)
+you_patience: 6              # validation checks (every 30 s) without improvement
+you_val_fraction: 0.15       # most recent games before the test games
+you_test_fraction: 0.25      # most recent games: the agreement report
 
 model:
   board_dim: 128
