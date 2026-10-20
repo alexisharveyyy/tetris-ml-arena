@@ -139,6 +139,67 @@ def preflight_loss(net: torch.nn.Module, batch: list[torch.Tensor]) -> torch.Ten
     return -(adv * logp).mean() + 0.5 * ((v - ret) ** 2).mean() - 0.01 * entropy.mean()
 
 
+#: Runs abort after this many rollout steps that sampled an illegal action.
+MAX_ILLEGAL_EVENTS = 5
+
+
+def illegal_action_guard(
+    net: torch.nn.Module,
+    inputs: list[np.ndarray],
+    logits: torch.Tensor,
+    actions: np.ndarray,
+    illegal: np.ndarray,
+    run_dir: Path,
+    event: int,
+    steps: int,
+) -> tuple[np.ndarray, torch.Tensor]:
+    """An illegal action was sampled (its probability should be exactly 0).
+
+    Prints a loud report, saves the inputs plus the device and CPU logits for
+    diagnosis, and resamples every environment from the CPU recomputation so
+    the run can continue. Aborts after MAX_ILLEGAL_EVENTS.
+    """
+    import copy
+
+    cpu_net = copy.deepcopy(net).cpu().eval()
+    tensors = [torch.from_numpy(x) for x in inputs]
+    tensors[0] = tensors[0].float()
+    with torch.no_grad():
+        cpu_logits, _ = cpu_net(*tensors)
+    dev_logits = logits.detach().cpu()
+    bad = np.flatnonzero(illegal)
+    rows = []
+    for i in bad[:4]:
+        a = int(actions[i])
+        rows.append(
+            f"env {i}: action {a} legal-count {int(inputs[2][i].sum())}; device logit "
+            f"{float(dev_logits[i, a]):.3g}, CPU logit {float(cpu_logits[i, a]):.3g}"
+        )
+    finite = bool(torch.isfinite(dev_logits).all())
+    diff = float((dev_logits - cpu_logits).abs().max())
+    path = run_dir / f"illegal_action_{event}.npz"
+    np.savez_compressed(
+        path,
+        *inputs,
+        actions=actions,
+        device_logits=dev_logits.numpy(),
+        cpu_logits=cpu_logits.numpy(),
+    )
+    bar = "!" * 78
+    print(
+        f"{bar}\n!! ILLEGAL ACTION SAMPLED at step {steps} (event {event}): {len(bad)} of "
+        f"{len(actions)} envs; device logits finite {finite}, max |device - CPU| {diff:.3g}\n!! "
+        + "\n!! ".join(rows)
+        + f"\n!! saved {path}\n{bar}",
+        flush=True,
+    )
+    if event >= MAX_ILLEGAL_EVENTS:
+        raise RuntimeError(f"{event} rollout steps sampled illegal actions; see {path}")
+    logp_all = torch.log_softmax(cpu_logits, -1)
+    a = torch.multinomial(logp_all.exp(), 1).squeeze(1)
+    return a.numpy(), logp_all.gather(1, a[:, None]).squeeze(1)
+
+
 def _stack(packages: list[dict[str, np.ndarray]], fields: tuple[str, ...]) -> list[np.ndarray]:
     return [np.stack([p[f] for p in packages]) for f in fields]
 
@@ -250,6 +311,7 @@ def train(
             latest,
         )
 
+    illegal_events = 0
     shapes = {
         "board": ((24, 10), np.uint8),
         "extras": ((OBS_EXTRA_DIM,), np.float32),
@@ -281,6 +343,13 @@ def train(
                     a = torch.multinomial(logp_all.exp(), 1).squeeze(1)
                     logp = logp_all.gather(1, a[:, None]).squeeze(1)
                 actions = a.cpu().numpy()
+                legal = inputs[2][np.arange(len(actions)), actions]
+                if not legal.all():
+                    illegal_events += 1
+                    actions, logp = illegal_action_guard(
+                        net, inputs, logits, actions, ~legal, run_dir, illegal_events, steps
+                    )
+                    logp = logp.to(device)
                 for buf, arr in zip(bufs, inputs, strict=True):
                     buf[t] = arr
                 buf_a[t] = actions
@@ -378,6 +447,8 @@ def train(
                         log["policy_grad_norm"] += pgn
                     n_mb += 1
             updates += 1
+            if not all(bool(torch.isfinite(q).all()) for q in net.parameters()):
+                raise FloatingPointError(f"non-finite parameters after update {updates}")
             vals = {k: float(v) / n_mb for k, v in log.items()}
             vals["first_ratio_dev"] = float(first_ratio_dev)
             watchdog.update(vals["kl_k3"], scale=max(0.05, 1.0 - frac) ** 2)

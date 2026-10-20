@@ -182,26 +182,35 @@ class AfterstateActorCritic(nn.Module):
         Only legal entries are scored. Returns masked logits ``(B, 80)`` and values ``(B,)``.
         """
         rows, cols = mask.nonzero(as_tuple=True)
-        boards_c, extras_c = cand_boards[rows, cols], cand_extras[rows, cols].float()
-        # Score in chunks: one PPO minibatch has about 115k legal afterstates, and
-        # MPS convolution backward silently returns wrong (often zero) weight
-        # gradients at that size. Chunks of SCORER_CHUNK match the CPU (tested).
-        scores = (
-            torch.cat(
-                [
-                    self.scorer(
-                        unpack_boards_torch(boards_c[i : i + SCORER_CHUNK]),
-                        extras_c[i : i + SCORER_CHUNK],
-                    )
-                    for i in range(0, len(rows), SCORER_CHUNK)
-                ]
-            )
-            if len(rows)
-            else boards_c.new_zeros(0, dtype=torch.float32)
+        scores = score_afterstate_rows(
+            self.scorer, cand_boards[rows, cols], cand_extras[rows, cols]
         )
         logits = torch.full(mask.shape, MASKED_LOGIT, device=mask.device, dtype=scores.dtype)
         logits = logits.index_put((rows, cols), scores)
         return logits, self.value(boards, extras)
+
+
+def score_afterstate_rows(
+    scorer: nn.Module, boards_packed: torch.Tensor, extras: torch.Tensor
+) -> torch.Tensor:
+    """Scores ``(N,)`` for packed afterstate boards ``(N, 30)`` and extras ``(N, 29)``.
+
+    Runs in chunks of :data:`SCORER_CHUNK`: one PPO minibatch has about 115k
+    legal afterstates, and at that size MPS convolution backward silently
+    returned wrong (often zero) weight gradients. Chunks match the CPU (tested,
+    and checked by the pre-flight in tetris/rl/safeguards.py).
+    """
+    if len(boards_packed) == 0:
+        return extras.new_zeros(0, dtype=torch.float32)
+    return torch.cat(
+        [
+            scorer(
+                unpack_boards_torch(boards_packed[i : i + SCORER_CHUNK]),
+                extras[i : i + SCORER_CHUNK].float(),
+            )
+            for i in range(0, len(boards_packed), SCORER_CHUNK)
+        ]
+    )
 
 
 def masked_log_probs(logits: torch.Tensor, mask: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
