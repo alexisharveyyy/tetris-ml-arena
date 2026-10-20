@@ -57,3 +57,45 @@ Selection fitness rose from 0.077 at 5 minutes to 0.146 at 12 minutes.
 For comparison, raw PPO's 1-hour run scored 0.103 on the held-out seeds.
 Throughput is about 360 environment steps per second; the broken runs logged
 about 480.
+
+## Safeguards
+
+These were added before the rerun (`tetris/rl/safeguards.py`).
+
+**Pre-flight check.** Every DQN and PPO training run on a non-CPU device
+starts with a pre-flight check:
+
+- The run's network is built twice from the same weights.
+- The run's loss is computed on one batch of the run's real size, once on the
+  device and once on the CPU.
+- The two full gradient vectors are compared.
+- If the relative difference exceeds 1e-2, the check prints a loud warning.
+  It then tries smaller scorer chunks (2,048, 1,024, 512) for the afterstate
+  policy, and finally falls back to the CPU.
+- The result is saved as `preflight.json` in the run directory.
+
+`scripts/preflight.py` reports the check for all three trainers.
+
+Results on MPS, at real batch sizes:
+
+| Trainer | Batch | Relative gradient difference |
+|---|---|---|
+| DQN | 256 transitions x 8 candidates | 1.2e-7 |
+| PPO (raw actions) | 2,048 states | 3.2e-7 |
+| PPO (afterstate), chunk 4,096 | 2,048 states (about 115k afterstates) | 8.1e-7 to 1.0e-6 |
+| PPO (afterstate), chunking disabled (the broken run) | same | 1.5e7, fails |
+
+**Watchdog.** A run aborts with `StalledTrainingError` when it stops making
+progress:
+
+- **PPO.** Per-update KL is measured with the `(r - 1) - log r` estimator,
+  which is always non-negative. The run aborts if KL stays below 1e-6 for 30
+  consecutive updates. Because KL per update shrinks roughly with the square
+  of the step size, the threshold scales with `(lr / lr0)^2`.
+  - Calibrated on MPS: the reintroduced bug settles at about 1.2e-7; a healthy
+    run starts at 3e-6 and rises to about 2e-4.
+  - With the bug reintroduced and the pre-flight off, the watchdog aborted the
+    run after its patience (5 updates in the demonstration).
+- **DQN.** The run aborts if the relative change of the online network's
+  parameters between log lines (every 30 s) stays below 1e-6 for 10
+  consecutive checks.

@@ -46,6 +46,7 @@ from tetris.rl.nets import (
     unpack_boards_torch,
 )
 from tetris.rl.replay import PrioritizedReplay
+from tetris.rl.safeguards import ParameterChange, ProgressWatchdog, preflight
 from tetris.rl.training import (
     Budget,
     CurveLogger,
@@ -313,6 +314,30 @@ def cosine_lr(lr: float, lr_final: float | None, fraction: float) -> float:
     return float(lr_final) + 0.5 * (lr - float(lr_final)) * (1.0 + math.cos(math.pi * frac))
 
 
+def preflight_batch(cfg: dict[str, Any], seed: int = 0) -> list[torch.Tensor]:
+    """Random inputs with the shapes of one real training update (batch x K candidates)."""
+    from tetris.rl.encoding import AFTERSTATE_EXTRA_DIM, PACKED_BOARD_BYTES
+
+    g = torch.Generator().manual_seed(seed)
+    bsz, k = int(cfg["batch_size"]), int(cfg["next_candidates"])
+    return [
+        torch.randint(0, 256, (bsz, PACKED_BOARD_BYTES), dtype=torch.uint8, generator=g),
+        torch.rand(bsz, AFTERSTATE_EXTRA_DIM, generator=g),
+        torch.randint(0, 256, (bsz * k, PACKED_BOARD_BYTES), dtype=torch.uint8, generator=g),
+        torch.rand(bsz * k, AFTERSTATE_EXTRA_DIM, generator=g),
+    ]
+
+
+def preflight_loss(net: torch.nn.Module, batch: list[torch.Tensor]) -> torch.Tensor:
+    """The update's computation: Huber loss of V(after) against bootstrapped candidate values."""
+    ab, ae, nb, ne = batch
+    with torch.no_grad():
+        v_next = net(unpack_boards_torch(nb), ne).view(ab.shape[0], -1)
+        y = 1.0 + 0.99 * v_next.max(dim=1).values
+    pred = net(unpack_boards_torch(ab), ae)
+    return torch.nn.functional.smooth_l1_loss(pred, y)
+
+
 def epsilon(cfg: dict[str, Any], fraction: float) -> float:
     frac = min(1.0, fraction / cfg["eps_decay_frac"])
     return cfg["eps_start"] + (cfg["eps_end"] - cfg["eps_start"]) * frac
@@ -330,7 +355,24 @@ def train(
     torch.set_num_threads(int(cfg.get("torch_threads", 2)))
     device = select_device(cfg.get("device", "auto"))
     setting = setting_for(cfg)
+    if cfg.get("preflight", True):
+        check = preflight(
+            f"dqn {run_name}",
+            AfterstateValueNet(**cfg.get("model", {})),
+            preflight_batch(cfg),
+            preflight_loss,
+            device,
+            f"batch {cfg['batch_size']} x {cfg['next_candidates']} candidates",
+            run_dir,
+        )
+        device = torch.device(check.final_device)
     learner = Learner(cfg, device)
+    # Abort if the online network stops changing (checked at every log line, every 30 s).
+    watchdog = ProgressWatchdog(
+        f"dqn {run_name}", "relative parameter change", 1e-6, int(cfg.get("watchdog_patience", 10))
+    )
+    param_change = ParameterChange(learner.online)
+    updates_checked = 0
     replay = PrioritizedReplay(
         cfg["replay_capacity"], cfg["next_candidates"], cfg["per_alpha"], seed=seed
     )
@@ -463,6 +505,11 @@ def train(
                 )
                 stats.clear()
                 next_log = budget.elapsed + 30
+                if learner.updates > updates_checked:
+                    change = param_change()
+                    logger.scalar("train/param_change", change, steps)
+                    watchdog.update(change)
+                    updates_checked = learner.updates
             if budget.elapsed >= next_eval:
                 evaluator.submit(save_eval_checkpoint(), steps, budget.elapsed)
                 n_evals += 1

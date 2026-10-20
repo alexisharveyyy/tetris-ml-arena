@@ -185,3 +185,32 @@ a second explanation that fits equally well: Q reaches the actual return at
 the same time. These measurements cannot tell the two apart. Neither the
 lower learning rate (still 5.6e-5 at 85 minutes) nor the slower target stopped
 mean V from rising.
+
+## Future work: clipped double Q (not run)
+
+The v2 changes slowed the overestimation but did not remove it. Both runs
+reached the same overestimated values (mean Q about 125 to 130 against actual
+returns of 86 to 122), and play declined once Q passed the actual return. The
+leaderboard DQN is v1's 25-minute checkpoint: checkpoint selection keeps the
+peak, and that checkpoint is statistically tied with CEM.
+
+**Proposal:**
+
+- **Clipped double Q.** Train two value networks with separate target networks
+  and bootstrap from the smaller of the two target values, as in TD3, so that
+  overestimation in one network is not copied into the targets.
+- **Higher epsilon floor.** Raise it from 0.005 to 0.02, so the replay buffer
+  keeps boards close to a top-out after the decay ends. This addresses the
+  replay composition explanation above.
+- **Logging.** Log the offline Q bias (`scripts/dqn_q_bias.py`) at every
+  selection evaluation, to see whether the bias stays negative or near zero.
+
+**Expected cost:**
+
+- **Time:** one 3-hour MPS run, plus about 2 minutes of CPU for the Q-bias
+  checks.
+- **Updates:** each update evaluates two networks, about 30% slower. The run
+  would complete about 25% fewer gradient updates in the same 3 hours.
+- **Payoff:** expected to be modest. The goal is a run that holds its peak
+  rather than a higher peak. If it held, DQN could train longer than 25
+  minutes usefully.

@@ -34,6 +34,7 @@ from tetris.agents.registry import CHECKPOINT_DIR
 from tetris.engine.placement import NUM_ACTIONS
 from tetris.rl.encoding import AFTERSTATE_EXTRA_DIM, OBS_EXTRA_DIM, PACKED_BOARD_BYTES
 from tetris.rl.nets import build, masked_log_probs, save_checkpoint, select_device, to_cpu
+from tetris.rl.safeguards import ProgressWatchdog, preflight
 from tetris.rl.training import (
     Budget,
     CurveLogger,
@@ -100,6 +101,44 @@ VEC_MODE = {"raw": "obs", "afterstate": "action_afterstate"}
 NET_KIND = {"raw": "ppo_raw", "afterstate": "ppo"}
 
 
+def preflight_batch(policy: str, minibatch: int, seed: int = 0) -> list[torch.Tensor]:
+    """Random policy inputs for one real minibatch, plus actions, advantages and returns.
+
+    About 70% of the 80 actions are legal, close to real boards (about 57).
+    """
+    g = torch.Generator().manual_seed(seed)
+    mask = torch.rand(minibatch, NUM_ACTIONS, generator=g) < 0.7
+    mask[:, 0] = True
+    batch = [
+        torch.randint(0, 2, (minibatch, 24, 10), generator=g).float(),
+        torch.rand(minibatch, OBS_EXTRA_DIM, generator=g),
+        mask,
+    ]
+    if policy == "afterstate":
+        batch += [
+            torch.randint(
+                0, 256, (minibatch, NUM_ACTIONS, PACKED_BOARD_BYTES), dtype=torch.uint8, generator=g
+            ),
+            torch.rand(minibatch, NUM_ACTIONS, AFTERSTATE_EXTRA_DIM, generator=g),
+        ]
+    actions = torch.multinomial(mask.float(), 1, generator=g).squeeze(1)
+    return [
+        *batch,
+        actions,
+        torch.randn(minibatch, generator=g),
+        torch.rand(minibatch, generator=g),
+    ]
+
+
+def preflight_loss(net: torch.nn.Module, batch: list[torch.Tensor]) -> torch.Tensor:
+    """Policy-gradient, value and entropy terms of the PPO loss on one minibatch."""
+    *inputs, actions, adv, ret = batch
+    logits, v = net(*inputs)
+    logp_all, entropy = masked_log_probs(logits, inputs[2])
+    logp = logp_all.gather(1, actions[:, None]).squeeze(1)
+    return -(adv * logp).mean() + 0.5 * ((v - ret) ** 2).mean() - 0.01 * entropy.mean()
+
+
 def _stack(packages: list[dict[str, np.ndarray]], fields: tuple[str, ...]) -> list[np.ndarray]:
     return [np.stack([p[f] for p in packages]) for f in fields]
 
@@ -118,7 +157,34 @@ def train(
     torch.set_num_threads(int(cfg.get("torch_threads", 2)))
     device = select_device(cfg.get("device", "auto"))
     setting = setting_for(cfg)
-    net = build(NET_KIND[policy], cfg.get("model", {})).to(device)
+    net = build(NET_KIND[policy], cfg.get("model", {}))
+    if cfg.get("preflight", True):
+        mb = int(cfg["minibatch_size"])
+        check = preflight(
+            f"{AGENT_KEY} {run_name}",
+            net,
+            preflight_batch(policy, mb),
+            preflight_loss,
+            device,
+            f"minibatch {mb} states"
+            + (
+                f" (about {int(mb * 0.7 * NUM_ACTIONS):,} afterstates)"
+                if policy == "afterstate"
+                else ""
+            ),
+            run_dir,
+        )
+        device = torch.device(check.final_device)
+    net = net.to(device)
+    # Abort if the policy stops changing: per-update KL ((r - 1) - log r estimator, >= 0).
+    # Measured on MPS: the broken afterstate run settled at about 1.2e-7, a healthy one
+    # started at 3e-6 and rose to 2e-4. The threshold scales with (lr / lr0)^2.
+    watchdog = ProgressWatchdog(
+        f"{AGENT_KEY} {run_name}",
+        "policy KL per update",
+        float(cfg.get("watchdog_kl", 1e-6)),
+        int(cfg.get("watchdog_patience", 30)),
+    )
     fused = device.type in ("cuda", "mps")
     opt = torch.optim.Adam(net.parameters(), lr=float(cfg["lr"]), eps=1e-5, fused=fused)
     gamma, lam = float(cfg["gamma"]), float(cfg["gae_lambda"])
@@ -260,6 +326,7 @@ def train(
                 "value_loss": 0.0,
                 "entropy": 0.0,
                 "approx_kl": 0.0,
+                "kl_k3": 0.0,
                 "clip_frac": 0.0,
                 "policy_grad_norm": 0.0,
             }
@@ -305,12 +372,15 @@ def train(
                         log["value_loss"] += vl
                         log["entropy"] += ent
                         log["approx_kl"] += (flogp[j] - logp).mean()
+                        log_ratio = logp - flogp[j]
+                        log["kl_k3"] += (log_ratio.exp() - 1 - log_ratio).mean()
                         log["clip_frac"] += ((ratio - 1).abs() > cfg["clip"]).float().mean()
                         log["policy_grad_norm"] += pgn
                     n_mb += 1
             updates += 1
             vals = {k: float(v) / n_mb for k, v in log.items()}
             vals["first_ratio_dev"] = float(first_ratio_dev)
+            watchdog.update(vals["kl_k3"], scale=max(0.05, 1.0 - frac) ** 2)
             vals["explained_variance"] = explained_variance(buf_v, ret)
             vals["adv_mean"], vals["adv_std"] = float(adv.mean()), float(adv.std())
             if any(np.isnan(v) for v in vals.values()):
