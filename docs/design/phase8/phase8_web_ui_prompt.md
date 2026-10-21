@@ -136,18 +136,21 @@ Each look has five screens. The look switcher on every Home screen links between
 
 Each agent is a piece. Shapes: T, Z, S, L, J and O are the standard tetrominoes; I is four in a row; "mono" is a single block; "P" is the P pentomino (XXX over XX.).
 
-| Agent | Piece | A color | C color | D field / text | B letter |
+| Agent | Piece | A color / header text | C color | D field / text | B letter |
 |---|---|---|---|---|---|
-| DQN | T | #7A4FD0 | #B07CFF | #3D2BBF / #FFFFFF | T |
-| CEM | Z | #D8402F | #FF5A5A | #F2542D / #1A0F0A | Z |
-| GA heuristic | S | #2E9E55 | #4BE08A | #1F7A3A / #FFFFFF | S |
-| PPO | L | #E07A12 | #FF9B3D | #0B7566 / #FFFFFF | L |
-| Behavior cloning | J | #2F5FD0 | #5B8CFF | #1E4FD8 / #FFFFFF | J |
-| NEAT | O | #E6B800 | #FFD23F | #F2A900 / #14161F | O |
-| Decision Transformer | I | #1597A8 | #22D3E6 | #087A8F / #FFFFFF | I |
-| Dellacherie (baseline) | mono | #6B7080 | #AEB4C8 | #6B7080 / #FFFFFF | . |
-| LLM agent (optional) | P | #C2408A | #FF7AC6 | #C2307E / #FFFFFF | P |
+| DQN | T | #7A4FD0 / white | #B07CFF | #3D2BBF / #FFFFFF | T |
+| CEM | Z | #D53E2D / white | #FF5A5A | #F2542D / #1A0F0A | Z |
+| GA heuristic | S | #2E9E55 / ink | #4BE08A | #1F7A3A / #FFFFFF | S |
+| PPO | L | #E07A12 / ink | #FF9B3D | #0B7566 / #FFFFFF | L |
+| Behavior cloning | J | #2F5FD0 / white | #5B8CFF | #1E4FD8 / #FFFFFF | J |
+| BC (you) | J | #729410 / ink | #C6F24E | #A4CC1C / #14161F | j |
+| NEAT | O | #E6B800 / ink | #FFD23F | #F2A900 / #14161F | O |
+| Decision Transformer | I | #1597A8 / ink | #22D3E6 | #087A8F / #FFFFFF | I |
+| Dellacherie (baseline) | mono | #6B7080 / white | #AEB4C8 | #6B7080 / #FFFFFF | . |
+| LLM agent (optional) | P | #C2408A / white | #FF7AC6 | #C2307E / #FFFFFF | P |
 | Human | none | ink #1B1F3B | coral #FF5A3C | #FFE14D / #14161F | @ |
+
+Variants reuse their parent's piece and colors: PPO (raw actions) as PPO with B letter `l`, and BC (pure) and BC + DAgger as Behavior cloning with B letter `J`. PPO (raw actions) is listed under "Variants" on the opponent screen and is not on Home; BC (pure) and BC + DAgger appear on the leaderboard only. Every A header color pair meets 4.5:1; CEM's fill was #D8402F (white text 4.47:1) and GA and the Decision Transformer use ink text because white is about 3.4:1 on their fills.
 
 Define this once in a shared module, not per theme.
 
@@ -156,7 +159,7 @@ Define this once in a shared module, not per theme.
 - **Colors:** background #ECEEF2; ink #1B1F3B; secondary text #3E4462 and #4D5370; panels #FFFFFF; borders #C9CEDA; board gaps #D6DAE3.
 - **Board pieces:** I #1FB3C4, O #F2C318, T #8A5FDB, S #3BB065, Z #E04B39, J #3A6BDB, L #EE8A22. Draw flat fills with a 2px inner ink border at 20% opacity. Empty cells are white.
 - **Fonts:** Unbounded 600/700 for headings and big numbers; Atkinson Hyperlegible 400/700 for everything else, with tabular figures.
-- **Shape:** square panels and 4px radius buttons. The human board has a 3px ink border. Agent card headers are filled with the agent color, with white text (ink text on PPO's orange).
+- **Shape:** square panels and 4px radius buttons. The human board has a 3px ink border. Agent card headers are filled with the agent color, with the header text color from the identity table (ink on PPO, GA heuristic, NEAT, Decision Transformer and BC (you); white otherwise).
 - **Model thinking:** candidate outlines drawn in the agent's color with a 15% fill, and the rank number in the first cell.
 - **Leaderboard:** a confidence-interval chart. Each row has a dot for the estimate and a bar for the 95% interval, in the agent color, on a 0 to 50% scale.
 
@@ -216,11 +219,11 @@ Define this once in a shared module, not per theme.
    - a table of place, player, score, lines, Tetrises, pieces per second, level and how each game ended;
    - actions: Rematch on the same seed (R), New seed (N), Keep watching the agents (W), Change opponents, Home.
 5. **Leaderboard:**
-   - **Survival tab:** top-out rate with 95% normal-approximation intervals from `reports/`, plus pieces survived and score per piece. Explain the method in a short note that includes the paired bootstrap result. Agents not yet evaluated show "Not evaluated yet".
+   - **Survival tab:** top-out rate with 95% Wilson score intervals from `reports/`, plus pieces survived and score per piece. Explain the method in a short note that includes the paired bootstrap result. Agents not yet evaluated show "Not evaluated yet".
    - **Against people tab:** the Marathon evaluation per difficulty, plus your record against each agent.
 6. **Not mocked up; build them in each theme using the same components:** Watch AI (one agent, with the top-3 overlay always available), Solo practice, Record your games, and Settings (look, key rebinding, DAS, ARR, soft drop speed, ghost piece).
 
-Never invent numbers in the UI. Any value not yet computed shows as pending.
+Never invent numbers in the UI. Any value not yet computed shows as pending. Leaderboard results are read with the checkpoint that produced them (`reports/leaderboard_sources.json`); a result from a checkpoint marked buggy (such as `*mpsbug*`), from a checkpoint that has since changed, or with no recorded source shows as "Pending rerun" instead of its numbers.
 
 ## Quality bar
 

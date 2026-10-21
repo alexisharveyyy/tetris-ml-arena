@@ -12,9 +12,11 @@ from typing import Any
 
 import yaml
 
+from tetris import state
 from tetris.match.das import RepeatSettings
 
-DEFAULT_SETTINGS_PATH = Path(__file__).resolve().parent.parent / "configs" / "user_settings.yaml"
+#: configs/user_settings.yaml, or under TETRIS_STATE_DIR (:mod:`tetris.state`).
+DEFAULT_SETTINGS_PATH = state.settings_path()
 
 #: Actions that can be bound, in display order.
 ACTIONS: tuple[str, ...] = ("left", "right", "soft", "hard", "cw", "ccw", "hold", "pause")
@@ -52,6 +54,10 @@ class Settings:
     soft_drop_rate: float = 30.0
     show_ghost: bool = True
     fps: int = 60
+    #: Web UI look id (tetromino, terminal, broadcast or poster).
+    look: str = "tetromino"
+    #: Web UI: draw agents' top three candidate placements.
+    show_thinking: bool = True
     #: Last opponent selection and rules per mode ("race", "battle"), restored next time.
     last_match: dict[str, Any] = field(default_factory=dict)
 

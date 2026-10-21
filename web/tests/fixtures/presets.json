@@ -1,0 +1,50 @@
+[
+    {
+        "name": "Easy",
+        "description": "About one piece every two seconds, with frequent mistakes.",
+        "params": {
+            "pps": 0.5,
+            "move_rate": 5.0,
+            "reaction_delay": 0.9,
+            "noise": 0.4,
+            "epsilon": 0.03,
+            "target_return": null
+        }
+    },
+    {
+        "name": "Medium",
+        "description": "About one piece per second.",
+        "params": {
+            "pps": 1.0,
+            "move_rate": 10.0,
+            "reaction_delay": 0.45,
+            "noise": 0.15,
+            "epsilon": 0.0,
+            "target_return": null
+        }
+    },
+    {
+        "name": "Hard",
+        "description": "About two pieces per second, rare mistakes.",
+        "params": {
+            "pps": 2.0,
+            "move_rate": 25.0,
+            "reaction_delay": 0.2,
+            "noise": 0.03,
+            "epsilon": 0.0,
+            "target_return": null
+        }
+    },
+    {
+        "name": "Unlimited",
+        "description": "As fast as the model can decide, with no deliberate mistakes.",
+        "params": {
+            "pps": null,
+            "move_rate": null,
+            "reaction_delay": 0.0,
+            "noise": 0.0,
+            "epsilon": 0.0,
+            "target_return": null
+        }
+    }
+]

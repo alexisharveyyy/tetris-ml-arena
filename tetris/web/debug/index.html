@@ -1,0 +1,359 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Arena debug page</title>
+<style>
+  :root { --bg: #ECEEF2; --ink: #1B1F3B; --panel: #FFFFFF; --line: #C9CEDA; --dim: #4D5370; }
+  * { box-sizing: border-box; }
+  body { margin: 0; padding: 16px; background: var(--bg); color: var(--ink);
+         font: 18px/1.4 system-ui, sans-serif; font-variant-numeric: tabular-nums; }
+  h1 { font-size: 24px; margin: 0 0 8px; }
+  h2 { font-size: 20px; margin: 16px 0 8px; }
+  fieldset { border: 1px solid var(--line); background: var(--panel); margin: 0 0 12px; padding: 12px; }
+  label { margin-right: 12px; }
+  select, input, button { font: inherit; }
+  button { border: 2px solid var(--ink); background: var(--panel); color: var(--ink);
+           border-radius: 4px; padding: 4px 12px; cursor: pointer; margin: 2px; }
+  button:focus-visible, select:focus-visible, input:focus-visible { outline: 3px solid #2F5FD0; outline-offset: 2px; }
+  button[aria-pressed="true"] { background: var(--ink); color: #fff; }
+  #banner { display: none; background: #FFE14D; border: 2px solid var(--ink); padding: 8px 12px; margin: 8px 0; font-weight: 700; }
+  #boards { display: flex; gap: 16px; flex-wrap: wrap; align-items: flex-start; }
+  .player { background: var(--panel); border: 1px solid var(--line); padding: 8px; }
+  .player.human { border: 3px solid var(--ink); }
+  .player h3 { margin: 0; font-size: 20px; }
+  .meta { color: var(--dim); font-size: 16px; }
+  .status { max-width: 260px; font-size: 16px; min-height: 2.8em; }
+  table { border-collapse: collapse; background: var(--panel); }
+  th, td { border: 1px solid var(--line); padding: 4px 8px; text-align: right; }
+  th:nth-child(2), td:nth-child(2), td:last-child, th:last-child { text-align: left; }
+  #log { background: var(--panel); border: 1px solid var(--line); height: 220px; overflow: auto;
+         font: 15px/1.35 ui-monospace, monospace; padding: 6px; margin: 0; }
+  #perf { font: 16px ui-monospace, monospace; }
+  .row { display: flex; gap: 16px; flex-wrap: wrap; }
+  .row > * { flex: 1 1 380px; }
+</style>
+</head>
+<body>
+<h1>Arena debug page</h1>
+<p class="meta">Protocol check for sub-phase 8a. No theme. Keys follow your Settings bindings; Esc pauses.</p>
+
+<fieldset id="setup">
+  <legend>Match</legend>
+  <label>Mode
+    <select id="mode">
+      <option value="marathon">Marathon</option>
+      <option value="race">Race</option>
+      <option value="watch">Watch AI</option>
+      <option value="solo">Solo practice</option>
+    </select>
+  </label>
+  <label>Seed <input id="seed" type="number" min="0" placeholder="random" style="width: 7em"></label>
+  <span id="slots"></span>
+  <div><button id="start">Start</button> <span id="startMsg" class="meta"></span></div>
+</fieldset>
+
+<div id="banner" role="status">Connection lost. Reconnecting...</div>
+
+<div>
+  <span id="clock">-</span>
+  <button id="pause" aria-pressed="false">Pause (Esc)</button>
+  <button id="thinking" aria-pressed="true">Show model thinking</button>
+  <button id="end">End match</button>
+  <button id="rematch">Rematch (same seed)</button>
+  <button id="newseed">New seed</button>
+  <button id="watch">Keep watching</button>
+</div>
+
+<div id="boards"></div>
+
+<div class="row">
+  <section>
+    <h2>Results</h2>
+    <div id="results" class="meta">Shown when the match ends.</div>
+  </section>
+  <section>
+    <h2>Event feed</h2>
+    <pre id="log" aria-live="off"></pre>
+  </section>
+  <section>
+    <h2>Performance</h2>
+    <div id="perf">-</div>
+    <button id="resetPerf">Reset counters</button>
+  </section>
+</div>
+
+<script>
+"use strict";
+const COLORS = { I: "#1FB3C4", O: "#F2C318", T: "#8A5FDB", S: "#3BB065", Z: "#E04B39",
+                 J: "#3A6BDB", L: "#EE8A22", G: "#8A8FA0" };
+const CELL = { human: 26, agent: 16 };
+const $ = (id) => document.getElementById(id);
+
+let agents = [], presets = [], settings = null, keymap = {};
+let matchId = null, ws = null, latest = null, wantSocket = false;
+let seq = 0, showThinking = true;
+const pending = new Map();      // input seq -> client ts, until a frame shows its ack
+const latencies = [];           // input-to-render, ms
+let bytes = 0, msgs = 0, maxBytes = 0, perfStart = performance.now(), frameTimes = [], lastFrame = 0;
+const logLines = [];
+
+// Settings key names (Pygame style) from KeyboardEvent.code.
+function keyName(e) {
+  const c = e.code;
+  const named = { ArrowLeft: "left", ArrowRight: "right", ArrowUp: "up", ArrowDown: "down",
+    Space: "space", ShiftLeft: "left shift", ShiftRight: "right shift", Escape: "escape",
+    Enter: "return", ControlLeft: "left ctrl", ControlRight: "right ctrl", Tab: "tab" };
+  if (named[c]) return named[c];
+  if (c.startsWith("Key")) return c.slice(3).toLowerCase();
+  if (c.startsWith("Digit")) return c.slice(5);
+  return e.key.toLowerCase();
+}
+
+async function api(path, opts = {}) {
+  const res = await fetch(path, { headers: { "content-type": "application/json" }, ...opts });
+  if (!res.ok) throw new Error((await res.json()).detail || res.statusText);
+  return res.status === 204 ? null : res.json();
+}
+
+async function init() {
+  [agents, presets, settings] = await Promise.all([
+    api("/api/agents").then((d) => d.agents), api("/api/presets"), api("/api/settings")]);
+  for (const [action, keys] of Object.entries(settings.bindings)) for (const k of keys) keymap[k] = action;
+  showThinking = settings.show_thinking;
+  $("thinking").setAttribute("aria-pressed", String(showThinking));
+  const opts = agents.filter((a) => a.playable).map((a) =>
+    `<option value="${a.key}" ${a.available ? "" : "disabled"}>${a.name}${a.available ? "" : " (Not available yet)"}</option>`).join("");
+  const presetOpts = presets.map((p) => `<option ${p.name === "Medium" ? "selected" : ""}>${p.name}</option>`).join("");
+  $("slots").innerHTML = [1, 2, 3].map((i) =>
+    `<label>Slot ${i} <select id="agent${i}"><option value="">Empty</option>${opts}</select></label>
+     <select id="preset${i}" aria-label="Slot ${i} difficulty">${presetOpts}</select>`).join(" ");
+  const lobby = await api("/api/lobby/marathon");
+  lobby.slots.forEach((s, i) => { if (s) { $(`agent${i + 1}`).value = s.agent; $(`preset${i + 1}`).value = s.preset; } });
+}
+
+async function start() {
+  const mode = $("mode").value;
+  const opponents = [];
+  for (const i of [1, 2, 3]) {
+    const agent = $(`agent${i}`).value;
+    if (agent) opponents.push({ agent, preset: $(`preset${i}`).value });
+  }
+  const body = { mode, opponents: mode === "solo" ? [] : mode === "watch" ? opponents.slice(0, 1) : opponents };
+  if ($("seed").value !== "") body.seed = Number($("seed").value);
+  try {
+    const info = await api("/api/matches", { method: "POST", body: JSON.stringify(body) });
+    $("startMsg").textContent = `Match ${info.match}, seed ${info.seed}`;
+    matchId = info.match;
+    logLines.length = 0;
+    connect();
+  } catch (err) {
+    $("startMsg").textContent = `Could not start: ${err.message}`;
+  }
+}
+
+function connect() {
+  if (ws) { wantSocket = false; ws.close(); }
+  wantSocket = true;
+  const sock = new WebSocket(`ws://${location.host}/ws?match=${matchId}`);
+  ws = sock;
+  sock.onopen = () => { $("banner").style.display = "none"; sock.send(JSON.stringify({ t: "hello", last_frame: latest ? latest.f : null })); };
+  sock.onmessage = (m) => {
+    bytes += m.data.length; msgs += 1; maxBytes = Math.max(maxBytes, m.data.length);
+    const msg = JSON.parse(m.data);
+    if (msg.t === "snap") {
+      latest = msg;
+      for (const ev of msg.ev) log(ev);
+    } else if (msg.t === "error") {
+      log({ type: "error", player: null, time: 0, message: msg.message });
+    }
+  };
+  sock.onclose = (e) => {
+    if (sock !== ws) return;
+    if (e.code === 4404) { wantSocket = false; $("startMsg").textContent = "The server no longer has this match."; return; }
+    if (wantSocket) { $("banner").style.display = "block"; setTimeout(connect, 500); }
+  };
+}
+
+function send(obj) { if (ws && ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify(obj)); }
+
+function log(ev) {
+  const t = ev.time != null ? ev.time.toFixed(1).padStart(6) : "";
+  const { type, player, time, ...rest } = ev;
+  logLines.push(`${t}  ${type.padEnd(12)} ${player ?? ""} ${JSON.stringify(rest).slice(0, 120)}`);
+  if (logLines.length > 200) logLines.shift();
+  const el = $("log");
+  el.textContent = logLines.join("\n");
+  el.scrollTop = el.scrollHeight;
+}
+
+document.addEventListener("keydown", (e) => {
+  if (!latest || e.target.tagName === "SELECT" || e.target.tagName === "INPUT") return;
+  const action = keymap[keyName(e)];
+  if (!action) return;
+  e.preventDefault();
+  if (e.repeat) return;                       // DAS and ARR run on the server
+  if (action === "pause") { togglePause(); return; }
+  const ts = performance.now();
+  seq += 1;
+  pending.set(seq, ts);
+  send({ t: "input", seq, action, down: true, ts });
+});
+document.addEventListener("keyup", (e) => {
+  const action = keymap[keyName(e)];
+  if (!action || action === "pause") return;
+  seq += 1;
+  send({ t: "input", seq, action, down: false, ts: performance.now() });
+});
+window.addEventListener("blur", () => {
+  for (const action of ["left", "right", "soft"]) { seq += 1; send({ t: "input", seq, action, down: false, ts: performance.now() }); }
+});
+
+function togglePause() {
+  const paused = !(latest && latest.paused);
+  send({ t: "pause", paused });
+}
+
+// ------------------------------------------------------------------ drawing
+
+const canvases = new Map();
+
+function boardCanvas(p) {
+  let entry = canvases.get(p.id);
+  if (!entry) {
+    const wrap = document.createElement("div");
+    wrap.className = `player ${p.kind}`;
+    wrap.innerHTML = `<h3></h3><div class="meta"></div><canvas role="img"></canvas>
+      <div class="stats"></div><div class="status"></div>`;
+    $("boards").appendChild(wrap);
+    entry = { wrap, canvas: wrap.querySelector("canvas") };
+    canvases.set(p.id, entry);
+  }
+  return entry;
+}
+
+function drawCell(ctx, size, r, c, color, mode) {
+  if (r < 0) return;
+  const x = c * size, y = r * size;
+  if (mode === "fill") {
+    ctx.fillStyle = color; ctx.fillRect(x, y, size, size);
+    ctx.strokeStyle = "rgba(27,31,59,0.2)"; ctx.lineWidth = 2; ctx.strokeRect(x + 1, y + 1, size - 2, size - 2);
+  } else {
+    ctx.strokeStyle = color; ctx.lineWidth = 2; ctx.strokeRect(x + 1.5, y + 1.5, size - 3, size - 3);
+  }
+}
+
+function drawPlayer(p) {
+  const { wrap, canvas } = boardCanvas(p);
+  const size = p.kind === "human" ? CELL.human : CELL.agent;
+  const extra = p.kind === "human" ? 5 * size : 0;
+  canvas.width = 10 * size + extra; canvas.height = 20 * size;
+  const ctx = canvas.getContext("2d");
+  ctx.fillStyle = "#FFFFFF"; ctx.fillRect(0, 0, 10 * size, 20 * size);
+  ctx.strokeStyle = "#D6DAE3"; ctx.lineWidth = 1;
+  for (let r = 0; r <= 20; r++) { ctx.beginPath(); ctx.moveTo(0, r * size + 0.5); ctx.lineTo(10 * size, r * size + 0.5); ctx.stroke(); }
+  for (let c = 0; c <= 10; c++) { ctx.beginPath(); ctx.moveTo(c * size + 0.5, 0); ctx.lineTo(c * size + 0.5, 20 * size); ctx.stroke(); }
+  for (let i = 0; i < 200; i++) {
+    const ch = p.board[i];
+    if (ch !== ".") drawCell(ctx, size, Math.floor(i / 10), i % 10, COLORS[ch], "fill");
+  }
+  if (p.ghost && settings.show_ghost) for (const [r, c] of p.ghost) drawCell(ctx, size, r, c, "#9AA0B4", "outline");
+  if (showThinking) {
+    ctx.globalAlpha = p.cand_current ? 1 : 0.45;   // previous piece's candidates are dimmed
+    for (const cand of [...p.cand].reverse()) {
+      for (const [r, c] of cand.c) {
+        if (r < 0) continue;
+        ctx.fillStyle = "rgba(27,31,59,0.12)"; ctx.fillRect(c * size, r * size, size, size);
+        drawCell(ctx, size, r, c, "#1B1F3B", "outline");
+      }
+      const [fr, fc] = [...cand.c].sort((a, b) => a[0] - b[0] || a[1] - b[1])[0];
+      ctx.fillStyle = "#1B1F3B"; ctx.font = `700 ${Math.floor(size * 0.7)}px system-ui`;
+      ctx.textAlign = "center"; ctx.textBaseline = "middle";
+      ctx.fillText(String(cand.rank) + (cand.hold ? "H" : ""), fc * size + size / 2, Math.max(fr, 0) * size + size / 2);
+    }
+    ctx.globalAlpha = 1;
+  }
+  if (p.active) for (const [r, c] of p.active.c) drawCell(ctx, size, r, c, COLORS[p.active.p], "fill");
+  if (extra) {
+    ctx.fillStyle = "#1B1F3B"; ctx.font = "16px system-ui"; ctx.textAlign = "left"; ctx.textBaseline = "top";
+    ctx.fillText(`Hold: ${p.hold ?? "-"}`, 10 * size + 8, 4);
+    ctx.fillText("Next:", 10 * size + 8, 30);
+    p.next.forEach((q, i) => ctx.fillText(q, 10 * size + 8, 54 + i * 22));
+  }
+  wrap.querySelector("h3").textContent = `${p.place}. ${p.name}`;
+  wrap.querySelector(".meta").textContent = p.kind === "agent" ? `${p.agent}, ${p.preset}` : "Human";
+  const s = p.stats;
+  wrap.querySelector(".stats").textContent =
+    `Score ${s.score.toLocaleString()}  Lines ${s.lines}  Level ${s.level}  Pieces/s ${s.pps.toFixed(2)}`;
+  wrap.querySelector(".status").textContent = p.status.text;
+  canvas.setAttribute("aria-label", `${p.name} board: score ${s.score}, ${s.lines} lines, ${p.status.text}`);
+}
+
+function clock(t) { return `${Math.floor(t / 60)}:${String(Math.floor(t % 60)).padStart(2, "0")}`; }
+
+function drawResults(snap) {
+  if (!snap.final) { $("results").textContent = "Shown when the match ends."; return; }
+  const rows = snap.final.map((r) => `<tr><td>${r.place}</td><td>${r.name}</td><td>${r.score.toLocaleString()}</td>
+    <td>${r.lines}</td><td>${r.tetrises}</td><td>${r.pps.toFixed(2)}</td><td>${r.level}</td>
+    <td>${r.topped_out ? `Topped out at ${clock(r.finish_time)}` : "Still playing"}</td></tr>`).join("");
+  $("results").innerHTML = `<table><thead><tr><th>Place</th><th>Player</th><th>Score</th><th>Lines</th>
+    <th>Tetrises</th><th>Pieces/s</th><th>Level</th><th>Ended</th></tr></thead><tbody>${rows}</tbody></table>
+    <p class="meta">History id: ${snap.history_id ?? "not recorded"}</p>`;
+}
+
+function pct(arr, q) {
+  if (!arr.length) return NaN;
+  const s = [...arr].sort((a, b) => a - b);
+  return s[Math.min(s.length - 1, Math.floor(q * s.length))];
+}
+
+let drawnFrame = -1;
+function frame(now) {
+  if (lastFrame) { frameTimes.push(now - lastFrame); if (frameTimes.length > 600) frameTimes.shift(); }
+  lastFrame = now;
+  if (latest && latest.f !== drawnFrame) {
+    drawnFrame = latest.f;
+    const ids = new Set(latest.players.map((p) => p.id));
+    for (const [id, e] of canvases) if (!ids.has(id)) { e.wrap.remove(); canvases.delete(id); }
+    for (const p of latest.players) drawPlayer(p);
+    const state = latest.loading ? "Loading agents" : latest.disconnected ? "Waiting for connection"
+      : latest.countdown > 0 ? `Starting in ${Math.ceil(latest.countdown)}` : latest.paused ? "Paused"
+      : latest.finished ? (latest.spectating ? "Finished, still watching" : "Finished") : "Playing";
+    const race = latest.race && latest.race.time_remaining != null ? `, ${clock(latest.race.time_remaining)} left` : "";
+    $("clock").textContent = `${clock(latest.time)}${race}  ${latest.mode}, seed ${latest.seed}. ${state}.`;
+    $("pause").setAttribute("aria-pressed", String(latest.paused && !latest.disconnected));
+    drawResults(latest);
+    if (latest.ack) {
+      const t = performance.now();
+      for (const [s, ts] of pending) if (s <= latest.ack.seq) { latencies.push(t - ts); pending.delete(s); }
+      if (latencies.length > 2000) latencies.splice(0, latencies.length - 2000);
+    }
+  }
+  const secs = (now - perfStart) / 1000;
+  $("perf").innerHTML = [
+    `messages/s       ${(msgs / secs).toFixed(1)}`,
+    `bytes/message    ${msgs ? Math.round(bytes / msgs) : "-"} (max ${maxBytes})`,
+    `frame p50/p99    ${pct(frameTimes, 0.5).toFixed(1)} / ${pct(frameTimes, 0.99).toFixed(1)} ms`,
+    `input-to-render  ${latencies.length ? `${pct(latencies, 0.5).toFixed(1)} / ${pct(latencies, 0.99).toFixed(1)} ms p50/p99 (n=${latencies.length})` : "press a key"}`,
+  ].join("<br>");
+  requestAnimationFrame(frame);
+}
+
+$("start").onclick = start;
+$("pause").onclick = togglePause;
+$("thinking").onclick = async () => {
+  showThinking = !showThinking;
+  $("thinking").setAttribute("aria-pressed", String(showThinking));
+  settings = await api("/api/settings", { method: "PUT", body: JSON.stringify({ show_thinking: showThinking }) });
+};
+$("end").onclick = () => matchId && api(`/api/matches/${matchId}/end`, { method: "POST" });
+$("rematch").onclick = () => matchId && api(`/api/matches/${matchId}/rematch`, { method: "POST", body: "{}" });
+$("newseed").onclick = () => matchId && api(`/api/matches/${matchId}/rematch`, { method: "POST", body: JSON.stringify({ new_seed: true }) });
+$("watch").onclick = () => matchId && api(`/api/matches/${matchId}/keep_watching`, { method: "POST" }).catch((e) => log({ type: "error", player: null, time: 0, message: e.message }));
+$("resetPerf").onclick = () => { bytes = msgs = maxBytes = 0; perfStart = performance.now(); frameTimes = []; latencies.length = 0; };
+
+init().then(() => requestAnimationFrame(frame));
+</script>
+</body>
+</html>

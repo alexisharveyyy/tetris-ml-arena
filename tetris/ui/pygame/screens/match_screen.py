@@ -139,7 +139,7 @@ class MatchScreen(Screen):
             self._results_shown = True
             self.input.reset()
             if self.mode == "marathon":
-                MarathonHistory(self.app.history_path).record_match(m.standings)
+                MarathonHistory(self.app.history_path).record_match(m.standings, m.config.seed)
             self.show_results()
 
     def show_results(self) -> None:

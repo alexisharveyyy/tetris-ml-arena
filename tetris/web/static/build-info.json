@@ -1,0 +1,5 @@
+{
+  "hash": "f414788caca549468cf1ca6643b053d227df651262aa1410c7902fce0a6a6a4b",
+  "files": 98,
+  "note": "Written by npm run build. tetris/web/build.py compares hash with web/src."
+}

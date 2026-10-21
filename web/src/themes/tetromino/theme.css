@@ -1,0 +1,1199 @@
+/* A. Tetromino: light, flat, square panels, Unbounded headings, Atkinson Hyperlegible body. */
+:root[data-look="tetromino"] {
+  --bg: #eceef2;
+  --ink: #1b1f3b;
+  --text: #1b1f3b;
+  --text-2: #3e4462;
+  --text-3: #4d5370;
+  --panel: #ffffff;
+  --border: #c9ceda;
+  --gap: #d6dae3;
+  --focus: #2f5fd0;
+  --font-head: "Unbounded", system-ui, sans-serif;
+  --font-body: "Atkinson Hyperlegible", system-ui, sans-serif;
+  --radius: 4px;
+}
+
+[data-look="tetromino"] body {
+  background: var(--bg);
+}
+
+/* Headings */
+[data-look="tetromino"] .page-title,
+[data-look="tetromino"] .home__title,
+[data-look="tetromino"] .section-title,
+[data-look="tetromino"] .results__title,
+[data-look="tetromino"] .match-panel__title,
+[data-look="tetromino"] .more-list__title,
+[data-look="tetromino"] .human-panel__title,
+[data-look="tetromino"] .agent-card__name,
+[data-look="tetromino"] .match__timer,
+[data-look="tetromino"] .brand {
+  font-family: var(--font-head);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+[data-look="tetromino"] .page-head {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  margin-bottom: 24px;
+}
+
+[data-look="tetromino"] .page-head > :last-child:not(.page-title):not(:first-child) {
+  margin-left: auto;
+}
+
+[data-look="tetromino"] .page-head__extra {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+}
+
+[data-look="tetromino"] .page-title {
+  font-size: 40px;
+  line-height: 1.1;
+}
+
+[data-look="tetromino"] .section-title {
+  font-size: 22px;
+  margin-bottom: 16px;
+}
+
+/* --------------------------------------------------------------- home */
+[data-look="tetromino"] .topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+[data-look="tetromino"] .brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 16px;
+  font-size: 22px;
+  text-decoration: none;
+}
+
+[data-look="tetromino"] .logo {
+  display: inline-grid;
+  grid-template-columns: repeat(3, 13px);
+  grid-template-rows: repeat(2, 13px);
+  gap: 2px;
+}
+
+[data-look="tetromino"] .logo span {
+  background: var(--ink);
+}
+
+[data-look="tetromino"] .logo span:nth-child(4) {
+  grid-column: 2;
+}
+
+[data-look="tetromino"] .topbar__nav {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+}
+
+[data-look="tetromino"] .look-switcher {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+[data-look="tetromino"] .look-switcher__label {
+  color: var(--text-3);
+  margin-right: 6px;
+}
+
+[data-look="tetromino"] .look-switcher__opt {
+  border: 2px solid var(--border);
+  background: var(--bg);
+  padding: 6px 10px;
+  font-weight: 700;
+  font-size: 18px;
+  cursor: pointer;
+}
+
+[data-look="tetromino"] .look-switcher__opt[aria-pressed="true"] {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: #fff;
+}
+
+[data-look="tetromino"] .home__main {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 520px;
+  gap: 64px;
+  margin-top: 48px;
+}
+
+[data-look="tetromino"] .home__title {
+  font-size: 60px;
+  line-height: 1.02;
+  letter-spacing: -0.035em;
+  max-width: 660px;
+  margin-top: 8px;
+}
+
+[data-look="tetromino"] .home__lead {
+  color: var(--text-2);
+  font-size: 21px;
+  line-height: 1.6;
+  margin-top: 28px;
+  max-width: 560px;
+}
+
+[data-look="tetromino"] .home__cta {
+  display: flex;
+  gap: 14px;
+  margin-top: 32px;
+}
+
+[data-look="tetromino"] .home__cta .btn {
+  min-height: 62px;
+  padding: 0 26px;
+}
+
+[data-look="tetromino"] .home__cta .keycap {
+  border-color: currentColor;
+}
+
+[data-look="tetromino"] .home__note {
+  color: var(--text-3);
+  margin-top: 36px;
+  max-width: 520px;
+}
+
+[data-look="tetromino"] .lineup-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  border-top: 2px solid var(--border);
+  border-left: 2px solid var(--border);
+}
+
+[data-look="tetromino"] .lineup-card {
+  display: flex;
+  flex-direction: column;
+  background: var(--panel);
+  border-right: 2px solid var(--border);
+  border-bottom: 2px solid var(--border);
+  padding: 16px 16px 14px;
+  min-height: 122px;
+}
+
+[data-look="tetromino"] .lineup-card .piece-icon {
+  margin-bottom: 14px;
+}
+
+[data-look="tetromino"] .piece-icon__cell {
+  box-shadow: inset 0 0 0 1.5px rgba(27, 31, 59, 0.22);
+}
+
+[data-look="tetromino"] .lineup-card__name {
+  font-weight: 700;
+  font-size: 19px;
+  line-height: 1.2;
+}
+
+[data-look="tetromino"] .lineup-card__family {
+  color: var(--text-3);
+  font-size: 18px;
+}
+
+[data-look="tetromino"] .lineup-card__status {
+  margin-top: auto;
+  padding-top: 6px;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-2);
+}
+
+[data-look="tetromino"] .lineup-card--off .piece-icon {
+  opacity: 0.45;
+}
+
+[data-look="tetromino"] .home__more {
+  margin-top: 56px;
+}
+
+[data-look="tetromino"] .more-list li {
+  border-top: 2px solid var(--ink);
+}
+
+[data-look="tetromino"] .more-list li:last-child {
+  border-bottom: 2px solid var(--ink);
+}
+
+[data-look="tetromino"] .more-list a {
+  display: grid;
+  grid-template-columns: 290px 1fr;
+  align-items: baseline;
+  gap: 24px;
+  padding: 18px 0;
+  text-decoration: none;
+}
+
+[data-look="tetromino"] .more-list__title {
+  font-size: 24px;
+}
+
+[data-look="tetromino"] .more-list__desc {
+  color: var(--text-2);
+  font-size: 19px;
+}
+
+[data-look="tetromino"] .more-list a:hover .more-list__title {
+  text-decoration: underline;
+}
+
+[data-look="tetromino"] .controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 28px;
+  margin-top: 40px;
+  color: var(--text-2);
+}
+
+[data-look="tetromino"] .controls__item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+[data-look="tetromino"] .controls .keycap {
+  color: var(--ink);
+}
+
+/* ---------------------------------------------------------- opponents */
+[data-look="tetromino"] .opponents__body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 448px;
+  gap: 36px;
+  align-items: start;
+}
+
+[data-look="tetromino"] .opponents__hint {
+  color: var(--text-2);
+  padding-bottom: 12px;
+  border-bottom: 2px solid var(--border);
+}
+
+[data-look="tetromino"] .agent-group__title {
+  font: 700 20px/1.2 var(--font-head);
+  margin: 28px 0 4px;
+}
+
+[data-look="tetromino"] .agent-row {
+  display: grid;
+  grid-template-columns: 88px minmax(0, 1fr) auto;
+  gap: 16px;
+  align-items: center;
+  padding: 14px 0;
+  border-bottom: 2px solid var(--border);
+}
+
+[data-look="tetromino"] .agent-row__icon {
+  display: flex;
+  justify-content: center;
+}
+
+[data-look="tetromino"] .agent-row__name strong {
+  font-size: 21px;
+}
+
+[data-look="tetromino"] .agent-row__family,
+[data-look="tetromino"] .agent-row__record {
+  color: var(--text-3);
+}
+
+[data-look="tetromino"] .agent-row__family {
+  margin-left: 6px;
+}
+
+[data-look="tetromino"] .agent-row__blurb {
+  color: var(--text-2);
+}
+
+[data-look="tetromino"] .agent-row__action .btn {
+  min-width: 96px;
+}
+
+[data-look="tetromino"] .agent-row__na {
+  display: inline-block;
+  white-space: nowrap;
+  text-align: center;
+  font-weight: 700;
+  color: var(--text-2);
+}
+
+[data-look="tetromino"] .agent-row--off .agent-row__icon {
+  opacity: 0.45;
+}
+
+[data-look="tetromino"] .match-panel {
+  background: var(--panel);
+  border: 3px solid var(--ink);
+  padding: 22px;
+  position: sticky;
+  top: 24px;
+}
+
+[data-look="tetromino"] .match-panel__title {
+  font-size: 22px;
+  margin-bottom: 16px;
+}
+
+[data-look="tetromino"] .slots {
+  display: grid;
+  gap: 16px;
+}
+
+[data-look="tetromino"] .slot {
+  border: 2px solid var(--border);
+  padding: 14px;
+}
+
+[data-look="tetromino"] .slot--next {
+  border: 3px solid var(--ink);
+  background: var(--bg);
+}
+
+[data-look="tetromino"] .slot__head {
+  display: grid;
+  grid-template-columns: 60px 1fr auto;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+[data-look="tetromino"] .slot--empty .slot__head {
+  margin-bottom: 0;
+}
+
+[data-look="tetromino"] .slot__label {
+  color: var(--text-3);
+  font-size: 18px;
+}
+
+[data-look="tetromino"] .slot__name {
+  font-weight: 700;
+  font-size: 21px;
+}
+
+[data-look="tetromino"] .slot__remove {
+  color: #2f5fd0;
+}
+
+[data-look="tetromino"] .slot__placeholder {
+  width: 36px;
+  height: 36px;
+  border: 2px dashed var(--text-3);
+}
+
+[data-look="tetromino"] .seg--difficulty {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  width: 100%;
+}
+
+[data-look="tetromino"] .seg--difficulty .seg__opt {
+  padding: 10px 4px;
+  font-size: 18px;
+}
+
+[data-look="tetromino"] .slot__desc {
+  margin-top: 10px;
+  color: var(--text-2);
+}
+
+[data-look="tetromino"] .match-panel__mode {
+  color: var(--text-2);
+  margin: 20px 0;
+}
+
+[data-look="tetromino"] .match-panel .btn--block {
+  min-height: 62px;
+  font-size: 21px;
+}
+
+/* -------------------------------------------------------------- match */
+[data-look="tetromino"] .match__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 24px;
+}
+
+[data-look="tetromino"] .match__clock {
+  display: flex;
+  align-items: baseline;
+  gap: 18px;
+}
+
+[data-look="tetromino"] .match__timer {
+  font-size: 46px;
+  line-height: 1;
+}
+
+[data-look="tetromino"] .match__timer--small {
+  font: 700 28px/1 var(--font-head);
+}
+
+[data-look="tetromino"] .match__mode {
+  color: var(--text-2);
+}
+
+[data-look="tetromino"] .standings {
+  display: flex;
+  gap: 8px;
+}
+
+[data-look="tetromino"] .standing {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--panel);
+  border: 2px solid var(--border);
+  padding: 8px 14px;
+  font-size: 18px;
+}
+
+[data-look="tetromino"] .standing--you {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: #fff;
+}
+
+[data-look="tetromino"] .standing__place,
+[data-look="tetromino"] .standing__name {
+  font-weight: 700;
+}
+
+[data-look="tetromino"] .standing__you-mark {
+  width: 8px;
+  height: 8px;
+  background: currentColor;
+}
+
+[data-look="tetromino"] .match__controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 18px 0 20px;
+}
+
+[data-look="tetromino"] .match__controls .btn {
+  min-height: 48px;
+  font-size: 18px;
+}
+
+[data-look="tetromino"] .match__controls .btn[aria-pressed] {
+  background: var(--ink);
+  color: #fff;
+}
+
+[data-look="tetromino"] .match {
+  --gutter: 32px;
+}
+
+[data-look="tetromino"] .match__boards {
+  display: flex;
+  gap: 28px;
+  align-items: flex-start;
+}
+
+[data-look="tetromino"] .match__agents {
+  display: flex;
+  gap: 20px;
+  flex: 1;
+  min-width: 0;
+}
+
+[data-look="tetromino"] .human-panel {
+  background: var(--panel);
+  border: 3px solid var(--ink);
+  padding: 20px 20px 22px;
+}
+
+[data-look="tetromino"] .human-panel__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+
+[data-look="tetromino"] .human-panel__title {
+  font-size: 28px;
+}
+
+[data-look="tetromino"] .human-panel__place {
+  color: var(--text-2);
+}
+
+[data-look="tetromino"] .human-panel__play {
+  display: flex;
+  gap: 16px;
+  margin-top: 6px;
+  align-items: flex-start;
+}
+
+[data-look="tetromino"] .side {
+  width: 100px;
+}
+
+[data-look="tetromino"] .side__label {
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+[data-look="tetromino"] .side__box {
+  background: var(--bg);
+  min-height: 68px;
+  padding: 14px 8px;
+  display: flex;
+  justify-content: center;
+}
+
+[data-look="tetromino"] .side__queue {
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+}
+
+[data-look="tetromino"] .piece-preview__cell {
+  box-shadow: inset 0 0 0 1.5px rgba(27, 31, 59, 0.2);
+}
+
+[data-look="tetromino"] .piece-preview--dim {
+  opacity: 0.4;
+}
+
+[data-look="tetromino"] .board--human {
+  outline: 2px solid var(--ink);
+}
+
+[data-look="tetromino"] .stats {
+  display: grid;
+  grid-auto-flow: column;
+  grid-template-columns: 1.5fr 1fr 1fr 1fr;
+  gap: 8px;
+}
+
+[data-look="tetromino"] .stats--agent {
+  grid-template-columns: 1.7fr 1fr 0.8fr;
+}
+
+[data-look="tetromino"] .stats--human {
+  border-top: 2px solid var(--ink);
+  margin-top: 16px;
+  padding-top: 14px;
+}
+
+[data-look="tetromino"] .stats__label {
+  color: var(--text-2);
+  font-size: 18px;
+}
+
+[data-look="tetromino"] .stats__value {
+  font: 700 20px/1.2 var(--font-head);
+}
+
+[data-look="tetromino"] .stats--human .stats__value {
+  font-size: 28px;
+}
+
+/* The cards share the row; on a small window the boards shrink to fit
+   (lib/fit.tsx) instead of the third card wrapping below. */
+[data-look="tetromino"] .agent-card {
+  flex: 0 1 238px;
+  min-width: 0;
+  background: var(--panel);
+  border: 2px solid var(--border);
+}
+
+[data-look="tetromino"] .agent-card__head {
+  display: grid;
+  grid-template-columns: 44px 1fr auto;
+  align-items: center;
+  gap: 4px;
+  padding: 12px 14px;
+  min-height: 82px;
+}
+
+[data-look="tetromino"] .agent-card__head .piece-icon__cell {
+  box-shadow: none;
+}
+
+[data-look="tetromino"] .agent-card__name {
+  font-size: 22px;
+  line-height: 1.1;
+}
+
+[data-look="tetromino"] .agent-card__meta {
+  font-size: 18px;
+  line-height: 1.25;
+}
+
+[data-look="tetromino"] .agent-card__place {
+  font-weight: 700;
+}
+
+[data-look="tetromino"] .agent-card__board {
+  display: flex;
+  justify-content: center;
+  padding: 14px 0 12px;
+}
+
+[data-look="tetromino"] .agent-card__board .board {
+  outline: 2px solid var(--ink);
+}
+
+[data-look="tetromino"] .stats--agent {
+  padding: 0 14px;
+}
+
+[data-look="tetromino"] .agent-card__status {
+  padding: 14px;
+  color: var(--text-2);
+  font-size: 18px;
+  line-height: 1.4;
+}
+
+[data-look="tetromino"] .spectating {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  margin-bottom: 16px;
+  padding: 12px 16px;
+  background: var(--panel);
+  border: 2px solid var(--ink);
+  font-weight: 700;
+}
+
+/* ------------------------------------------------------------ results */
+[data-look="tetromino"] .results {
+  padding-left: 80px;
+  padding-right: 80px;
+}
+
+[data-look="tetromino"] .results__title {
+  font-size: 54px;
+  line-height: 1.1;
+  margin-top: 8px;
+}
+
+[data-look="tetromino"] .results__summary {
+  color: var(--text-2);
+  font-size: 21px;
+  max-width: 900px;
+  margin-top: 16px;
+}
+
+[data-look="tetromino"] .results__table-wrap {
+  margin-top: 36px;
+}
+
+[data-look="tetromino"] .results-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--panel);
+  border: 2px solid var(--ink);
+}
+
+[data-look="tetromino"] .results-table caption {
+  caption-side: top;
+  text-align: left;
+  padding: 18px 20px 0;
+  background: var(--panel);
+  border: 2px solid var(--ink);
+  border-bottom: 0;
+  color: var(--text-2);
+}
+
+[data-look="tetromino"] .results-table thead th {
+  text-align: left;
+  font-size: 18px;
+  padding: 12px 20px 14px;
+  border-bottom: 2px solid var(--ink);
+}
+
+[data-look="tetromino"] .results-table thead th.num {
+  text-align: right;
+}
+
+[data-look="tetromino"] .results-table td,
+[data-look="tetromino"] .results-table tbody th {
+  padding: 16px 20px;
+  border-top: 1px solid var(--border);
+  text-align: left;
+  font-weight: 400;
+}
+
+[data-look="tetromino"] .results-table td.num {
+  text-align: right;
+}
+
+[data-look="tetromino"] .results-table__place {
+  font: 700 30px/1 var(--font-head);
+  width: 90px;
+}
+
+[data-look="tetromino"] .results-table tbody th {
+  text-align: left;
+}
+
+[data-look="tetromino"] .results-table__player {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+[data-look="tetromino"] .results-table__icon {
+  width: 52px;
+  display: flex;
+  justify-content: center;
+}
+
+[data-look="tetromino"] .results-table__name {
+  display: block;
+  font-weight: 700;
+  font-size: 20px;
+}
+
+[data-look="tetromino"] .results-table__meta {
+  display: block;
+  font-size: 18px;
+  color: var(--text-2);
+}
+
+[data-look="tetromino"] .results-table__score {
+  font: 700 24px/1 var(--font-head);
+}
+
+[data-look="tetromino"] .results-table tr.is-you {
+  background: var(--ink);
+  color: #fff;
+}
+
+[data-look="tetromino"] .results-table tr.is-you .results-table__meta {
+  color: #fff;
+}
+
+[data-look="tetromino"] .you-mark {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  background: currentColor;
+  outline: 2px solid var(--border);
+}
+
+[data-look="tetromino"] .results__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 14px 28px;
+  margin-top: 32px;
+}
+
+[data-look="tetromino"] .results__actions .btn {
+  min-height: 58px;
+}
+
+/* -------------------------------------------------------- leaderboard */
+[data-look="tetromino"] .leaderboard {
+  padding-left: 80px;
+  padding-right: 80px;
+}
+
+[data-look="tetromino"] .tabs--boxed {
+  margin-left: auto;
+}
+
+[data-look="tetromino"] .leaderboard__intro {
+  color: var(--text-2);
+  font-size: 20px;
+  max-width: 800px;
+  margin-bottom: 28px;
+}
+
+[data-look="tetromino"] .survival-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--panel);
+  border: 2px solid var(--ink);
+}
+
+[data-look="tetromino"] .survival-table thead th {
+  font-size: 18px;
+  text-align: left;
+  padding: 18px 20px;
+  border-bottom: 2px solid var(--ink);
+}
+
+[data-look="tetromino"] .survival-table thead th.num {
+  text-align: right;
+  white-space: nowrap;
+}
+
+[data-look="tetromino"] .survival-table__axis {
+  position: relative;
+  width: 600px;
+}
+
+/* The chart track leaves room at both ends for tick labels and the off-scale marker. */
+[data-look="tetromino"] .chart-track {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 28px;
+  right: 56px;
+}
+
+[data-look="tetromino"] .survival-table__axis {
+  height: 58px;
+}
+
+[data-look="tetromino"] .axis-tick {
+  position: absolute;
+  top: 18px;
+  transform: translateX(-50%);
+  font-weight: 700;
+}
+
+[data-look="tetromino"] .survival-table tbody th,
+[data-look="tetromino"] .survival-table td {
+  border-top: 1px solid var(--border);
+  padding: 12px 20px;
+  font-weight: 400;
+}
+
+[data-look="tetromino"] .survival-table td.num {
+  font-weight: 700;
+  font-size: 20px;
+}
+
+[data-look="tetromino"] .survival-table__agent {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  text-align: left;
+  min-width: 300px;
+}
+
+[data-look="tetromino"] .survival-table__icon {
+  width: 52px;
+  display: flex;
+  justify-content: center;
+}
+
+[data-look="tetromino"] .survival-table__name {
+  display: block;
+  font-weight: 700;
+  font-size: 20px;
+}
+
+[data-look="tetromino"] .survival-table__family {
+  display: block;
+  color: var(--text-2);
+  font-size: 18px;
+}
+
+[data-look="tetromino"] .survival-table__chart {
+  position: relative;
+  height: 72px;
+}
+
+[data-look="tetromino"] .chart-grid span {
+  position: absolute;
+  top: 14px;
+  bottom: 14px;
+  width: 1px;
+  background: var(--border);
+}
+
+[data-look="tetromino"] .survival-table__none {
+  position: relative;
+  color: var(--text-2);
+}
+
+
+[data-look="tetromino"] .ci__bar {
+  position: absolute;
+  top: calc(50% - 2px);
+  height: 4px;
+}
+
+[data-look="tetromino"] .ci__dot {
+  position: absolute;
+  top: calc(50% - 12px);
+  width: 24px;
+  height: 24px;
+  margin-left: -12px;
+  border: 3px solid var(--ink);
+  box-shadow: 0 0 0 2px #fff inset;
+}
+
+[data-look="tetromino"] .ci__label {
+  position: absolute;
+  top: calc(50% - 13px);
+  font-weight: 700;
+  font-size: 18px;
+}
+
+[data-look="tetromino"] .ci__off {
+  position: absolute;
+  right: -16px;
+  top: calc(50% - 10px);
+  border-left: 14px solid;
+  border-top: 10px solid transparent;
+  border-bottom: 10px solid transparent;
+}
+
+[data-look="tetromino"] .ci__label--off {
+  right: 0;
+  white-space: nowrap;
+}
+
+
+[data-look="tetromino"] .leaderboard__note {
+  margin-top: 24px;
+  max-width: 900px;
+  color: var(--text-2);
+  display: grid;
+  gap: 8px;
+}
+
+/* People tab */
+[data-look="tetromino"] .people__intro {
+  color: var(--text-2);
+  max-width: 900px;
+  margin: 20px 0 24px;
+}
+
+[data-look="tetromino"] .people-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--panel);
+  border: 2px solid var(--ink);
+}
+
+[data-look="tetromino"] .people-table th,
+[data-look="tetromino"] .people-table td {
+  padding: 12px 14px;
+  border-top: 1px solid var(--border);
+  text-align: left;
+}
+
+[data-look="tetromino"] .people-table thead th {
+  font-size: 18px;
+  border-top: 0;
+}
+
+[data-look="tetromino"] .people-table thead tr:last-child th {
+  border-bottom: 2px solid var(--ink);
+}
+
+[data-look="tetromino"] .people-table .num {
+  text-align: right;
+}
+
+[data-look="tetromino"] .people-table__agent {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  white-space: nowrap;
+}
+
+[data-look="tetromino"] .people-table__pending {
+  color: var(--text-2);
+}
+
+/* ------------------------------------------- Watch, Solo, Record, Settings */
+[data-look="tetromino"] .lead {
+  color: var(--text-2);
+  font-size: 20px;
+  max-width: 820px;
+  margin-bottom: 24px;
+}
+
+[data-look="tetromino"] .hint,
+[data-look="tetromino"] .setting__help,
+[data-look="tetromino"] .record__totals {
+  color: var(--text-2);
+  margin: 10px 0 20px;
+}
+
+[data-look="tetromino"] .choice-list {
+  border: 0;
+  padding: 0;
+  margin: 0 0 24px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 10px;
+}
+
+[data-look="tetromino"] .choice-list legend {
+  font: 700 22px var(--font-head);
+  margin-bottom: 12px;
+}
+
+[data-look="tetromino"] .choice {
+  display: grid;
+  grid-template-columns: auto 60px 1fr;
+  grid-template-rows: auto auto;
+  column-gap: 12px;
+  align-items: center;
+  background: var(--panel);
+  border: 2px solid var(--border);
+  padding: 12px 16px;
+  cursor: pointer;
+}
+
+[data-look="tetromino"] .choice input {
+  grid-row: span 2;
+  width: 20px;
+  height: 20px;
+}
+
+[data-look="tetromino"] .choice .piece-icon {
+  grid-row: span 2;
+}
+
+[data-look="tetromino"] .choice__name {
+  font-weight: 700;
+}
+
+[data-look="tetromino"] .choice__meta {
+  color: var(--text-2);
+  grid-column: 3;
+}
+
+[data-look="tetromino"] .choice:has(input:checked) {
+  border-color: var(--ink);
+  border-width: 3px;
+}
+
+[data-look="tetromino"] .choice--off {
+  cursor: not-allowed;
+  color: var(--text-2);
+}
+
+[data-look="tetromino"] .form-row {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+[data-look="tetromino"] .form-row__label {
+  font-weight: 700;
+}
+
+[data-look="tetromino"] .watch__body,
+[data-look="tetromino"] .solo__body {
+  display: flex;
+  gap: 40px;
+  align-items: flex-start;
+}
+
+[data-look="tetromino"] .watch__board .board {
+  outline: 3px solid var(--ink);
+}
+
+[data-look="tetromino"] .watch__side {
+  display: grid;
+  gap: 20px;
+  max-width: 560px;
+}
+
+[data-look="tetromino"] .watch__who {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-weight: 700;
+  font-size: 22px;
+}
+
+[data-look="tetromino"] .cand-table,
+[data-look="tetromino"] .keys-table {
+  border-collapse: collapse;
+  background: var(--panel);
+  border: 2px solid var(--border);
+}
+
+[data-look="tetromino"] .cand-table caption {
+  text-align: left;
+  font-weight: 700;
+  padding-bottom: 8px;
+}
+
+[data-look="tetromino"] .cand-table th,
+[data-look="tetromino"] .cand-table td,
+[data-look="tetromino"] .keys-table th,
+[data-look="tetromino"] .keys-table td {
+  padding: 10px 16px;
+  border-top: 1px solid var(--border);
+  text-align: left;
+}
+
+[data-look="tetromino"] .keys-table .keycap {
+  margin-right: 6px;
+}
+
+[data-look="tetromino"] .game-over {
+  background: var(--panel);
+  border: 3px solid var(--ink);
+  padding: 24px;
+  max-width: 460px;
+  display: grid;
+  gap: 14px;
+  justify-items: start;
+}
+
+[data-look="tetromino"] .game-over h2 {
+  font: 700 30px var(--font-head);
+}
+
+[data-look="tetromino"] .settings__group {
+  margin-bottom: 40px;
+  max-width: 820px;
+}
+
+[data-look="tetromino"] .setting {
+  display: grid;
+  grid-template-columns: 320px 140px;
+  align-items: center;
+  column-gap: 16px;
+}
+
+[data-look="tetromino"] .setting__label {
+  font-weight: 700;
+}
+
+[data-look="tetromino"] .setting__input {
+  border: 2px solid var(--ink);
+  padding: 8px 10px;
+  background: var(--panel);
+}
+
+[data-look="tetromino"] .setting__help {
+  grid-column: 1 / -1;
+}
+
+[data-look="tetromino"] .check {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+[data-look="tetromino"] .check input {
+  width: 22px;
+  height: 22px;
+}
+
+[data-look="tetromino"] .overlay__box {
+  border-radius: 0;
+}

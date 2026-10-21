@@ -135,6 +135,38 @@ The mistake rate is the chance of picking one of the next five best placements
 instead of the best one, so mistakes stay plausible. Measured results are in
 `reports/difficulty.md`. Easy clears about 10 lines per minute in a race.
 
+## Web UI (Phase 8)
+
+```bash
+pip install -e ".[dev,web]"
+python -m tetris.web                     # serves http://127.0.0.1:8765/ and opens the browser
+python -m tetris.web --checkpoint-dir ~/tetris-ml-arena/checkpoints
+python -m tetris.web --demo              # class demo: configs/demo.yaml, F9 results, F10 looks
+```
+
+Four looks (Tetromino, Terminal, Broadcast, Poster) over the same screens. The
+built frontend is committed in `tetris/web/static`, so the server runs offline
+and without Node; `tests/web/test_build.py` fails if `web/src` has changed
+since that build, and the launcher rebuilds it when Node is installed. To work
+on the frontend: `cd web && npm install && npm run dev` (with the server
+running), then `npm run build` before committing. `docs/demo_checklist.md` has
+the pre-class steps; `reports/web_performance.md` has the measured frame times
+and latency.
+
+The server wraps the same `MatchController` as the Pygame app; game rules,
+DAS and ARR stay in Python. `/debug` is a bare page that exercises the whole
+loop. The protocol is documented in `tetris/web/protocol.py`;
+`python -m tetris.web.protocol` prints its JSON schema.
+
+`--checkpoint-dir` (or the `TETRIS_CHECKPOINT_DIR` environment variable) names a
+read-only directory searched before `checkpoints/` for each agent's promoted
+file. An agent is offered only when that file is complete (unchanged for 10 s,
+a full archive or valid JSON) and loads in a CPU worker; otherwise it shows as
+"Not available yet". Trainers always write to this checkout's `checkpoints/`.
+
+`scripts/web_latency.py` measures snapshot size and input-to-snapshot latency
+against a running server.
+
 ## Train
 
 ```bash
@@ -168,7 +200,14 @@ setting (one garbage row every 3 pieces, 500-piece cap). The plain setting
 ```bash
 pytest
 ruff check tetris tests && ruff format --check tetris tests
+cd web && npm test && npx playwright test     # web UI: unit, screenshots, audit
+LIVE=1 TETRIS_CHECKPOINT_DIR=~/tetris-ml-arena/checkpoints npx playwright test keyboard live
 ```
+
+Tests never touch your settings, Marathon history or recordings. pytest and
+the Playwright servers keep them in a temporary directory (`TETRIS_STATE_DIR`,
+see `tetris/state.py`), and both runs fail if the real files change while they
+run. Use `python -m tetris.web --state-dir DIR` for a rehearsal server.
 
 ## Layout
 
