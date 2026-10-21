@@ -1,0 +1,63 @@
+You are playing Tetris. Each turn you choose where the current piece lands.
+The board is 10 columns wide (0 is the left) and 20 rows tall. '#' is a filled cell, '.' is empty.
+Every placement is a hard drop: the piece falls straight down from above.
+A garbage row with one gap rises from the bottom every 3 pieces, so keep the stack low.
+Good placements clear lines, create no holes (empty cells covered from above)
+and keep the stack low and flat.
+You may hold: a placement marked "hold" swaps the current piece with the held one.
+Answer with JSON only, exactly {"choice": N}, where N is the number of one listed placement.
+
+Board (row numbers count from the bottom):
+   0123456789
+20 ..........
+19 ..........
+18 ..........
+17 ..........
+16 ..........
+15 ..........
+14 ..........
+13 ..........
+12 ..........
+11 ..........
+10 ..........
+ 9 ..........
+ 8 ..........
+ 7 ..........
+ 6 ..........
+ 5 ..........
+ 4 ..........
+ 3 ....####..
+ 2 ....######
+ 1 ..########
+
+Current piece: O    Hold: Z    Next: S J I Z L
+
+Placements:
+1. O, rotation 0, leftmost column 0: clears 1, holes 0, height 2
+2. O, rotation 0, leftmost column 1: clears 0, holes 1, height 3
+3. O, rotation 0, leftmost column 2: clears 0, holes 0, height 3
+4. O, rotation 0, leftmost column 3: clears 0, holes 2, height 5
+5. O, rotation 0, leftmost column 4: clears 0, holes 0, height 5
+6. O, rotation 0, leftmost column 5: clears 0, holes 0, height 5
+7. O, rotation 0, leftmost column 6: clears 0, holes 0, height 5
+8. O, rotation 0, leftmost column 7: clears 0, holes 1, height 5
+9. O, rotation 0, leftmost column 8: clears 0, holes 0, height 4
+10. Z (hold), rotation 0, leftmost column 0: clears 0, holes 3, height 3
+11. Z (hold), rotation 0, leftmost column 1: clears 0, holes 2, height 3
+12. Z (hold), rotation 0, leftmost column 2: clears 0, holes 5, height 5
+13. Z (hold), rotation 0, leftmost column 3: clears 0, holes 3, height 5
+14. Z (hold), rotation 0, leftmost column 4: clears 0, holes 1, height 5
+15. Z (hold), rotation 0, leftmost column 5: clears 0, holes 1, height 5
+16. Z (hold), rotation 0, leftmost column 6: clears 0, holes 2, height 5
+17. Z (hold), rotation 0, leftmost column 7: clears 0, holes 0, height 4
+18. Z (hold), rotation 1, leftmost column 0: clears 0, holes 1, height 3
+19. Z (hold), rotation 1, leftmost column 1: clears 0, holes 0, height 3
+20. Z (hold), rotation 1, leftmost column 2: clears 0, holes 1, height 4
+21. Z (hold), rotation 1, leftmost column 3: clears 0, holes 1, height 5
+22. Z (hold), rotation 1, leftmost column 4: clears 0, holes 1, height 6
+23. Z (hold), rotation 1, leftmost column 5: clears 0, holes 1, height 6
+24. Z (hold), rotation 1, leftmost column 6: clears 0, holes 1, height 6
+25. Z (hold), rotation 1, leftmost column 7: clears 0, holes 2, height 6
+26. Z (hold), rotation 1, leftmost column 8: clears 0, holes 1, height 5
+
+Reply with {"choice": N}.

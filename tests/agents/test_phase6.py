@@ -33,7 +33,7 @@ from tetris.rl.nets import MASKED_LOGIT, save_checkpoint
 from .states import assert_legal
 
 TINY = EvalSetting("garbage", max_pieces=30, garbage_every=3)
-DATA = Path(__file__).with_name("data")
+DATA = Path(__file__).with_name("fixtures")
 
 
 @pytest.fixture(scope="module")
