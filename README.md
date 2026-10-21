@@ -162,7 +162,8 @@ loop. The protocol is documented in `tetris/web/protocol.py`;
 read-only directory searched before `checkpoints/` for each agent's promoted
 file. An agent is offered only when that file is complete (unchanged for 10 s,
 a full archive or valid JSON) and loads in a CPU worker; otherwise it shows as
-"Not available yet". Trainers always write to this checkout's `checkpoints/`.
+"Not available yet". `TETRIS_CHECKPOINT_SETTLE_SECONDS` changes the 10 s window
+(the test suite sets it to 0). Trainers always write to this checkout's `checkpoints/`.
 
 `scripts/web_latency.py` measures snapshot size and input-to-snapshot latency
 against a running server.

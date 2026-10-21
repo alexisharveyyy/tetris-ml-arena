@@ -15,6 +15,9 @@ import tempfile
 
 STATE_DIR = tempfile.mkdtemp(prefix="tetris-test-state-")
 os.environ["TETRIS_STATE_DIR"] = STATE_DIR
+# A fresh checkout's files were all just written; read checkpoints without
+# waiting for them to settle (the settle test sets its own window).
+os.environ["TETRIS_CHECKPOINT_SETTLE_SECONDS"] = "0"
 
 import pytest  # noqa: E402
 

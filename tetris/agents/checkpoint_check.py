@@ -1,7 +1,7 @@
 """Is an agent's promoted checkpoint safe to play?
 
 A checkpoint counts as available only when the file exists, has not been
-modified in the last :data:`SETTLE_SECONDS` (so a file still being copied into
+modified in the last :func:`settle_seconds` (so a file still being copied into
 place is not read half-written), passes a cheap integrity check (complete zip
 archive for ``.pt``, valid JSON for ``.json``), and actually loads. Loads run in
 one spawned CPU-only worker process, so the caller never imports torch and a
@@ -14,6 +14,7 @@ Checks only read files.
 from __future__ import annotations
 
 import json
+import os
 import threading
 import time
 import zipfile
@@ -23,7 +24,11 @@ from pathlib import Path
 
 from tetris.agents.registry import AgentSpec
 
+#: Default seconds a checkpoint must stay unmodified before it is read.
 SETTLE_SECONDS = 10.0
+#: Environment variable overriding :data:`SETTLE_SECONDS` (the tests set it to 0,
+#: so a checkout made seconds ago still offers its committed checkpoints).
+SETTLE_ENV = "TETRIS_CHECKPOINT_SETTLE_SECONDS"
 _THREAD_ENV = ("OMP_NUM_THREADS", "MKL_NUM_THREADS", "OPENBLAS_NUM_THREADS")
 
 #: Check states. Only ``ok`` is playable.
@@ -45,6 +50,20 @@ class CheckResult:
         return self.state == OK
 
 
+def settle_seconds() -> float:
+    """The stability window: :data:`SETTLE_ENV` if set, else :data:`SETTLE_SECONDS`."""
+    value = os.environ.get(SETTLE_ENV, "").strip()
+    if not value:
+        return SETTLE_SECONDS
+    try:
+        seconds = float(value)
+    except ValueError:
+        raise ValueError(f"{SETTLE_ENV} must be a number of seconds, got {value!r}") from None
+    if seconds < 0:
+        raise ValueError(f"{SETTLE_ENV} must not be negative, got {value!r}")
+    return seconds
+
+
 def quick_check(spec: AgentSpec, now: float | None = None) -> CheckResult | None:
     """File-level checks. None means the file looks complete and needs a load test."""
     path = spec.checkpoint_path
@@ -55,7 +74,7 @@ def quick_check(spec: AgentSpec, now: float | None = None) -> CheckResult | None
     except FileNotFoundError:
         return CheckResult(MISSING, f"{path} not found")
     now = time.time() if now is None else now
-    if stat.st_size == 0 or now - stat.st_mtime < SETTLE_SECONDS:
+    if stat.st_size == 0 or now - stat.st_mtime < settle_seconds():
         return CheckResult(WRITING, f"{path} is still being written")
     if path.suffix == ".pt" and not zipfile.is_zipfile(path):
         return CheckResult(CORRUPT, f"{path} is not a complete checkpoint archive")
