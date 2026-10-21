@@ -102,11 +102,12 @@ setting; garbage is also available.
   games for:
   - the baseline (the GA-trained BC model);
   - the fine-tuned model;
-  - their paired difference, with a 95% bootstrap interval that resamples
-    whole test games.
+  - their difference, overall and on each test game.
 
-  An interval that includes 0 means fine-tuning on your play made no
-  measurable difference.
+  There is no interval. Placements within a game are correlated, so only
+  whole games are independent samples, and a bootstrap over placements would
+  be falsely tight. With a handful of test games, no reliable interval is
+  possible; the per-game differences show whether the change is consistent.
 
 ## Safeguards
 
@@ -147,9 +148,16 @@ Held-out garbage setting, 500 seeds (`reports/leaderboard.md`):
 |---|---|---|
 | GA-trained BC (baseline) | 0.383 | 0.742 |
 | BC (you), selected at 6 min | 0.476 | 0.785 |
-| Difference | +0.093 [+0.051, +0.117] | +0.043 [+0.015, +0.059] |
+| Difference | +0.093 | +0.043 |
 
-The interval resamples whole test games; with only 2 test games it is
-unreliable. As an opponent, BC (you) is much weaker than the GA-trained
+| Test game | Placements | Top-1 difference | Top-3 difference |
+|---|---|---|---|
+| 6th recorded | 239 | +0.117 (0.356 to 0.473) | +0.059 (0.741 to 0.799) |
+| 7th recorded | 137 | +0.051 (0.431 to 0.482) | +0.015 (0.745 to 0.759) |
+
+Fine-tuning raised agreement on both test games. With 2 test games, no
+reliable interval is possible, so this is a point estimate only.
+
+As an opponent, BC (you) is much weaker than the GA-trained
 model: held-out garbage fitness 0.147 (top-out rate 1.00), plain-setting
 top-out rate 0.15. It was trained only on plain games.

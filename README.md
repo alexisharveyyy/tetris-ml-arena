@@ -17,6 +17,43 @@ controller, and a web frontend can wrap the same controller later.
 | 6 | Decision Transformer, optional LLM agent | Planned |
 | 7 | Evaluation harness, leaderboard, docs, web plan | Planned |
 
+## Main findings
+
+From the held-out garbage leaderboard (500 seeds, paired bootstrap;
+`reports/leaderboard.md`):
+
+- **The top 7 agents are statistically tied in sequence.** Every adjacent
+  pair from DQN (1.345) down to BC + DAgger (1.280) has a fitness interval
+  that includes 0. DQN and PPO are significantly ahead of the bottom of the
+  group, but the whole spread is 0.065. These agents share the same action
+  space (one hard-drop placement per piece, chosen by scoring afterstates),
+  and the linear ones use the same 13 board features. The ceiling appears to
+  come from that shared setup rather than from the learning method: a
+  linear weighting (GA, CEM), a deep network on the raw board (DQN, PPO), a
+  cloned policy (BC) and an evolved network (NEAT) all land in the same
+  band. Raw-action PPO, which must learn placements from scratch, is far
+  below (0.103).
+- **DAgger added nothing when BC already agreed 95% with the teacher.** Pure
+  BC matched the GA on 95.1% of held-out GA states and played as well as the
+  GA (+0.007, tie). Two DAgger rounds raised agreement to 96.3% but not play
+  (pure BC minus DAgger +0.017 [-0.017, +0.049]). With so few mistakes,
+  there was little compounding error for DAgger to correct.
+- **NEAT evolved a nearly linear network.** Starting from linear genomes,
+  the selected network kept 2 hidden nodes, and its output is dominated by a
+  linear term in four features. It ties the GA and is significantly behind
+  CEM; nonlinearity over the same features bought nothing here.
+- **Two bugs were diagnosed and fixed along the way:**
+  - *DQN overestimation:* greedy play peaked at 25 minutes and then
+    declined as Q-values drifted upward; a soft target update and an LR
+    schedule slowed the decline, but its best (1.253) stayed below the
+    first run's 1.340 (`reports/dqn_overestimation.md`).
+  - *MPS gradient bug:* on Apple MPS, convolution backward returned wrong
+    gradients (relative error about 6e8) at about 115k afterstates per
+    batch, so the first afterstate PPO run never trained. The scorer now
+    runs in chunks, and every GPU run starts with a pre-flight check against
+    CPU gradients and runs under a stalled-training watchdog
+    (`reports/ppo_mps_bug.md`).
+
 ## Setup
 
 Requires Python 3.11 or 3.12 (3.12 recommended; some dependencies lack wheels

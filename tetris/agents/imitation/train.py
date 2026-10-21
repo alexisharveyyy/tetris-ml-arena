@@ -456,8 +456,8 @@ def train_you(cfg: dict[str, Any], run_name: str = "seed0") -> dict:
     top-1 agreement on the validation games has not improved for
     ``you_patience`` checks (every 30 s); the best validation checkpoint is
     kept. The report compares top-1 and top-3 agreement on the test games for
-    the GA-trained BC model (the baseline) and the fine-tuned model, with a
-    95% bootstrap interval over test games for the paired difference.
+    the GA-trained BC model (the baseline) and the fine-tuned model, with the
+    difference on each test game (see :func:`compare_on_test_games`).
     """
     from tetris.match.recording import recording_files, recording_totals
 
@@ -538,10 +538,7 @@ def train_you(cfg: dict[str, Any], run_name: str = "seed0") -> dict:
         },
         "baseline_ga_trained_bc": {k: baseline[k] for k in ("top1", "top3", "loss")},
         "fine_tuned": {k: tuned[k] for k in ("top1", "top3", "loss")},
-        "difference_fine_tuned_minus_baseline": {
-            k: paired_game_bootstrap(tuned[f"hits{k[-1]}"], baseline[f"hits{k[-1]}"], episodes)
-            for k in ("top1", "top3")
-        },
+        "difference_fine_tuned_minus_baseline": compare_on_test_games(baseline, tuned, episodes),
         "selected_on_validation": best,
         "early_stopping": {"patience_checks": patience, "checks": len(curve)},
         "validation_curve": curve,
@@ -554,19 +551,38 @@ def train_you(cfg: dict[str, Any], run_name: str = "seed0") -> dict:
     return report
 
 
-def paired_game_bootstrap(
-    a: np.ndarray, b: np.ndarray, games: np.ndarray, n: int = 10_000, seed: int = 0
-) -> dict[str, float]:
-    """Mean of ``a - b`` per state with a 95% interval, resampling whole games."""
+def compare_on_test_games(
+    baseline: dict[str, Any], tuned: dict[str, Any], games: np.ndarray
+) -> dict[str, Any]:
+    """Fine-tuned minus baseline agreement, overall and on each test game.
+
+    There is no interval. Placements within a game are correlated, so a
+    bootstrap over placements would be falsely tight, and a bootstrap over
+    games needs many more test games than a few recordings provide.
+    """
     ids = np.unique(games)
-    diff = a.astype(float) - b.astype(float)
-    sums = np.array([diff[games == g].sum() for g in ids])
-    counts = np.array([(games == g).sum() for g in ids])
-    rng = np.random.default_rng(seed)
-    pick = rng.integers(0, len(ids), size=(n, len(ids)))
-    boot = sums[pick].sum(1) / counts[pick].sum(1)
-    lo, hi = np.percentile(boot, [2.5, 97.5])
-    return {"mean": float(diff.mean()), "ci95_low": float(lo), "ci95_high": float(hi)}
+    out: dict[str, Any] = {}
+    for k in ("top1", "top3"):
+        diff = tuned[f"hits{k[-1]}"].astype(float) - baseline[f"hits{k[-1]}"].astype(float)
+        per_game = []
+        for g in ids:
+            m = games == g
+            per_game.append(
+                {
+                    "game": int(g),
+                    "states": int(m.sum()),
+                    "baseline": float(baseline[f"hits{k[-1]}"][m].mean()),
+                    "fine_tuned": float(tuned[f"hits{k[-1]}"][m].mean()),
+                    "difference": float(diff[m].mean()),
+                }
+            )
+        out[k] = {"mean": float(diff.mean()), "per_test_game": per_game}
+    out["interval"] = None
+    out["note"] = (
+        f"{len(ids)} test game(s): no reliable interval is possible. Placements within a "
+        "game are correlated, so only whole games are independent samples."
+    )
+    return out
 
 
 def split_recordings(

@@ -310,6 +310,19 @@ def test_neat_agent_legal_deterministic_and_plotted(neat_genomes, tmp_path) -> N
     assert png.exists() and png.stat().st_size > 10_000
 
 
+def test_topology_edges_bend_around_nodes_they_skip() -> None:
+    from tetris.agents.neuroevolution.plot import CLEARANCE, _gap_at, edge_path
+
+    nodes = [(1.0, 0.0), (2.0, 0.0), (1.0, 3.0)]
+    # Input on row 0 wired to the output on row 0, past two hidden nodes on the same row.
+    xs, ys = edge_path((0.0, 0.0), (3.0, 0.0), nodes)
+    assert (xs[0], ys[0]) == (0.0, 0.0) and (xs[-1], ys[-1]) == (3.0, 0.0)
+    assert all(_gap_at(xs, ys, x, y) >= CLEARANCE for x, y in nodes)
+    # Nothing in the way: a straight line.
+    xs, ys = edge_path((0.0, 2.0), (1.0, 0.0), nodes)
+    assert ys[len(ys) // 2] == 1.0
+
+
 def test_bc_you_fine_tunes_with_game_split_and_reports_baseline(tmp_path, monkeypatch) -> None:
     import tetris.agents.imitation.train as bc_train
     import tetris.match.recording as recording
@@ -343,8 +356,13 @@ def test_bc_you_fine_tunes_with_game_split_and_reports_baseline(tmp_path, monkey
     assert sum(v["games"] for v in split.values()) == 5
     for key in ("baseline_ga_trained_bc", "fine_tuned"):
         assert 0.0 <= report[key]["top1"] <= report[key]["top3"] <= 1.0
-    diff = report["difference_fine_tuned_minus_baseline"]["top1"]
-    assert diff["ci95_low"] <= diff["mean"] <= diff["ci95_high"]
+    diff = report["difference_fine_tuned_minus_baseline"]
+    assert diff["interval"] is None
+    per_game = diff["top1"]["per_test_game"]
+    assert len(per_game) == split["test"]["games"]
+    assert sum(g["states"] for g in per_game) == split["test"]["states"]
+    weighted = sum(g["difference"] * g["states"] for g in per_game) / split["test"]["states"]
+    assert abs(weighted - diff["top1"]["mean"]) < 1e-9
     assert report["validation_curve"][0]["minutes"] == 0.0  # first check: the baseline model
     assert (tmp_path / "ckpt" / "bc_you" / "best.pt").exists()
     assert json.loads((tmp_path / "reports" / "bc_you.json").read_text())["fine_tuned"]

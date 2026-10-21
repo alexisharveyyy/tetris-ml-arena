@@ -88,8 +88,26 @@ Held-out garbage setting, 500 seeds: fitness 1.280, top-out rate 0.19.
 | CEM minus NEAT | +0.038 [+0.004, +0.072] (CEM better) |
 | GA minus NEAT | +0.009 [-0.025, +0.045] (tie) |
 
-The nonlinear search did not beat the linear ones. Training fitness on the
-10 training seeds plateaued at about 1.41 from generation 20 on, while the
-best genome's selection fitness on 30 seeds varied between 1.07 and 1.40, so
-the selection step is noisy and the selected genome's held-out score is
-lower than its selection score.
+The nonlinear search did not beat the linear ones.
+
+**Selection drop.** The selected genome scored 1.395 on the selection seeds
+but 1.280 held out. This is winner's-curse bias, not a worse genome than
+expected:
+
+- training fitness on the 10 training seeds plateaued at about 1.41 from
+  generation 20 on, so the 42 candidates evaluated from then on are of
+  roughly equal quality;
+- their 30-seed selection fitness still ranged from 1.07 to 1.40 (median
+  1.280, standard deviation 0.067);
+- picking the maximum of 42 noisy, similar scores mostly picks the luckiest
+  draw. The held-out score equals the plateau median.
+
+DQN, with 18 evaluated checkpoints, shows no drop (1.340 selection, 1.345
+held out): its selection curve had one clear peak, so few candidates were
+close to the top. The other agents drop by 0.04 to 0.07. Details:
+`reports/neat_selection.md`. The selection rule was not changed after
+seeing the held-out results.
+
+**Future work:** for population methods (GA, CEM, NEAT), use more selection
+seeds, for example 100. It cuts each candidate's selection noise by about
+45% and costs about 3 minutes over a NEAT run.

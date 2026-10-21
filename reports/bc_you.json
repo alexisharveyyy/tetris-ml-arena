@@ -31,14 +31,44 @@
   "difference_fine_tuned_minus_baseline": {
     "top1": {
       "mean": 0.09308510638297872,
-      "ci95_low": 0.051094890510948905,
-      "ci95_high": 0.11715481171548117
+      "per_test_game": [
+        {
+          "game": 5,
+          "states": 239,
+          "baseline": 0.35564853556485354,
+          "fine_tuned": 0.47280334728033474,
+          "difference": 0.11715481171548117
+        },
+        {
+          "game": 6,
+          "states": 137,
+          "baseline": 0.4306569343065693,
+          "fine_tuned": 0.48175182481751827,
+          "difference": 0.051094890510948905
+        }
+      ]
     },
     "top3": {
       "mean": 0.0425531914893617,
-      "ci95_low": 0.014598540145985401,
-      "ci95_high": 0.058577405857740586
-    }
+      "per_test_game": [
+        {
+          "game": 5,
+          "states": 239,
+          "baseline": 0.7405857740585774,
+          "fine_tuned": 0.799163179916318,
+          "difference": 0.058577405857740586
+        },
+        {
+          "game": 6,
+          "states": 137,
+          "baseline": 0.7445255474452555,
+          "fine_tuned": 0.7591240875912408,
+          "difference": 0.014598540145985401
+        }
+      ]
+    },
+    "interval": null,
+    "note": "2 test game(s): no reliable interval is possible. Placements within a game are correlated, so only whole games are independent samples."
   },
   "selected_on_validation": {
     "top1": 0.4777777777777778,
