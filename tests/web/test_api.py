@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 
-from tetris.agents.registry import AGENTS, AgentSpec, register_agent
+from tetris.agents.registry import AGENTS, ROOT, AgentSpec, register_agent
 from tetris.web.leaderboard import significance_note
 
 from .conftest import start
@@ -31,8 +31,10 @@ def test_agents_lineup_groups_and_availability(client) -> None:
     assert agents["ppo_raw"]["group"] == "variant"
     assert agents["bc_pure"]["group"] == "leaderboard" and not agents["bc_pure"]["playable"]
     for key in ("dt", "llm"):
-        assert agents[key]["status"]["state"] == "planned" and not agents[key]["available"]
-        assert not agents[key]["registered"]
+        # "planned" before Phase 6 registers them; "missing" or "disabled" after
+        # (no checkpoint in this checkout, LLM off by default).
+        assert agents[key]["status"]["state"] in ("planned", "missing", "disabled")
+        assert not agents[key]["available"]
     for key in ("dellacherie", "ga", "cem"):
         assert agents[key]["available"], agents[key]["status"]
     assert agents["bc_you"]["looks"]["tetromino"]["fill"] == "#729410"
@@ -104,7 +106,8 @@ def test_match_validation(client) -> None:
     assert post(mode="marathon", opponents=[]) == 422
     assert post(mode="marathon", opponents=[{"agent": "ga"}] * 4) == 422
     assert post(mode="marathon", opponents=[{"agent": "nope"}]) == 422
-    assert post(mode="marathon", opponents=[{"agent": "dt"}]) == 422  # planned, not registered
+    # 422 while dt is only planned; 409 once registered without a checkpoint.
+    assert post(mode="marathon", opponents=[{"agent": "dt"}]) in (409, 422)
     assert post(mode="marathon", opponents=[{"agent": "bc_pure"}]) == 422  # leaderboard only
     assert post(mode="marathon", opponents=[{"agent": "bc_you"}]) == 409  # no checkpoint here
     assert post(mode="solo", opponents=[{"agent": "ga"}]) == 422
@@ -153,24 +156,28 @@ def test_leaderboard_from_reports(client) -> None:
     assert cem["games"] == 500 and cem["top_out_rate"] == 0.15
     assert abs(cem["lo"] - 0.1214) < 1e-3 and abs(cem["hi"] - 0.1840) < 1e-3
     assert not cem["off_scale"]
-    for key in ("ppo", "dqn", "neat", "bc_pure", "bc_dagger", "bc_you"):
+    for key in ("ppo", "dqn", "bc_pure", "bc_dagger", "bc_you"):
         row = rows[key]
         assert row["status"] == "pending_rerun", key
         assert "not on this computer" in row["reason"] and "top_out_rate" not in row
     assert not rows["dt"]["evaluated"]
     assert "bc" not in rows  # alias of bc_pure or bc_dagger
     order = [r["key"] for r in data["survival"]["rows"] if r["evaluated"]]
-    assert order == ["cem", "ga", "dellacherie"]
+    neat_here = (ROOT / "checkpoints" / "neat" / "best.json").exists()
+    assert order == ["cem", "ga"] + (["neat"] if neat_here else []) + ["dellacherie"]
     assert "Wilson" in data["survival"]["method"]
     note = data["survival"]["significance"]
-    assert "CEM and GA heuristic better than the baseline" in note and "PPO" not in note
+    assert "better than the baseline" in note and "CEM" in note and "GA heuristic" in note
+    assert "PPO" not in note  # pending results never appear in the note
     marathon = {r["key"]: r for r in data["marathon"]["rows"]}
     medium = marathon["cem"]["presets"]["Medium"]
     assert medium["score"]["3"] is not None and medium["time_is_lower_bound"]
     assert marathon["cem"]["presets"]["Unlimited"] is None
     assert marathon["ppo"]["status"] == "pending_rerun"
     assert all(v is None for v in marathon["ppo"]["presets"].values())
-    assert marathon["neat"]["status"] == "pending_rerun"
+    # NEAT's best.json is committed on master, so it verifies there.
+    assert rows["neat"]["status"] == ("valid" if neat_here else "pending_rerun")
+    assert marathon["neat"]["status"] == rows["neat"]["status"]
 
 
 def test_significance_note_wording() -> None:
@@ -265,7 +272,8 @@ def test_lobby_keeps_agents_still_checking(client) -> None:
     state = client.app.state.arena
     state.verifier = _SlowVerifier(state.verifier, "dellacherie", polls=1_000)
     lobby = client.get("/api/lobby/marathon").json()
-    assert lobby["slots"][0] == {"agent": "dellacherie", "preset": "Hard", "custom": None}
+    slot = lobby["slots"][0]
+    assert (slot["agent"], slot["preset"], slot["custom"]) == ("dellacherie", "Hard", None)
 
 
 def test_start_waits_for_a_running_check(client) -> None:
@@ -295,7 +303,7 @@ def test_registering_a_planned_agent_makes_it_available(client, monkeypatch) -> 
     from tetris.agents import registry
 
     before = {a["key"]: a for a in client.get("/api/agents").json()["agents"]}
-    assert before["dt"]["status"]["state"] == "planned"
+    assert not before["dt"]["available"]
     spec = replace(registry.AGENTS["dellacherie"], key="dt", name="Decision Transformer")
     monkeypatch.setitem(registry.AGENTS, "dt", spec)
     after = {a["key"]: a for a in client.get("/api/agents").json()["agents"]}

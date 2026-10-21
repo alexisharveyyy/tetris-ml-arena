@@ -7,7 +7,7 @@
    "cem Unlimited",
    "ppo Unlimited"
   ],
-  "seconds": 45.2,
+  "seconds": 45.1,
   "frames": 2709,
   "fps": 60,
   "frame_ms": {
@@ -17,9 +17,9 @@
   },
   "frames_over_20ms": 0,
   "input_to_render_ms": {
-   "n": 296,
-   "p50": 25.7,
-   "p99": 34
+   "n": 295,
+   "p50": 26.7,
+   "p99": 35.5
   },
   "long_tasks": 0,
   "snapshots_per_s": 60,
@@ -35,20 +35,20 @@
    {
     "name": "BC (you)",
     "preset": "Unlimited",
-    "pieces": 2743,
-    "pps": 57.788
+    "pieces": 2734,
+    "pps": 57.659
    },
    {
     "name": "CEM",
     "preset": "Unlimited",
-    "pieces": 2685,
-    "pps": 56.566
+    "pieces": 2687,
+    "pps": 56.668
    },
    {
     "name": "PPO",
     "preset": "Unlimited",
-    "pieces": 2688,
-    "pps": 56.629
+    "pieces": 2676,
+    "pps": 56.436
    }
   ]
  },
@@ -60,8 +60,8 @@
    "cem Unlimited",
    "ppo Unlimited"
   ],
-  "seconds": 45,
-  "frames": 2702,
+  "seconds": 45.1,
+  "frames": 2703,
   "fps": 60,
   "frame_ms": {
    "p50": 16.7,
@@ -71,65 +71,12 @@
   "frames_over_20ms": 0,
   "input_to_render_ms": {
    "n": 295,
-   "p50": 24.2,
-   "p99": 32
+   "p50": 24.3,
+   "p99": 33.9
   },
   "long_tasks": 0,
   "snapshots_per_s": 60,
-  "bytes_per_message": 3353,
-  "kb_per_s": 196.5,
-  "players": [
-   {
-    "name": "You",
-    "preset": null,
-    "pieces": 2,
-    "pps": 0.042
-   },
-   {
-    "name": "BC (you)",
-    "preset": "Unlimited",
-    "pieces": 2736,
-    "pps": 57.844
-   },
-   {
-    "name": "CEM",
-    "preset": "Unlimited",
-    "pieces": 2685,
-    "pps": 56.766
-   },
-   {
-    "name": "PPO",
-    "preset": "Unlimited",
-    "pieces": 2679,
-    "pps": 56.639
-   }
-  ]
- },
- "broadcast 1920x1080": {
-  "look": "broadcast",
-  "viewport": "1920x1080",
-  "agents": [
-   "bc_you Unlimited",
-   "cem Unlimited",
-   "ppo Unlimited"
-  ],
-  "seconds": 45.1,
-  "frames": 2705,
-  "fps": 60,
-  "frame_ms": {
-   "p50": 16.7,
-   "p99": 16.8,
-   "max": 16.8
-  },
-  "frames_over_20ms": 0,
-  "input_to_render_ms": {
-   "n": 296,
-   "p50": 24.4,
-   "p99": 33.3
-  },
-  "long_tasks": 0,
-  "snapshots_per_s": 60,
-  "bytes_per_message": 3354,
+  "bytes_per_message": 3355,
   "kb_per_s": 196.6,
   "players": [
    {
@@ -141,25 +88,25 @@
    {
     "name": "BC (you)",
     "preset": "Unlimited",
-    "pieces": 2739,
-    "pps": 57.825
+    "pieces": 2733,
+    "pps": 57.719
    },
    {
     "name": "CEM",
     "preset": "Unlimited",
-    "pieces": 2688,
-    "pps": 56.749
+    "pieces": 2669,
+    "pps": 56.367
    },
    {
     "name": "PPO",
     "preset": "Unlimited",
-    "pieces": 2682,
-    "pps": 56.622
+    "pieces": 2677,
+    "pps": 56.536
    }
   ]
  },
- "poster 1920x1080": {
-  "look": "poster",
+ "broadcast 1920x1080": {
+  "look": "broadcast",
   "viewport": "1920x1080",
   "agents": [
    "bc_you Unlimited",
@@ -178,7 +125,7 @@
   "input_to_render_ms": {
    "n": 296,
    "p50": 24.4,
-   "p99": 33.9
+   "p99": 33.7
   },
   "long_tasks": 0,
   "snapshots_per_s": 60,
@@ -194,20 +141,73 @@
    {
     "name": "BC (you)",
     "preset": "Unlimited",
-    "pieces": 2742,
-    "pps": 57.828
+    "pieces": 2739,
+    "pps": 57.785
    },
    {
     "name": "CEM",
     "preset": "Unlimited",
-    "pieces": 2691,
-    "pps": 56.752
+    "pieces": 2688,
+    "pps": 56.709
    },
    {
     "name": "PPO",
     "preset": "Unlimited",
-    "pieces": 2686,
-    "pps": 56.647
+    "pieces": 2682,
+    "pps": 56.582
+   }
+  ]
+ },
+ "poster 1920x1080": {
+  "look": "poster",
+  "viewport": "1920x1080",
+  "agents": [
+   "bc_you Unlimited",
+   "cem Unlimited",
+   "ppo Unlimited"
+  ],
+  "seconds": 45.1,
+  "frames": 2704,
+  "fps": 60,
+  "frame_ms": {
+   "p50": 16.7,
+   "p99": 16.8,
+   "max": 16.8
+  },
+  "frames_over_20ms": 0,
+  "input_to_render_ms": {
+   "n": 296,
+   "p50": 24.7,
+   "p99": 33.6
+  },
+  "long_tasks": 0,
+  "snapshots_per_s": 60,
+  "bytes_per_message": 3355,
+  "kb_per_s": 196.6,
+  "players": [
+   {
+    "name": "You",
+    "preset": null,
+    "pieces": 2,
+    "pps": 0.043
+   },
+   {
+    "name": "BC (you)",
+    "preset": "Unlimited",
+    "pieces": 2717,
+    "pps": 57.85
+   },
+   {
+    "name": "CEM",
+    "preset": "Unlimited",
+    "pieces": 2666,
+    "pps": 56.764
+   },
+   {
+    "name": "PPO",
+    "preset": "Unlimited",
+    "pieces": 2660,
+    "pps": 56.636
    }
   ]
  },
@@ -219,8 +219,8 @@
    "cem Unlimited",
    "ppo Unlimited"
   ],
-  "seconds": 30.1,
-  "frames": 1803,
+  "seconds": 45.1,
+  "frames": 2706,
   "fps": 60,
   "frame_ms": {
    "p50": 16.7,
@@ -229,91 +229,38 @@
   },
   "frames_over_20ms": 0,
   "input_to_render_ms": {
-   "n": 197,
-   "p50": 26.3,
-   "p99": 34
-  },
-  "long_tasks": 0,
-  "snapshots_per_s": 60,
-  "bytes_per_message": 3361,
-  "kb_per_s": 197,
-  "players": [
-   {
-    "name": "You",
-    "preset": null,
-    "pieces": 1,
-    "pps": 0.031
-   },
-   {
-    "name": "BC (you)",
-    "preset": "Unlimited",
-    "pieces": 1862,
-    "pps": 57.916
-   },
-   {
-    "name": "CEM",
-    "preset": "Unlimited",
-    "pieces": 1830,
-    "pps": 56.921
-   },
-   {
-    "name": "PPO",
-    "preset": "Unlimited",
-    "pieces": 1824,
-    "pps": 56.734
-   }
-  ]
- },
- "broadcast 1280x720": {
-  "look": "broadcast",
-  "viewport": "1280x720",
-  "agents": [
-   "bc_you Unlimited",
-   "cem Unlimited",
-   "ppo Unlimited"
-  ],
-  "seconds": 30,
-  "frames": 1800,
-  "fps": 60,
-  "frame_ms": {
-   "p50": 16.7,
-   "p99": 16.8,
-   "max": 16.8
-  },
-  "frames_over_20ms": 0,
-  "input_to_render_ms": {
-   "n": 197,
-   "p50": 24.9,
+   "n": 296,
+   "p50": 24.7,
    "p99": 34.1
   },
   "long_tasks": 0,
   "snapshots_per_s": 60,
-  "bytes_per_message": 3360,
-  "kb_per_s": 197,
+  "bytes_per_message": 3354,
+  "kb_per_s": 196.5,
   "players": [
    {
     "name": "You",
     "preset": null,
-    "pieces": 1,
-    "pps": 0.031
+    "pieces": 2,
+    "pps": 0.042
    },
    {
     "name": "BC (you)",
     "preset": "Unlimited",
-    "pieces": 1870,
-    "pps": 57.953
+    "pieces": 2740,
+    "pps": 57.825
    },
    {
     "name": "CEM",
     "preset": "Unlimited",
-    "pieces": 1836,
-    "pps": 56.899
+    "pieces": 2689,
+    "pps": 56.749
    },
    {
     "name": "PPO",
     "preset": "Unlimited",
-    "pieces": 1833,
-    "pps": 56.806
+    "pieces": 2683,
+    "pps": 56.622
    }
   ]
  }
