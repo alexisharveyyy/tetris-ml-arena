@@ -143,9 +143,9 @@ def test_new_match_replaces_the_old_one(client) -> None:
 
 
 def test_leaderboard_from_reports(client) -> None:
-    """The repo's reports, read without the checkpoint override: GA, CEM and the
-    baseline verify against this checkout; DQN's checkpoint is not here; PPO's
-    result came from the MPS-bug checkpoint."""
+    """The repo's reports (Phase 5), read without the checkpoint override: GA, CEM
+    and the baseline verify against this checkout; the other agents' checkpoints
+    are not in it, so their results show as pending."""
     data = client.get("/api/leaderboard").json()
     rows = {r["key"]: r for r in data["survival"]["rows"]}
     cem = rows["cem"]
@@ -153,12 +153,10 @@ def test_leaderboard_from_reports(client) -> None:
     assert cem["games"] == 500 and cem["top_out_rate"] == 0.15
     assert abs(cem["lo"] - 0.1214) < 1e-3 and abs(cem["hi"] - 0.1840) < 1e-3
     assert not cem["off_scale"]
-    ppo = rows["ppo"]
-    assert ppo["status"] == "pending_rerun" and "known bug" in ppo["reason"]
-    assert "MPS" in ppo["detail"]
-    assert "top_out_rate" not in ppo
-    assert rows["dqn"]["status"] == "pending_rerun" and "top_out_rate" not in rows["dqn"]
-    assert rows["neat"] == {"key": "neat", "evaluated": False, "status": "not_evaluated"}
+    for key in ("ppo", "dqn", "neat", "bc_pure", "bc_dagger", "bc_you"):
+        row = rows[key]
+        assert row["status"] == "pending_rerun", key
+        assert "not on this computer" in row["reason"] and "top_out_rate" not in row
     assert not rows["dt"]["evaluated"]
     assert "bc" not in rows  # alias of bc_pure or bc_dagger
     order = [r["key"] for r in data["survival"]["rows"] if r["evaluated"]]
@@ -172,7 +170,7 @@ def test_leaderboard_from_reports(client) -> None:
     assert marathon["cem"]["presets"]["Unlimited"] is None
     assert marathon["ppo"]["status"] == "pending_rerun"
     assert all(v is None for v in marathon["ppo"]["presets"].values())
-    assert marathon["neat"]["status"] == "not_evaluated"
+    assert marathon["neat"]["status"] == "pending_rerun"
 
 
 def test_significance_note_wording() -> None:
@@ -288,3 +286,18 @@ def test_ending_a_match_records_it_once(client, web_config) -> None:
     time.sleep(0.2)  # let the session loop run a few ticks after the end
     data = json.loads(web_config.history_path.read_text())
     assert len(data["matches"]) == 1
+
+
+def test_registering_a_planned_agent_makes_it_available(client, monkeypatch) -> None:
+    """Phase 6 registers dt and llm, which this UI lists as planned identities."""
+    from dataclasses import replace
+
+    from tetris.agents import registry
+
+    before = {a["key"]: a for a in client.get("/api/agents").json()["agents"]}
+    assert before["dt"]["status"]["state"] == "planned"
+    spec = replace(registry.AGENTS["dellacherie"], key="dt", name="Decision Transformer")
+    monkeypatch.setitem(registry.AGENTS, "dt", spec)
+    after = {a["key"]: a for a in client.get("/api/agents").json()["agents"]}
+    assert after["dt"]["available"] is True
+    assert after["dt"]["name"] == "Decision Transformer"

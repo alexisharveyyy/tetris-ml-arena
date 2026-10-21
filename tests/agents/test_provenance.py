@@ -71,5 +71,36 @@ def test_repo_reports_record_their_sources() -> None:
     sources = load_sources(provenance.Path(__file__).resolve().parents[2] / "reports")
     for section in ("garbage", "plain", "marathon"):
         agents = sources["sections"][section]["agents"]
-        assert agents["ppo"]["invalid"] and agents["ppo"]["checkpoint"] == "ppo/best_mpsbug.pt"
+        # The Phase 5 reports evaluated the fixed PPO, not the MPS-bug checkpoint.
+        assert agents["ppo"]["checkpoint"] == "ppo/best.pt" and "invalid" not in agents["ppo"]
         assert agents["dellacherie"] == {"checkpoint": None}
+        leaderboard = {k for k, spec in AGENTS.items() if spec.leaderboard}
+        assert leaderboard <= set(agents), leaderboard - set(agents)
+
+
+def test_backfill_records_only_checkpoints_older_than_the_report(tmp_path, monkeypatch) -> None:
+    import importlib.util
+    from datetime import datetime, timedelta
+
+    spec = importlib.util.spec_from_file_location(
+        "backfill_sources", provenance.Path(__file__).parents[2] / "scripts" / "backfill_sources.py"
+    )
+    backfill = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(backfill)
+
+    ckpt = tmp_path / "ckpt"
+    for key in ("ga", "cem"):
+        (ckpt / key).mkdir(parents=True)
+        shutil.copy(AGENTS[key].checkpoint_path, ckpt / key / "best.json")
+    monkeypatch.setenv(CHECKPOINT_ENV, str(ckpt))
+    report = tmp_path / "leaderboard_garbage.csv"
+    report.write_text("agent,key\nGA,ga\nCEM,cem\nDellacherie,dellacherie\n")
+    written = datetime.now() + timedelta(seconds=5)
+    # CEM's checkpoint is newer than the report, so it cannot be its source.
+    later = (written + timedelta(minutes=1)).timestamp()
+    os.utime(ckpt / "cem" / "best.json", (later, later))
+    agents, problems = backfill.infer_section(report, written)
+    assert set(agents) == {"ga", "dellacherie"}
+    assert agents["ga"]["checkpoint"] == "ga/best.json"
+    assert agents["dellacherie"] == {"checkpoint": None}
+    assert len(problems) == 1 and problems[0].startswith("cem:")

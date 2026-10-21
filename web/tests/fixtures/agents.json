@@ -1,1074 +1,1074 @@
 {
-  "agents": [
-    {
-      "key": "dqn",
-      "name": "DQN",
-      "family": "Value-based RL",
-      "blurb": "A deep Q-network that scores every spot the piece could land and takes the best.",
-      "piece": "T",
-      "letter": "T",
-      "group": "main",
-      "planned": false,
-      "cells": [
-        [
-          0,
-          0
-        ],
-        [
-          0,
-          1
-        ],
-        [
-          0,
-          2
-        ],
-        [
-          1,
-          1
-        ]
-      ],
-      "looks": {
-        "tetromino": {
-          "fill": "#7A4FD0",
-          "text": "#FFFFFF"
-        },
-        "terminal": {
-          "letter": "T"
-        },
-        "broadcast": {
-          "fill": "#B07CFF"
-        },
-        "poster": {
-          "field": "#3D2BBF",
-          "text": "#FFFFFF"
-        }
-      },
-      "registered": true,
-      "available": true,
-      "status": {
-        "state": "ok",
-        "detail": ""
-      },
-      "playable": true,
-      "on_leaderboard": true,
-      "description": "Double DQN with prioritized replay; a CNN values each afterstate.",
-      "supports_target_return": false,
-      "record": {
-        "Easy": {
-          "wins": 0,
-          "losses": 0,
-          "ties": 0,
-          "text": "no games yet"
-        },
-        "Medium": {
-          "wins": 0,
-          "losses": 0,
-          "ties": 0,
-          "text": "no games yet"
-        },
-        "Hard": {
-          "wins": 0,
-          "losses": 0,
-          "ties": 0,
-          "text": "no games yet"
-        },
-        "Unlimited": {
-          "wins": 0,
-          "losses": 0,
-          "ties": 0,
-          "text": "no games yet"
-        }
-      }
+ "agents": [
+  {
+   "key": "dqn",
+   "name": "DQN",
+   "family": "Value-based RL",
+   "blurb": "A deep Q-network that scores every spot the piece could land and takes the best.",
+   "piece": "T",
+   "letter": "T",
+   "group": "main",
+   "planned": false,
+   "cells": [
+    [
+     0,
+     0
+    ],
+    [
+     0,
+     1
+    ],
+    [
+     0,
+     2
+    ],
+    [
+     1,
+     1
+    ]
+   ],
+   "looks": {
+    "tetromino": {
+     "fill": "#7A4FD0",
+     "text": "#FFFFFF"
     },
-    {
-      "key": "cem",
-      "name": "CEM",
-      "family": "Cross-entropy method",
-      "blurb": "Weighs board features such as holes and height, with weights tuned by the cross-entropy method.",
-      "piece": "Z",
-      "letter": "Z",
-      "group": "main",
-      "planned": false,
-      "cells": [
-        [
-          0,
-          0
-        ],
-        [
-          0,
-          1
-        ],
-        [
-          1,
-          1
-        ],
-        [
-          1,
-          2
-        ]
-      ],
-      "looks": {
-        "tetromino": {
-          "fill": "#D53E2D",
-          "text": "#FFFFFF"
-        },
-        "terminal": {
-          "letter": "Z"
-        },
-        "broadcast": {
-          "fill": "#FF5A5A"
-        },
-        "poster": {
-          "field": "#F2542D",
-          "text": "#1A0F0A"
-        }
-      },
-      "registered": true,
-      "available": true,
-      "status": {
-        "state": "ok",
-        "detail": ""
-      },
-      "playable": true,
-      "on_leaderboard": true,
-      "description": "Linear feature weights optimized with the cross-entropy method.",
-      "supports_target_return": false,
-      "record": {
-        "Easy": {
-          "wins": 0,
-          "losses": 0,
-          "ties": 0,
-          "text": "no games yet"
-        },
-        "Medium": {
-          "wins": 0,
-          "losses": 0,
-          "ties": 0,
-          "text": "no games yet"
-        },
-        "Hard": {
-          "wins": 0,
-          "losses": 0,
-          "ties": 0,
-          "text": "no games yet"
-        },
-        "Unlimited": {
-          "wins": 0,
-          "losses": 0,
-          "ties": 0,
-          "text": "no games yet"
-        }
-      }
+    "terminal": {
+     "letter": "T"
     },
-    {
-      "key": "ga",
-      "name": "GA heuristic",
-      "family": "Genetic algorithm",
-      "blurb": "The same features, with weights evolved by a genetic algorithm.",
-      "piece": "S",
-      "letter": "S",
-      "group": "main",
-      "planned": false,
-      "cells": [
-        [
-          0,
-          1
-        ],
-        [
-          0,
-          2
-        ],
-        [
-          1,
-          0
-        ],
-        [
-          1,
-          1
-        ]
-      ],
-      "looks": {
-        "tetromino": {
-          "fill": "#2E9E55",
-          "text": "#1B1F3B"
-        },
-        "terminal": {
-          "letter": "S"
-        },
-        "broadcast": {
-          "fill": "#4BE08A"
-        },
-        "poster": {
-          "field": "#1F7A3A",
-          "text": "#FFFFFF"
-        }
-      },
-      "registered": true,
-      "available": true,
-      "status": {
-        "state": "ok",
-        "detail": ""
-      },
-      "playable": true,
-      "on_leaderboard": true,
-      "description": "Linear feature weights evolved with a genetic algorithm.",
-      "supports_target_return": false,
-      "record": {
-        "Easy": {
-          "wins": 0,
-          "losses": 0,
-          "ties": 0,
-          "text": "no games yet"
-        },
-        "Medium": {
-          "wins": 0,
-          "losses": 0,
-          "ties": 0,
-          "text": "no games yet"
-        },
-        "Hard": {
-          "wins": 0,
-          "losses": 0,
-          "ties": 0,
-          "text": "no games yet"
-        },
-        "Unlimited": {
-          "wins": 0,
-          "losses": 0,
-          "ties": 0,
-          "text": "no games yet"
-        }
-      }
+    "broadcast": {
+     "fill": "#B07CFF"
     },
-    {
-      "key": "ppo",
-      "name": "PPO",
-      "family": "Policy-gradient RL",
-      "blurb": "A policy network that learned which placement to choose by trial and error.",
-      "piece": "L",
-      "letter": "L",
-      "group": "main",
-      "planned": false,
-      "cells": [
-        [
-          0,
-          2
-        ],
-        [
-          1,
-          0
-        ],
-        [
-          1,
-          1
-        ],
-        [
-          1,
-          2
-        ]
-      ],
-      "looks": {
-        "tetromino": {
-          "fill": "#E07A12",
-          "text": "#1B1F3B"
-        },
-        "terminal": {
-          "letter": "L"
-        },
-        "broadcast": {
-          "fill": "#FF9B3D"
-        },
-        "poster": {
-          "field": "#0B7566",
-          "text": "#FFFFFF"
-        }
-      },
-      "registered": true,
-      "available": true,
-      "status": {
-        "state": "ok",
-        "detail": ""
-      },
-      "playable": true,
-      "on_leaderboard": true,
-      "description": "PPO policy that scores each placement's afterstate (masked 80-action space).",
-      "supports_target_return": false,
-      "record": {
-        "Easy": {
-          "wins": 0,
-          "losses": 0,
-          "ties": 0,
-          "text": "no games yet"
-        },
-        "Medium": {
-          "wins": 0,
-          "losses": 0,
-          "ties": 0,
-          "text": "no games yet"
-        },
-        "Hard": {
-          "wins": 0,
-          "losses": 0,
-          "ties": 0,
-          "text": "no games yet"
-        },
-        "Unlimited": {
-          "wins": 0,
-          "losses": 0,
-          "ties": 0,
-          "text": "no games yet"
-        }
-      }
-    },
-    {
-      "key": "bc",
-      "name": "Behavior cloning",
-      "family": "Imitation learning",
-      "blurb": "Learned by copying recorded games of the GA heuristic.",
-      "piece": "J",
-      "letter": "J",
-      "group": "main",
-      "planned": false,
-      "cells": [
-        [
-          0,
-          0
-        ],
-        [
-          1,
-          0
-        ],
-        [
-          1,
-          1
-        ],
-        [
-          1,
-          2
-        ]
-      ],
-      "looks": {
-        "tetromino": {
-          "fill": "#2F5FD0",
-          "text": "#FFFFFF"
-        },
-        "terminal": {
-          "letter": "J"
-        },
-        "broadcast": {
-          "fill": "#5B8CFF"
-        },
-        "poster": {
-          "field": "#1E4FD8",
-          "text": "#FFFFFF"
-        }
-      },
-      "registered": true,
-      "available": false,
-      "status": {
-        "state": "missing",
-        "detail": "/Users/alexisharvey/tetris-ml-arena-web/checkpoints/bc/best.pt not found"
-      },
-      "playable": true,
-      "on_leaderboard": false,
-      "description": "Behavior cloning of the GA heuristic; the better of pure BC and BC + DAgger.",
-      "supports_target_return": false,
-      "record": {
-        "Easy": {
-          "wins": 0,
-          "losses": 0,
-          "ties": 0,
-          "text": "no games yet"
-        },
-        "Medium": {
-          "wins": 0,
-          "losses": 0,
-          "ties": 0,
-          "text": "no games yet"
-        },
-        "Hard": {
-          "wins": 0,
-          "losses": 0,
-          "ties": 0,
-          "text": "no games yet"
-        },
-        "Unlimited": {
-          "wins": 0,
-          "losses": 0,
-          "ties": 0,
-          "text": "no games yet"
-        }
-      }
-    },
-    {
-      "key": "bc_you",
-      "name": "BC (you)",
-      "family": "Imitation learning",
-      "blurb": "Behavior cloning fine-tuned on your recorded games.",
-      "piece": "J",
-      "letter": "j",
-      "group": "main",
-      "planned": false,
-      "cells": [
-        [
-          0,
-          0
-        ],
-        [
-          1,
-          0
-        ],
-        [
-          1,
-          1
-        ],
-        [
-          1,
-          2
-        ]
-      ],
-      "looks": {
-        "tetromino": {
-          "fill": "#729410",
-          "text": "#1B1F3B"
-        },
-        "terminal": {
-          "letter": "j"
-        },
-        "broadcast": {
-          "fill": "#C6F24E"
-        },
-        "poster": {
-          "field": "#A4CC1C",
-          "text": "#14161F"
-        }
-      },
-      "registered": true,
-      "available": false,
-      "status": {
-        "state": "missing",
-        "detail": "/Users/alexisharvey/tetris-ml-arena-web/checkpoints/bc_you/best.pt not found"
-      },
-      "playable": true,
-      "on_leaderboard": true,
-      "description": "Behavior cloning of your recorded games, fine-tuned from the GA-trained BC model.",
-      "supports_target_return": false,
-      "record": {
-        "Easy": {
-          "wins": 0,
-          "losses": 0,
-          "ties": 0,
-          "text": "no games yet"
-        },
-        "Medium": {
-          "wins": 0,
-          "losses": 0,
-          "ties": 0,
-          "text": "no games yet"
-        },
-        "Hard": {
-          "wins": 0,
-          "losses": 0,
-          "ties": 0,
-          "text": "no games yet"
-        },
-        "Unlimited": {
-          "wins": 0,
-          "losses": 0,
-          "ties": 0,
-          "text": "no games yet"
-        }
-      }
-    },
-    {
-      "key": "neat",
-      "name": "NEAT",
-      "family": "Neuroevolution",
-      "blurb": "Its network shape and weights were evolved together, with no gradients.",
-      "piece": "O",
-      "letter": "O",
-      "group": "main",
-      "planned": false,
-      "cells": [
-        [
-          0,
-          0
-        ],
-        [
-          0,
-          1
-        ],
-        [
-          1,
-          0
-        ],
-        [
-          1,
-          1
-        ]
-      ],
-      "looks": {
-        "tetromino": {
-          "fill": "#E6B800",
-          "text": "#1B1F3B"
-        },
-        "terminal": {
-          "letter": "O"
-        },
-        "broadcast": {
-          "fill": "#FFD23F"
-        },
-        "poster": {
-          "field": "#F2A900",
-          "text": "#14161F"
-        }
-      },
-      "registered": true,
-      "available": false,
-      "status": {
-        "state": "missing",
-        "detail": "/Users/alexisharvey/tetris-ml-arena-web/checkpoints/neat/best.json not found"
-      },
-      "playable": true,
-      "on_leaderboard": true,
-      "description": "Evolved network scoring each afterstate from the same 13 features as GA and CEM.",
-      "supports_target_return": false,
-      "record": {
-        "Easy": {
-          "wins": 0,
-          "losses": 0,
-          "ties": 0,
-          "text": "no games yet"
-        },
-        "Medium": {
-          "wins": 0,
-          "losses": 0,
-          "ties": 0,
-          "text": "no games yet"
-        },
-        "Hard": {
-          "wins": 0,
-          "losses": 0,
-          "ties": 0,
-          "text": "no games yet"
-        },
-        "Unlimited": {
-          "wins": 0,
-          "losses": 0,
-          "ties": 0,
-          "text": "no games yet"
-        }
-      }
-    },
-    {
-      "key": "dt",
-      "name": "Decision Transformer",
-      "family": "Offline RL",
-      "blurb": "A transformer that plays toward a score you set. Higher targets play harder.",
-      "piece": "I",
-      "letter": "I",
-      "group": "main",
-      "planned": true,
-      "cells": [
-        [
-          0,
-          0
-        ],
-        [
-          0,
-          1
-        ],
-        [
-          0,
-          2
-        ],
-        [
-          0,
-          3
-        ]
-      ],
-      "looks": {
-        "tetromino": {
-          "fill": "#1597A8",
-          "text": "#1B1F3B"
-        },
-        "terminal": {
-          "letter": "I"
-        },
-        "broadcast": {
-          "fill": "#22D3E6"
-        },
-        "poster": {
-          "field": "#087A8F",
-          "text": "#FFFFFF"
-        }
-      },
-      "registered": false,
-      "available": false,
-      "status": {
-        "state": "planned",
-        "detail": "not built yet"
-      },
-      "playable": true,
-      "on_leaderboard": true,
-      "description": "A transformer that plays toward a score you set. Higher targets play harder.",
-      "supports_target_return": false,
-      "record": {
-        "Easy": {
-          "wins": 0,
-          "losses": 0,
-          "ties": 0,
-          "text": "no games yet"
-        },
-        "Medium": {
-          "wins": 0,
-          "losses": 0,
-          "ties": 0,
-          "text": "no games yet"
-        },
-        "Hard": {
-          "wins": 0,
-          "losses": 0,
-          "ties": 0,
-          "text": "no games yet"
-        },
-        "Unlimited": {
-          "wins": 0,
-          "losses": 0,
-          "ties": 0,
-          "text": "no games yet"
-        }
-      }
-    },
-    {
-      "key": "dellacherie",
-      "name": "Dellacherie",
-      "family": "Hand-tuned baseline",
-      "blurb": "Hand-picked weights from classic Tetris research. Everything else is measured against it.",
-      "piece": "mono",
-      "letter": ".",
-      "group": "main",
-      "planned": false,
-      "cells": [
-        [
-          0,
-          0
-        ]
-      ],
-      "looks": {
-        "tetromino": {
-          "fill": "#6B7080",
-          "text": "#FFFFFF"
-        },
-        "terminal": {
-          "letter": "."
-        },
-        "broadcast": {
-          "fill": "#AEB4C8"
-        },
-        "poster": {
-          "field": "#6B7080",
-          "text": "#FFFFFF"
-        }
-      },
-      "registered": true,
-      "available": true,
-      "status": {
-        "state": "ok",
-        "detail": "no checkpoint needed"
-      },
-      "playable": true,
-      "on_leaderboard": true,
-      "description": "Hand-tuned baseline: classic Dellacherie evaluation, not trained.",
-      "supports_target_return": false,
-      "record": {
-        "Easy": {
-          "wins": 0,
-          "losses": 0,
-          "ties": 0,
-          "text": "no games yet"
-        },
-        "Medium": {
-          "wins": 0,
-          "losses": 0,
-          "ties": 0,
-          "text": "no games yet"
-        },
-        "Hard": {
-          "wins": 0,
-          "losses": 0,
-          "ties": 0,
-          "text": "no games yet"
-        },
-        "Unlimited": {
-          "wins": 0,
-          "losses": 0,
-          "ties": 0,
-          "text": "no games yet"
-        }
-      }
-    },
-    {
-      "key": "llm",
-      "name": "LLM agent",
-      "family": "Optional novelty",
-      "blurb": "Reads the board as text and picks a move. Slow, and just for fun.",
-      "piece": "P",
-      "letter": "P",
-      "group": "main",
-      "planned": true,
-      "cells": [
-        [
-          0,
-          0
-        ],
-        [
-          0,
-          1
-        ],
-        [
-          0,
-          2
-        ],
-        [
-          1,
-          0
-        ],
-        [
-          1,
-          1
-        ]
-      ],
-      "looks": {
-        "tetromino": {
-          "fill": "#C2408A",
-          "text": "#FFFFFF"
-        },
-        "terminal": {
-          "letter": "P"
-        },
-        "broadcast": {
-          "fill": "#FF7AC6"
-        },
-        "poster": {
-          "field": "#C2307E",
-          "text": "#FFFFFF"
-        }
-      },
-      "registered": false,
-      "available": false,
-      "status": {
-        "state": "planned",
-        "detail": "not built yet"
-      },
-      "playable": true,
-      "on_leaderboard": true,
-      "description": "Reads the board as text and picks a move. Slow, and just for fun.",
-      "supports_target_return": false,
-      "record": {
-        "Easy": {
-          "wins": 0,
-          "losses": 0,
-          "ties": 0,
-          "text": "no games yet"
-        },
-        "Medium": {
-          "wins": 0,
-          "losses": 0,
-          "ties": 0,
-          "text": "no games yet"
-        },
-        "Hard": {
-          "wins": 0,
-          "losses": 0,
-          "ties": 0,
-          "text": "no games yet"
-        },
-        "Unlimited": {
-          "wins": 0,
-          "losses": 0,
-          "ties": 0,
-          "text": "no games yet"
-        }
-      }
-    },
-    {
-      "key": "ppo_raw",
-      "name": "PPO (raw actions)",
-      "family": "Policy-gradient RL",
-      "blurb": "The same method choosing among all 80 moves from the board alone. Weak, kept for comparison.",
-      "piece": "L",
-      "letter": "l",
-      "group": "variant",
-      "planned": false,
-      "cells": [
-        [
-          0,
-          2
-        ],
-        [
-          1,
-          0
-        ],
-        [
-          1,
-          1
-        ],
-        [
-          1,
-          2
-        ]
-      ],
-      "looks": {
-        "tetromino": {
-          "fill": "#E07A12",
-          "text": "#1B1F3B"
-        },
-        "terminal": {
-          "letter": "l"
-        },
-        "broadcast": {
-          "fill": "#FF9B3D"
-        },
-        "poster": {
-          "field": "#0B7566",
-          "text": "#FFFFFF"
-        }
-      },
-      "registered": true,
-      "available": true,
-      "status": {
-        "state": "ok",
-        "detail": ""
-      },
-      "playable": true,
-      "on_leaderboard": true,
-      "description": "PPO policy over the 80 actions from the board alone; weak, kept for comparison.",
-      "supports_target_return": false,
-      "record": {
-        "Easy": {
-          "wins": 0,
-          "losses": 0,
-          "ties": 0,
-          "text": "no games yet"
-        },
-        "Medium": {
-          "wins": 0,
-          "losses": 0,
-          "ties": 0,
-          "text": "no games yet"
-        },
-        "Hard": {
-          "wins": 0,
-          "losses": 0,
-          "ties": 0,
-          "text": "no games yet"
-        },
-        "Unlimited": {
-          "wins": 0,
-          "losses": 0,
-          "ties": 0,
-          "text": "no games yet"
-        }
-      }
-    },
-    {
-      "key": "bc_pure",
-      "name": "BC (pure)",
-      "family": "Imitation learning",
-      "blurb": "Copies logged GA games only.",
-      "piece": "J",
-      "letter": "J",
-      "group": "leaderboard",
-      "planned": false,
-      "cells": [
-        [
-          0,
-          0
-        ],
-        [
-          1,
-          0
-        ],
-        [
-          1,
-          1
-        ],
-        [
-          1,
-          2
-        ]
-      ],
-      "looks": {
-        "tetromino": {
-          "fill": "#2F5FD0",
-          "text": "#FFFFFF"
-        },
-        "terminal": {
-          "letter": "J"
-        },
-        "broadcast": {
-          "fill": "#5B8CFF"
-        },
-        "poster": {
-          "field": "#1E4FD8",
-          "text": "#FFFFFF"
-        }
-      },
-      "registered": true,
-      "available": false,
-      "status": {
-        "state": "missing",
-        "detail": "/Users/alexisharvey/tetris-ml-arena-web/checkpoints/bc_pure/best.pt not found"
-      },
-      "playable": false,
-      "on_leaderboard": true,
-      "description": "Behavior cloning on logged GA games only.",
-      "supports_target_return": false,
-      "record": {
-        "Easy": {
-          "wins": 0,
-          "losses": 0,
-          "ties": 0,
-          "text": "no games yet"
-        },
-        "Medium": {
-          "wins": 0,
-          "losses": 0,
-          "ties": 0,
-          "text": "no games yet"
-        },
-        "Hard": {
-          "wins": 0,
-          "losses": 0,
-          "ties": 0,
-          "text": "no games yet"
-        },
-        "Unlimited": {
-          "wins": 0,
-          "losses": 0,
-          "ties": 0,
-          "text": "no games yet"
-        }
-      }
-    },
-    {
-      "key": "bc_dagger",
-      "name": "BC + DAgger",
-      "family": "Imitation learning",
-      "blurb": "Copies GA games, then two rounds where the GA labels the agent's own states.",
-      "piece": "J",
-      "letter": "J",
-      "group": "leaderboard",
-      "planned": false,
-      "cells": [
-        [
-          0,
-          0
-        ],
-        [
-          1,
-          0
-        ],
-        [
-          1,
-          1
-        ],
-        [
-          1,
-          2
-        ]
-      ],
-      "looks": {
-        "tetromino": {
-          "fill": "#2F5FD0",
-          "text": "#FFFFFF"
-        },
-        "terminal": {
-          "letter": "J"
-        },
-        "broadcast": {
-          "fill": "#5B8CFF"
-        },
-        "poster": {
-          "field": "#1E4FD8",
-          "text": "#FFFFFF"
-        }
-      },
-      "registered": true,
-      "available": false,
-      "status": {
-        "state": "missing",
-        "detail": "/Users/alexisharvey/tetris-ml-arena-web/checkpoints/bc_dagger/best.pt not found"
-      },
-      "playable": false,
-      "on_leaderboard": true,
-      "description": "Behavior cloning plus two DAgger rounds with the GA labeling the agent's own states.",
-      "supports_target_return": false,
-      "record": {
-        "Easy": {
-          "wins": 0,
-          "losses": 0,
-          "ties": 0,
-          "text": "no games yet"
-        },
-        "Medium": {
-          "wins": 0,
-          "losses": 0,
-          "ties": 0,
-          "text": "no games yet"
-        },
-        "Hard": {
-          "wins": 0,
-          "losses": 0,
-          "ties": 0,
-          "text": "no games yet"
-        },
-        "Unlimited": {
-          "wins": 0,
-          "losses": 0,
-          "ties": 0,
-          "text": "no games yet"
-        }
-      }
+    "poster": {
+     "field": "#3D2BBF",
+     "text": "#FFFFFF"
     }
-  ],
-  "human": {
-    "key": "human",
-    "name": "You",
-    "family": "Human",
-    "blurb": "You.",
-    "piece": null,
-    "letter": "@",
-    "group": "human",
-    "planned": false,
-    "cells": [],
-    "looks": {
-      "tetromino": {
-        "fill": "#1B1F3B",
-        "text": "#FFFFFF"
-      },
-      "terminal": {
-        "letter": "@"
-      },
-      "broadcast": {
-        "fill": "#FF5A3C"
-      },
-      "poster": {
-        "field": "#FFE14D",
-        "text": "#14161F"
-      }
+   },
+   "registered": true,
+   "available": true,
+   "status": {
+    "state": "ok",
+    "detail": ""
+   },
+   "playable": true,
+   "on_leaderboard": true,
+   "description": "Double DQN with prioritized replay; a CNN values each afterstate.",
+   "supports_target_return": false,
+   "record": {
+    "Easy": {
+     "wins": 0,
+     "losses": 0,
+     "ties": 0,
+     "text": "no games yet"
+    },
+    "Medium": {
+     "wins": 0,
+     "losses": 0,
+     "ties": 0,
+     "text": "no games yet"
+    },
+    "Hard": {
+     "wins": 0,
+     "losses": 0,
+     "ties": 0,
+     "text": "no games yet"
+    },
+    "Unlimited": {
+     "wins": 0,
+     "losses": 0,
+     "ties": 0,
+     "text": "no games yet"
     }
+   }
   },
-  "groups": [
-    "main",
-    "variant",
-    "leaderboard"
-  ],
-  "looks": [
-    "tetromino",
-    "terminal",
-    "broadcast",
-    "poster"
-  ]
+  {
+   "key": "cem",
+   "name": "CEM",
+   "family": "Cross-entropy method",
+   "blurb": "Weighs board features such as holes and height, with weights tuned by the cross-entropy method.",
+   "piece": "Z",
+   "letter": "Z",
+   "group": "main",
+   "planned": false,
+   "cells": [
+    [
+     0,
+     0
+    ],
+    [
+     0,
+     1
+    ],
+    [
+     1,
+     1
+    ],
+    [
+     1,
+     2
+    ]
+   ],
+   "looks": {
+    "tetromino": {
+     "fill": "#D53E2D",
+     "text": "#FFFFFF"
+    },
+    "terminal": {
+     "letter": "Z"
+    },
+    "broadcast": {
+     "fill": "#FF5A5A"
+    },
+    "poster": {
+     "field": "#F2542D",
+     "text": "#1A0F0A"
+    }
+   },
+   "registered": true,
+   "available": true,
+   "status": {
+    "state": "ok",
+    "detail": ""
+   },
+   "playable": true,
+   "on_leaderboard": true,
+   "description": "Linear feature weights optimized with the cross-entropy method.",
+   "supports_target_return": false,
+   "record": {
+    "Easy": {
+     "wins": 0,
+     "losses": 0,
+     "ties": 0,
+     "text": "no games yet"
+    },
+    "Medium": {
+     "wins": 0,
+     "losses": 0,
+     "ties": 0,
+     "text": "no games yet"
+    },
+    "Hard": {
+     "wins": 0,
+     "losses": 0,
+     "ties": 0,
+     "text": "no games yet"
+    },
+    "Unlimited": {
+     "wins": 0,
+     "losses": 0,
+     "ties": 0,
+     "text": "no games yet"
+    }
+   }
+  },
+  {
+   "key": "ga",
+   "name": "GA heuristic",
+   "family": "Genetic algorithm",
+   "blurb": "The same features, with weights evolved by a genetic algorithm.",
+   "piece": "S",
+   "letter": "S",
+   "group": "main",
+   "planned": false,
+   "cells": [
+    [
+     0,
+     1
+    ],
+    [
+     0,
+     2
+    ],
+    [
+     1,
+     0
+    ],
+    [
+     1,
+     1
+    ]
+   ],
+   "looks": {
+    "tetromino": {
+     "fill": "#2E9E55",
+     "text": "#1B1F3B"
+    },
+    "terminal": {
+     "letter": "S"
+    },
+    "broadcast": {
+     "fill": "#4BE08A"
+    },
+    "poster": {
+     "field": "#1F7A3A",
+     "text": "#FFFFFF"
+    }
+   },
+   "registered": true,
+   "available": true,
+   "status": {
+    "state": "ok",
+    "detail": ""
+   },
+   "playable": true,
+   "on_leaderboard": true,
+   "description": "Linear feature weights evolved with a genetic algorithm.",
+   "supports_target_return": false,
+   "record": {
+    "Easy": {
+     "wins": 0,
+     "losses": 0,
+     "ties": 0,
+     "text": "no games yet"
+    },
+    "Medium": {
+     "wins": 0,
+     "losses": 0,
+     "ties": 0,
+     "text": "no games yet"
+    },
+    "Hard": {
+     "wins": 0,
+     "losses": 0,
+     "ties": 0,
+     "text": "no games yet"
+    },
+    "Unlimited": {
+     "wins": 0,
+     "losses": 0,
+     "ties": 0,
+     "text": "no games yet"
+    }
+   }
+  },
+  {
+   "key": "ppo",
+   "name": "PPO",
+   "family": "Policy-gradient RL",
+   "blurb": "A policy network that learned which placement to choose by trial and error.",
+   "piece": "L",
+   "letter": "L",
+   "group": "main",
+   "planned": false,
+   "cells": [
+    [
+     0,
+     2
+    ],
+    [
+     1,
+     0
+    ],
+    [
+     1,
+     1
+    ],
+    [
+     1,
+     2
+    ]
+   ],
+   "looks": {
+    "tetromino": {
+     "fill": "#E07A12",
+     "text": "#1B1F3B"
+    },
+    "terminal": {
+     "letter": "L"
+    },
+    "broadcast": {
+     "fill": "#FF9B3D"
+    },
+    "poster": {
+     "field": "#0B7566",
+     "text": "#FFFFFF"
+    }
+   },
+   "registered": true,
+   "available": true,
+   "status": {
+    "state": "ok",
+    "detail": ""
+   },
+   "playable": true,
+   "on_leaderboard": true,
+   "description": "PPO policy that scores each placement's afterstate (masked 80-action space).",
+   "supports_target_return": false,
+   "record": {
+    "Easy": {
+     "wins": 0,
+     "losses": 0,
+     "ties": 0,
+     "text": "no games yet"
+    },
+    "Medium": {
+     "wins": 0,
+     "losses": 0,
+     "ties": 0,
+     "text": "no games yet"
+    },
+    "Hard": {
+     "wins": 0,
+     "losses": 0,
+     "ties": 0,
+     "text": "no games yet"
+    },
+    "Unlimited": {
+     "wins": 0,
+     "losses": 0,
+     "ties": 0,
+     "text": "no games yet"
+    }
+   }
+  },
+  {
+   "key": "bc",
+   "name": "Behavior cloning",
+   "family": "Imitation learning",
+   "blurb": "Learned by copying recorded games of the GA heuristic.",
+   "piece": "J",
+   "letter": "J",
+   "group": "main",
+   "planned": false,
+   "cells": [
+    [
+     0,
+     0
+    ],
+    [
+     1,
+     0
+    ],
+    [
+     1,
+     1
+    ],
+    [
+     1,
+     2
+    ]
+   ],
+   "looks": {
+    "tetromino": {
+     "fill": "#2F5FD0",
+     "text": "#FFFFFF"
+    },
+    "terminal": {
+     "letter": "J"
+    },
+    "broadcast": {
+     "fill": "#5B8CFF"
+    },
+    "poster": {
+     "field": "#1E4FD8",
+     "text": "#FFFFFF"
+    }
+   },
+   "registered": true,
+   "available": true,
+   "status": {
+    "state": "ok",
+    "detail": ""
+   },
+   "playable": true,
+   "on_leaderboard": false,
+   "description": "Behavior cloning of the GA heuristic; the better of pure BC and BC + DAgger.",
+   "supports_target_return": false,
+   "record": {
+    "Easy": {
+     "wins": 0,
+     "losses": 0,
+     "ties": 0,
+     "text": "no games yet"
+    },
+    "Medium": {
+     "wins": 0,
+     "losses": 0,
+     "ties": 0,
+     "text": "no games yet"
+    },
+    "Hard": {
+     "wins": 0,
+     "losses": 0,
+     "ties": 0,
+     "text": "no games yet"
+    },
+    "Unlimited": {
+     "wins": 0,
+     "losses": 0,
+     "ties": 0,
+     "text": "no games yet"
+    }
+   }
+  },
+  {
+   "key": "bc_you",
+   "name": "BC (you)",
+   "family": "Imitation learning",
+   "blurb": "Behavior cloning fine-tuned on your recorded games.",
+   "piece": "J",
+   "letter": "j",
+   "group": "main",
+   "planned": false,
+   "cells": [
+    [
+     0,
+     0
+    ],
+    [
+     1,
+     0
+    ],
+    [
+     1,
+     1
+    ],
+    [
+     1,
+     2
+    ]
+   ],
+   "looks": {
+    "tetromino": {
+     "fill": "#729410",
+     "text": "#1B1F3B"
+    },
+    "terminal": {
+     "letter": "j"
+    },
+    "broadcast": {
+     "fill": "#C6F24E"
+    },
+    "poster": {
+     "field": "#A4CC1C",
+     "text": "#14161F"
+    }
+   },
+   "registered": true,
+   "available": true,
+   "status": {
+    "state": "ok",
+    "detail": ""
+   },
+   "playable": true,
+   "on_leaderboard": true,
+   "description": "Behavior cloning of your recorded games, fine-tuned from the GA-trained BC model.",
+   "supports_target_return": false,
+   "record": {
+    "Easy": {
+     "wins": 0,
+     "losses": 0,
+     "ties": 0,
+     "text": "no games yet"
+    },
+    "Medium": {
+     "wins": 0,
+     "losses": 0,
+     "ties": 0,
+     "text": "no games yet"
+    },
+    "Hard": {
+     "wins": 0,
+     "losses": 0,
+     "ties": 0,
+     "text": "no games yet"
+    },
+    "Unlimited": {
+     "wins": 0,
+     "losses": 0,
+     "ties": 0,
+     "text": "no games yet"
+    }
+   }
+  },
+  {
+   "key": "neat",
+   "name": "NEAT",
+   "family": "Neuroevolution",
+   "blurb": "Its network shape and weights were evolved together, with no gradients.",
+   "piece": "O",
+   "letter": "O",
+   "group": "main",
+   "planned": false,
+   "cells": [
+    [
+     0,
+     0
+    ],
+    [
+     0,
+     1
+    ],
+    [
+     1,
+     0
+    ],
+    [
+     1,
+     1
+    ]
+   ],
+   "looks": {
+    "tetromino": {
+     "fill": "#E6B800",
+     "text": "#1B1F3B"
+    },
+    "terminal": {
+     "letter": "O"
+    },
+    "broadcast": {
+     "fill": "#FFD23F"
+    },
+    "poster": {
+     "field": "#F2A900",
+     "text": "#14161F"
+    }
+   },
+   "registered": true,
+   "available": true,
+   "status": {
+    "state": "ok",
+    "detail": ""
+   },
+   "playable": true,
+   "on_leaderboard": true,
+   "description": "Evolved network scoring each afterstate from the same 13 features as GA and CEM.",
+   "supports_target_return": false,
+   "record": {
+    "Easy": {
+     "wins": 0,
+     "losses": 0,
+     "ties": 0,
+     "text": "no games yet"
+    },
+    "Medium": {
+     "wins": 0,
+     "losses": 0,
+     "ties": 0,
+     "text": "no games yet"
+    },
+    "Hard": {
+     "wins": 0,
+     "losses": 0,
+     "ties": 0,
+     "text": "no games yet"
+    },
+    "Unlimited": {
+     "wins": 0,
+     "losses": 0,
+     "ties": 0,
+     "text": "no games yet"
+    }
+   }
+  },
+  {
+   "key": "dt",
+   "name": "Decision Transformer",
+   "family": "Offline RL",
+   "blurb": "A transformer that plays toward a score you set. Higher targets play harder.",
+   "piece": "I",
+   "letter": "I",
+   "group": "main",
+   "planned": true,
+   "cells": [
+    [
+     0,
+     0
+    ],
+    [
+     0,
+     1
+    ],
+    [
+     0,
+     2
+    ],
+    [
+     0,
+     3
+    ]
+   ],
+   "looks": {
+    "tetromino": {
+     "fill": "#1597A8",
+     "text": "#1B1F3B"
+    },
+    "terminal": {
+     "letter": "I"
+    },
+    "broadcast": {
+     "fill": "#22D3E6"
+    },
+    "poster": {
+     "field": "#087A8F",
+     "text": "#FFFFFF"
+    }
+   },
+   "registered": false,
+   "available": false,
+   "status": {
+    "state": "planned",
+    "detail": "not built yet"
+   },
+   "playable": true,
+   "on_leaderboard": true,
+   "description": "A transformer that plays toward a score you set. Higher targets play harder.",
+   "supports_target_return": false,
+   "record": {
+    "Easy": {
+     "wins": 0,
+     "losses": 0,
+     "ties": 0,
+     "text": "no games yet"
+    },
+    "Medium": {
+     "wins": 0,
+     "losses": 0,
+     "ties": 0,
+     "text": "no games yet"
+    },
+    "Hard": {
+     "wins": 0,
+     "losses": 0,
+     "ties": 0,
+     "text": "no games yet"
+    },
+    "Unlimited": {
+     "wins": 0,
+     "losses": 0,
+     "ties": 0,
+     "text": "no games yet"
+    }
+   }
+  },
+  {
+   "key": "dellacherie",
+   "name": "Dellacherie",
+   "family": "Hand-tuned baseline",
+   "blurb": "Hand-picked weights from classic Tetris research. Everything else is measured against it.",
+   "piece": "mono",
+   "letter": ".",
+   "group": "main",
+   "planned": false,
+   "cells": [
+    [
+     0,
+     0
+    ]
+   ],
+   "looks": {
+    "tetromino": {
+     "fill": "#6B7080",
+     "text": "#FFFFFF"
+    },
+    "terminal": {
+     "letter": "."
+    },
+    "broadcast": {
+     "fill": "#AEB4C8"
+    },
+    "poster": {
+     "field": "#6B7080",
+     "text": "#FFFFFF"
+    }
+   },
+   "registered": true,
+   "available": true,
+   "status": {
+    "state": "ok",
+    "detail": "no checkpoint needed"
+   },
+   "playable": true,
+   "on_leaderboard": true,
+   "description": "Hand-tuned baseline: classic Dellacherie evaluation, not trained.",
+   "supports_target_return": false,
+   "record": {
+    "Easy": {
+     "wins": 0,
+     "losses": 0,
+     "ties": 0,
+     "text": "no games yet"
+    },
+    "Medium": {
+     "wins": 0,
+     "losses": 0,
+     "ties": 0,
+     "text": "no games yet"
+    },
+    "Hard": {
+     "wins": 0,
+     "losses": 0,
+     "ties": 0,
+     "text": "no games yet"
+    },
+    "Unlimited": {
+     "wins": 0,
+     "losses": 0,
+     "ties": 0,
+     "text": "no games yet"
+    }
+   }
+  },
+  {
+   "key": "llm",
+   "name": "LLM agent",
+   "family": "Optional novelty",
+   "blurb": "Reads the board as text and picks a move. Slow, and just for fun.",
+   "piece": "P",
+   "letter": "P",
+   "group": "main",
+   "planned": true,
+   "cells": [
+    [
+     0,
+     0
+    ],
+    [
+     0,
+     1
+    ],
+    [
+     0,
+     2
+    ],
+    [
+     1,
+     0
+    ],
+    [
+     1,
+     1
+    ]
+   ],
+   "looks": {
+    "tetromino": {
+     "fill": "#C2408A",
+     "text": "#FFFFFF"
+    },
+    "terminal": {
+     "letter": "P"
+    },
+    "broadcast": {
+     "fill": "#FF7AC6"
+    },
+    "poster": {
+     "field": "#C2307E",
+     "text": "#FFFFFF"
+    }
+   },
+   "registered": false,
+   "available": false,
+   "status": {
+    "state": "planned",
+    "detail": "not built yet"
+   },
+   "playable": true,
+   "on_leaderboard": true,
+   "description": "Reads the board as text and picks a move. Slow, and just for fun.",
+   "supports_target_return": false,
+   "record": {
+    "Easy": {
+     "wins": 0,
+     "losses": 0,
+     "ties": 0,
+     "text": "no games yet"
+    },
+    "Medium": {
+     "wins": 0,
+     "losses": 0,
+     "ties": 0,
+     "text": "no games yet"
+    },
+    "Hard": {
+     "wins": 0,
+     "losses": 0,
+     "ties": 0,
+     "text": "no games yet"
+    },
+    "Unlimited": {
+     "wins": 0,
+     "losses": 0,
+     "ties": 0,
+     "text": "no games yet"
+    }
+   }
+  },
+  {
+   "key": "ppo_raw",
+   "name": "PPO (raw actions)",
+   "family": "Policy-gradient RL",
+   "blurb": "The same method choosing among all 80 moves from the board alone. Weak, kept for comparison.",
+   "piece": "L",
+   "letter": "l",
+   "group": "variant",
+   "planned": false,
+   "cells": [
+    [
+     0,
+     2
+    ],
+    [
+     1,
+     0
+    ],
+    [
+     1,
+     1
+    ],
+    [
+     1,
+     2
+    ]
+   ],
+   "looks": {
+    "tetromino": {
+     "fill": "#E07A12",
+     "text": "#1B1F3B"
+    },
+    "terminal": {
+     "letter": "l"
+    },
+    "broadcast": {
+     "fill": "#FF9B3D"
+    },
+    "poster": {
+     "field": "#0B7566",
+     "text": "#FFFFFF"
+    }
+   },
+   "registered": true,
+   "available": true,
+   "status": {
+    "state": "ok",
+    "detail": ""
+   },
+   "playable": true,
+   "on_leaderboard": true,
+   "description": "PPO policy over the 80 actions from the board alone; weak, kept for comparison.",
+   "supports_target_return": false,
+   "record": {
+    "Easy": {
+     "wins": 0,
+     "losses": 0,
+     "ties": 0,
+     "text": "no games yet"
+    },
+    "Medium": {
+     "wins": 0,
+     "losses": 0,
+     "ties": 0,
+     "text": "no games yet"
+    },
+    "Hard": {
+     "wins": 0,
+     "losses": 0,
+     "ties": 0,
+     "text": "no games yet"
+    },
+    "Unlimited": {
+     "wins": 0,
+     "losses": 0,
+     "ties": 0,
+     "text": "no games yet"
+    }
+   }
+  },
+  {
+   "key": "bc_pure",
+   "name": "BC (pure)",
+   "family": "Imitation learning",
+   "blurb": "Copies logged GA games only.",
+   "piece": "J",
+   "letter": "J",
+   "group": "leaderboard",
+   "planned": false,
+   "cells": [
+    [
+     0,
+     0
+    ],
+    [
+     1,
+     0
+    ],
+    [
+     1,
+     1
+    ],
+    [
+     1,
+     2
+    ]
+   ],
+   "looks": {
+    "tetromino": {
+     "fill": "#2F5FD0",
+     "text": "#FFFFFF"
+    },
+    "terminal": {
+     "letter": "J"
+    },
+    "broadcast": {
+     "fill": "#5B8CFF"
+    },
+    "poster": {
+     "field": "#1E4FD8",
+     "text": "#FFFFFF"
+    }
+   },
+   "registered": true,
+   "available": true,
+   "status": {
+    "state": "ok",
+    "detail": ""
+   },
+   "playable": false,
+   "on_leaderboard": true,
+   "description": "Behavior cloning on logged GA games only.",
+   "supports_target_return": false,
+   "record": {
+    "Easy": {
+     "wins": 0,
+     "losses": 0,
+     "ties": 0,
+     "text": "no games yet"
+    },
+    "Medium": {
+     "wins": 0,
+     "losses": 0,
+     "ties": 0,
+     "text": "no games yet"
+    },
+    "Hard": {
+     "wins": 0,
+     "losses": 0,
+     "ties": 0,
+     "text": "no games yet"
+    },
+    "Unlimited": {
+     "wins": 0,
+     "losses": 0,
+     "ties": 0,
+     "text": "no games yet"
+    }
+   }
+  },
+  {
+   "key": "bc_dagger",
+   "name": "BC + DAgger",
+   "family": "Imitation learning",
+   "blurb": "Copies GA games, then two rounds where the GA labels the agent's own states.",
+   "piece": "J",
+   "letter": "J",
+   "group": "leaderboard",
+   "planned": false,
+   "cells": [
+    [
+     0,
+     0
+    ],
+    [
+     1,
+     0
+    ],
+    [
+     1,
+     1
+    ],
+    [
+     1,
+     2
+    ]
+   ],
+   "looks": {
+    "tetromino": {
+     "fill": "#2F5FD0",
+     "text": "#FFFFFF"
+    },
+    "terminal": {
+     "letter": "J"
+    },
+    "broadcast": {
+     "fill": "#5B8CFF"
+    },
+    "poster": {
+     "field": "#1E4FD8",
+     "text": "#FFFFFF"
+    }
+   },
+   "registered": true,
+   "available": true,
+   "status": {
+    "state": "ok",
+    "detail": ""
+   },
+   "playable": false,
+   "on_leaderboard": true,
+   "description": "Behavior cloning plus two DAgger rounds with the GA labeling the agent's own states.",
+   "supports_target_return": false,
+   "record": {
+    "Easy": {
+     "wins": 0,
+     "losses": 0,
+     "ties": 0,
+     "text": "no games yet"
+    },
+    "Medium": {
+     "wins": 0,
+     "losses": 0,
+     "ties": 0,
+     "text": "no games yet"
+    },
+    "Hard": {
+     "wins": 0,
+     "losses": 0,
+     "ties": 0,
+     "text": "no games yet"
+    },
+    "Unlimited": {
+     "wins": 0,
+     "losses": 0,
+     "ties": 0,
+     "text": "no games yet"
+    }
+   }
+  }
+ ],
+ "human": {
+  "key": "human",
+  "name": "You",
+  "family": "Human",
+  "blurb": "You.",
+  "piece": null,
+  "letter": "@",
+  "group": "human",
+  "planned": false,
+  "cells": [],
+  "looks": {
+   "tetromino": {
+    "fill": "#1B1F3B",
+    "text": "#FFFFFF"
+   },
+   "terminal": {
+    "letter": "@"
+   },
+   "broadcast": {
+    "fill": "#FF5A3C"
+   },
+   "poster": {
+    "field": "#FFE14D",
+    "text": "#14161F"
+   }
+  }
+ },
+ "groups": [
+  "main",
+  "variant",
+  "leaderboard"
+ ],
+ "looks": [
+  "tetromino",
+  "terminal",
+  "broadcast",
+  "poster"
+ ]
 }

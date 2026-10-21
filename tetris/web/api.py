@@ -57,13 +57,25 @@ def lineup_identities() -> list[Identity]:
     return out
 
 
+def _turned_off(spec: Any) -> bool:
+    """Opt-in agents (the LLM agent) are off unless their config enables them."""
+    if not getattr(spec, "opt_in", False):
+        return False
+    return not (getattr(spec, "agent_config", None) or {}).get("enabled", False)
+
+
 def agent_entries(state: AppState) -> list[dict[str, Any]]:
     history = state.history()
     entries = []
     for ident in lineup_identities():
         spec = AGENTS.get(ident.key)
-        if spec is None or ident.planned:
+        # ``planned`` only describes identities without a registry spec: once an
+        # agent is registered (Phase 6 adds dt and llm), its checks decide.
+        if spec is None:
             status = {"state": "planned", "detail": "not built yet"}
+            available = False
+        elif _turned_off(spec):
+            status = {"state": "disabled", "detail": "turned off in its config"}
             available = False
         else:
             check = state.verifier.status(spec)
