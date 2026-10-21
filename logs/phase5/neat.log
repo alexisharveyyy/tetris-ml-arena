@@ -1,0 +1,226 @@
+neat seed0: population 150, 10 games per genome, 11 workers, budget 180 min
+gen    0     0.1 min  best 0.537  hidden 0  conns 13  species 1  3s/gen  selection 0.571
+/Users/alexisharvey/tetris-ml-arena-phase5/tetris/agents/neuroevolution/train.py:152: DeprecationWarning: Pickle, copy, and deepcopy support will be removed from itertools in Python 3.14.
+  pickle.dump(
+gen    1     0.2 min  best 0.603  hidden 0  conns 13  species 1  7s/gen
+gen    2     0.4 min  best 0.897  hidden 0  conns 13  species 2  11s/gen
+gen    3     0.6 min  best 1.170  hidden 0  conns 13  species 2  15s/gen
+gen    4     0.9 min  best 1.033  hidden 0  conns 13  species 2  16s/gen
+gen    5     1.2 min  best 1.171  hidden 0  conns 13  species 2  19s/gen  selection 1.154
+gen    6     1.6 min  best 1.323  hidden 0  conns 11  species 2  22s/gen
+gen    7     2.0 min  best 1.343  hidden 0  conns 11  species 2  20s/gen
+gen    8     2.4 min  best 1.395  hidden 0  conns 11  species 2  26s/gen
+gen    9     2.9 min  best 1.312  hidden 0  conns 11  species 2  30s/gen
+gen   10     3.4 min  best 1.332  hidden 0  conns 13  species 2  29s/gen  selection 1.110
+gen   11     3.9 min  best 1.410  hidden 0  conns 9  species 2  33s/gen
+gen   12     4.5 min  best 1.411  hidden 1  conns 10  species 2  36s/gen
+gen   13     5.2 min  best 1.411  hidden 0  conns 8  species 2  38s/gen
+gen   14     5.9 min  best 1.413  hidden 0  conns 7  species 2  42s/gen
+gen   15     6.7 min  best 1.408  hidden 0  conns 7  species 2  47s/gen  selection 1.281
+gen   16     7.6 min  best 1.413  hidden 0  conns 8  species 2  54s/gen
+gen   17     8.5 min  best 1.430  hidden 0  conns 9  species 2  51s/gen
+gen   18     9.3 min  best 1.407  hidden 0  conns 6  species 2  49s/gen
+gen   19    10.1 min  best 1.413  hidden 0  conns 6  species 2  52s/gen
+gen   20    11.0 min  best 1.410  hidden 0  conns 6  species 2  50s/gen  selection 1.303
+gen   21    11.8 min  best 1.414  hidden 0  conns 5  species 2  47s/gen
+gen   22    12.7 min  best 1.411  hidden 0  conns 5  species 2  52s/gen
+gen   23    13.5 min  best 1.408  hidden 0  conns 5  species 2  52s/gen
+gen   24    14.4 min  best 1.410  hidden 0  conns 5  species 2  53s/gen
+gen   25    15.3 min  best 1.413  hidden 0  conns 7  species 2  55s/gen  selection 1.206
+gen   26    16.2 min  best 1.409  hidden 0  conns 4  species 2  52s/gen
+gen   27    17.1 min  best 1.413  hidden 0  conns 5  species 2  50s/gen
+gen   28    17.8 min  best 1.413  hidden 1  conns 8  species 2  47s/gen
+gen   29    18.7 min  best 1.409  hidden 2  conns 8  species 2  54s/gen
+gen   30    19.5 min  best 1.411  hidden 0  conns 5  species 2  47s/gen  selection 1.361
+gen   31    20.5 min  best 1.411  hidden 2  conns 8  species 2  54s/gen
+gen   32    21.2 min  best 1.412  hidden 1  conns 6  species 2  47s/gen
+gen   33    22.0 min  best 1.412  hidden 0  conns 4  species 2  44s/gen
+gen   34    22.8 min  best 1.407  hidden 1  conns 6  species 2  48s/gen
+gen   35    23.6 min  best 1.409  hidden 1  conns 7  species 2  48s/gen  selection 1.212
+gen   36    24.5 min  best 1.409  hidden 0  conns 4  species 2  50s/gen
+gen   37    25.3 min  best 1.405  hidden 0  conns 4  species 2  49s/gen
+gen   38    26.0 min  best 1.408  hidden 1  conns 6  species 2  46s/gen
+gen   39    26.8 min  best 1.407  hidden 0  conns 5  species 2  48s/gen
+gen   40    27.6 min  best 1.402  hidden 1  conns 6  species 3  45s/gen  selection 1.329
+gen   41    28.3 min  best 1.409  hidden 1  conns 6  species 3  44s/gen
+gen   42    29.1 min  best 1.408  hidden 2  conns 10  species 2  45s/gen
+gen   43    29.9 min  best 1.411  hidden 0  conns 6  species 2  47s/gen
+gen   44    30.8 min  best 1.407  hidden 0  conns 4  species 3  52s/gen
+gen   45    31.6 min  best 1.420  hidden 0  conns 5  species 3  53s/gen  selection 1.259
+gen   46    32.5 min  best 1.405  hidden 0  conns 4  species 4  53s/gen
+gen   47    33.3 min  best 1.407  hidden 0  conns 5  species 4  48s/gen
+gen   48    34.2 min  best 1.403  hidden 0  conns 5  species 4  51s/gen
+gen   49    35.1 min  best 1.410  hidden 0  conns 4  species 4  56s/gen
+gen   50    35.9 min  best 1.408  hidden 0  conns 5  species 4  48s/gen  selection 1.241
+gen   51    36.8 min  best 1.407  hidden 0  conns 6  species 4  52s/gen
+gen   52    37.6 min  best 1.409  hidden 0  conns 5  species 4  49s/gen
+gen   53    38.6 min  best 1.414  hidden 1  conns 7  species 4  56s/gen
+gen   54    39.4 min  best 1.407  hidden 0  conns 4  species 4  48s/gen
+gen   55    40.2 min  best 1.410  hidden 0  conns 4  species 4  52s/gen  selection 1.370
+gen   56    41.1 min  best 1.406  hidden 2  conns 10  species 4  50s/gen
+gen   57    41.9 min  best 1.404  hidden 1  conns 6  species 4  47s/gen
+gen   58    42.8 min  best 1.410  hidden 1  conns 7  species 4  52s/gen
+gen   59    43.6 min  best 1.409  hidden 1  conns 7  species 4  49s/gen
+gen   60    44.4 min  best 1.408  hidden 2  conns 9  species 4  50s/gen  selection 1.395
+gen   61    45.3 min  best 1.409  hidden 0  conns 4  species 4  50s/gen
+gen   62    46.2 min  best 1.413  hidden 1  conns 7  species 4  53s/gen
+gen   63    47.0 min  best 1.410  hidden 1  conns 7  species 3  52s/gen
+gen   64    47.9 min  best 1.409  hidden 2  conns 7  species 3  54s/gen
+gen   65    48.8 min  best 1.407  hidden 1  conns 6  species 3  54s/gen  selection 1.204
+gen   66    49.7 min  best 1.409  hidden 1  conns 6  species 3  52s/gen
+gen   67    50.5 min  best 1.406  hidden 2  conns 8  species 4  49s/gen
+gen   68    51.3 min  best 1.411  hidden 2  conns 7  species 4  50s/gen
+gen   69    52.2 min  best 1.407  hidden 0  conns 4  species 4  50s/gen
+gen   70    53.0 min  best 1.411  hidden 0  conns 6  species 4  47s/gen  selection 1.236
+gen   71    53.9 min  best 1.408  hidden 2  conns 8  species 4  52s/gen
+gen   72    54.7 min  best 1.408  hidden 0  conns 6  species 4  50s/gen
+gen   73    55.6 min  best 1.410  hidden 2  conns 7  species 4  52s/gen
+gen   74    56.4 min  best 1.410  hidden 2  conns 8  species 4  49s/gen
+gen   75    57.2 min  best 1.408  hidden 2  conns 8  species 6  47s/gen  selection 1.245
+gen   76    58.0 min  best 1.411  hidden 2  conns 9  species 6  46s/gen
+gen   77    58.8 min  best 1.411  hidden 2  conns 8  species 6  49s/gen
+gen   78    59.6 min  best 1.419  hidden 3  conns 11  species 6  51s/gen
+gen   79    60.5 min  best 1.407  hidden 2  conns 8  species 6  51s/gen
+gen   80    61.3 min  best 1.407  hidden 2  conns 8  species 6  49s/gen  selection 1.291
+gen   81    62.1 min  best 1.412  hidden 2  conns 13  species 6  48s/gen
+gen   82    63.0 min  best 1.408  hidden 2  conns 7  species 5  49s/gen
+gen   83    63.7 min  best 1.414  hidden 0  conns 4  species 5  47s/gen
+gen   84    64.6 min  best 1.407  hidden 0  conns 5  species 5  52s/gen
+gen   85    65.4 min  best 1.413  hidden 1  conns 7  species 5  50s/gen  selection 1.184
+gen   86    66.3 min  best 1.406  hidden 0  conns 6  species 5  49s/gen
+gen   87    67.1 min  best 1.408  hidden 0  conns 4  species 5  49s/gen
+gen   88    67.9 min  best 1.407  hidden 4  conns 13  species 5  45s/gen
+gen   89    68.7 min  best 1.412  hidden 0  conns 5  species 5  51s/gen
+gen   90    69.6 min  best 1.409  hidden 0  conns 4  species 5  52s/gen  selection 1.234
+gen   91    70.4 min  best 1.410  hidden 0  conns 4  species 5  48s/gen
+gen   92    71.2 min  best 1.409  hidden 0  conns 4  species 5  50s/gen
+gen   93    72.1 min  best 1.413  hidden 1  conns 5  species 5  53s/gen
+gen   94    73.0 min  best 1.405  hidden 1  conns 5  species 5  50s/gen
+gen   95    73.7 min  best 1.409  hidden 0  conns 4  species 5  46s/gen  selection 1.287
+gen   96    74.6 min  best 1.407  hidden 0  conns 4  species 5  50s/gen
+gen   97    75.5 min  best 1.413  hidden 0  conns 4  species 5  54s/gen
+gen   98    76.4 min  best 1.408  hidden 1  conns 9  species 4  53s/gen
+gen   99    77.1 min  best 1.408  hidden 0  conns 4  species 4  44s/gen
+gen  100    77.9 min  best 1.412  hidden 1  conns 6  species 4  48s/gen  selection 1.301
+gen  101    78.8 min  best 1.414  hidden 2  conns 11  species 4  51s/gen
+gen  102    79.6 min  best 1.411  hidden 0  conns 4  species 4  49s/gen
+gen  103    80.4 min  best 1.407  hidden 0  conns 4  species 3  45s/gen
+gen  104    81.3 min  best 1.407  hidden 0  conns 4  species 2  55s/gen
+gen  105    82.2 min  best 1.409  hidden 1  conns 8  species 2  53s/gen  selection 1.338
+gen  106    83.1 min  best 1.408  hidden 0  conns 4  species 2  55s/gen
+gen  107    84.0 min  best 1.406  hidden 0  conns 5  species 2  54s/gen
+gen  108    84.9 min  best 1.407  hidden 1  conns 8  species 2  52s/gen
+gen  109    85.8 min  best 1.408  hidden 1  conns 5  species 3  52s/gen
+gen  110    86.6 min  best 1.409  hidden 3  conns 7  species 3  49s/gen  selection 1.242
+gen  111    87.5 min  best 1.407  hidden 0  conns 5  species 3  56s/gen
+gen  112    88.4 min  best 1.410  hidden 0  conns 4  species 4  51s/gen
+gen  113    89.3 min  best 1.406  hidden 0  conns 4  species 4  54s/gen
+gen  114    90.2 min  best 1.407  hidden 0  conns 4  species 4  54s/gen
+gen  115    91.0 min  best 1.407  hidden 0  conns 4  species 4  48s/gen  selection 1.245
+gen  116    91.8 min  best 1.408  hidden 0  conns 5  species 4  46s/gen
+gen  117    92.7 min  best 1.410  hidden 0  conns 4  species 4  58s/gen
+gen  118    93.6 min  best 1.409  hidden 0  conns 4  species 4  52s/gen
+gen  119    94.5 min  best 1.407  hidden 2  conns 6  species 4  53s/gen
+gen  120    95.2 min  best 1.411  hidden 0  conns 4  species 4  44s/gen  selection 1.319
+gen  121    96.1 min  best 1.411  hidden 0  conns 4  species 4  50s/gen
+gen  122    96.9 min  best 1.404  hidden 0  conns 4  species 3  47s/gen
+gen  123    97.7 min  best 1.407  hidden 2  conns 6  species 3  48s/gen
+gen  124    98.4 min  best 1.409  hidden 2  conns 6  species 3  44s/gen
+gen  125    99.2 min  best 1.407  hidden 2  conns 6  species 3  51s/gen  selection 1.297
+gen  126   100.1 min  best 1.409  hidden 0  conns 4  species 4  52s/gen
+gen  127   101.0 min  best 1.411  hidden 1  conns 5  species 3  49s/gen
+gen  128   101.8 min  best 1.409  hidden 2  conns 6  species 3  51s/gen
+gen  129   102.7 min  best 1.406  hidden 1  conns 5  species 4  52s/gen
+gen  130   103.5 min  best 1.411  hidden 1  conns 5  species 5  47s/gen  selection 1.302
+gen  131   104.3 min  best 1.409  hidden 2  conns 8  species 5  50s/gen
+gen  132   105.1 min  best 1.406  hidden 2  conns 8  species 5  48s/gen
+gen  133   105.9 min  best 1.408  hidden 4  conns 10  species 5  48s/gen
+gen  134   106.7 min  best 1.408  hidden 7  conns 15  species 5  47s/gen
+gen  135   107.5 min  best 1.408  hidden 3  conns 13  species 5  50s/gen  selection 1.296
+gen  136   108.4 min  best 1.407  hidden 3  conns 9  species 5  48s/gen
+gen  137   109.2 min  best 1.410  hidden 1  conns 7  species 5  51s/gen
+gen  138   110.0 min  best 1.408  hidden 1  conns 6  species 5  48s/gen
+gen  139   110.9 min  best 1.411  hidden 1  conns 6  species 5  52s/gen
+gen  140   111.7 min  best 1.410  hidden 1  conns 7  species 5  51s/gen  selection 1.160
+gen  141   112.6 min  best 1.412  hidden 1  conns 6  species 4  49s/gen
+gen  142   113.4 min  best 1.412  hidden 3  conns 11  species 4  52s/gen
+gen  143   114.3 min  best 1.407  hidden 1  conns 7  species 4  50s/gen
+gen  144   115.1 min  best 1.405  hidden 3  conns 11  species 4  48s/gen
+gen  145   115.9 min  best 1.411  hidden 2  conns 9  species 4  50s/gen  selection 1.360
+gen  146   116.8 min  best 1.412  hidden 1  conns 5  species 4  52s/gen
+gen  147   117.6 min  best 1.409  hidden 2  conns 8  species 4  47s/gen
+gen  148   118.4 min  best 1.414  hidden 0  conns 5  species 4  51s/gen
+gen  149   119.3 min  best 1.409  hidden 1  conns 7  species 4  55s/gen
+gen  150   120.2 min  best 1.409  hidden 2  conns 9  species 3  51s/gen  selection 1.315
+gen  151   121.1 min  best 1.402  hidden 1  conns 7  species 3  52s/gen
+gen  152   122.0 min  best 1.409  hidden 1  conns 5  species 3  55s/gen
+gen  153   123.0 min  best 1.411  hidden 1  conns 5  species 3  58s/gen
+gen  154   123.8 min  best 1.407  hidden 2  conns 8  species 3  52s/gen
+gen  155   124.7 min  best 1.406  hidden 1  conns 6  species 4  51s/gen  selection 1.259
+gen  156   125.6 min  best 1.412  hidden 1  conns 6  species 5  56s/gen
+gen  157   126.6 min  best 1.409  hidden 1  conns 6  species 5  57s/gen
+gen  158   127.5 min  best 1.407  hidden 3  conns 9  species 5  55s/gen
+gen  159   128.4 min  best 1.411  hidden 3  conns 9  species 5  51s/gen
+gen  160   129.3 min  best 1.409  hidden 2  conns 8  species 5  54s/gen  selection 1.323
+gen  161   130.1 min  best 1.407  hidden 0  conns 4  species 5  51s/gen
+gen  162   131.0 min  best 1.402  hidden 1  conns 6  species 5  53s/gen
+gen  163   132.0 min  best 1.413  hidden 4  conns 13  species 5  57s/gen
+gen  164   132.8 min  best 1.408  hidden 1  conns 6  species 6  52s/gen
+gen  165   133.7 min  best 1.408  hidden 1  conns 7  species 6  55s/gen  selection 1.263
+gen  166   134.8 min  best 1.409  hidden 2  conns 8  species 6  60s/gen
+gen  167   135.7 min  best 1.410  hidden 0  conns 4  species 6  58s/gen
+gen  168   136.7 min  best 1.412  hidden 3  conns 9  species 6  60s/gen
+gen  169   137.6 min  best 1.405  hidden 2  conns 9  species 6  54s/gen
+gen  170   138.6 min  best 1.408  hidden 2  conns 8  species 6  55s/gen  selection 1.291
+gen  171   139.5 min  best 1.410  hidden 3  conns 9  species 6  56s/gen
+gen  172   140.4 min  best 1.410  hidden 2  conns 7  species 6  53s/gen
+gen  173   141.2 min  best 1.409  hidden 2  conns 9  species 6  50s/gen
+gen  174   142.0 min  best 1.408  hidden 2  conns 8  species 6  48s/gen
+gen  175   142.8 min  best 1.408  hidden 1  conns 6  species 6  48s/gen  selection 1.282
+gen  176   143.8 min  best 1.408  hidden 1  conns 6  species 5  54s/gen
+gen  177   144.6 min  best 1.407  hidden 3  conns 9  species 5  51s/gen
+gen  178   145.5 min  best 1.413  hidden 3  conns 8  species 5  55s/gen
+gen  179   146.4 min  best 1.407  hidden 1  conns 7  species 5  51s/gen
+gen  180   147.2 min  best 1.405  hidden 3  conns 10  species 5  50s/gen  selection 1.244
+gen  181   148.2 min  best 1.423  hidden 2  conns 9  species 5  55s/gen
+gen  182   149.0 min  best 1.409  hidden 4  conns 11  species 5  50s/gen
+gen  183   150.0 min  best 1.409  hidden 1  conns 5  species 5  59s/gen
+gen  184   150.8 min  best 1.409  hidden 4  conns 14  species 4  51s/gen
+gen  185   151.6 min  best 1.407  hidden 0  conns 4  species 4  47s/gen  selection 1.262
+gen  186   152.4 min  best 1.409  hidden 2  conns 9  species 4  48s/gen
+gen  187   153.3 min  best 1.411  hidden 1  conns 6  species 4  51s/gen
+gen  188   154.1 min  best 1.414  hidden 1  conns 7  species 4  50s/gen
+gen  189   154.9 min  best 1.413  hidden 5  conns 16  species 4  48s/gen
+gen  190   155.7 min  best 1.417  hidden 1  conns 7  species 4  45s/gen  selection 1.322
+gen  191   156.5 min  best 1.411  hidden 6  conns 18  species 4  45s/gen
+gen  192   157.2 min  best 1.407  hidden 2  conns 7  species 4  46s/gen
+gen  193   158.0 min  best 1.410  hidden 0  conns 4  species 4  48s/gen
+gen  194   158.8 min  best 1.410  hidden 1  conns 7  species 4  45s/gen
+gen  195   159.7 min  best 1.411  hidden 4  conns 14  species 4  57s/gen  selection 1.115
+gen  196   160.6 min  best 1.406  hidden 6  conns 17  species 4  51s/gen
+gen  197   161.4 min  best 1.407  hidden 4  conns 14  species 4  50s/gen
+gen  198   162.3 min  best 1.415  hidden 1  conns 9  species 3  50s/gen
+gen  199   163.1 min  best 1.406  hidden 1  conns 8  species 3  47s/gen
+gen  200   163.8 min  best 1.413  hidden 1  conns 8  species 3  45s/gen  selection 1.070
+gen  201   164.6 min  best 1.409  hidden 3  conns 8  species 2  47s/gen
+gen  202   165.4 min  best 1.413  hidden 6  conns 15  species 2  49s/gen
+gen  203   166.2 min  best 1.409  hidden 5  conns 13  species 2  47s/gen
+gen  204   166.9 min  best 1.398  hidden 1  conns 7  species 2  39s/gen
+gen  205   167.7 min  best 1.407  hidden 1  conns 7  species 2  50s/gen  selection 1.356
+gen  206   168.4 min  best 1.414  hidden 3  conns 12  species 2  44s/gen
+gen  207   169.3 min  best 1.407  hidden 2  conns 7  species 2  49s/gen
+gen  208   169.9 min  best 1.418  hidden 3  conns 12  species 2  40s/gen
+gen  209   170.8 min  best 1.408  hidden 2  conns 11  species 2  50s/gen
+gen  210   171.5 min  best 1.410  hidden 2  conns 9  species 3  44s/gen  selection 1.297
+gen  211   172.2 min  best 1.412  hidden 2  conns 10  species 3  42s/gen
+gen  212   173.0 min  best 1.410  hidden 1  conns 6  species 3  44s/gen
+gen  213   173.8 min  best 1.411  hidden 2  conns 10  species 3  51s/gen
+gen  214   174.6 min  best 1.408  hidden 1  conns 7  species 3  48s/gen
+gen  215   175.4 min  best 1.408  hidden 2  conns 10  species 3  49s/gen  selection 1.221
+gen  216   176.3 min  best 1.409  hidden 0  conns 5  species 3  50s/gen
+gen  217   177.2 min  best 1.413  hidden 1  conns 6  species 3  51s/gen
+gen  218   178.1 min  best 1.410  hidden 2  conns 11  species 3  54s/gen
+gen  219   178.9 min  best 1.409  hidden 0  conns 5  species 3  52s/gen
+gen  220   179.8 min  best 1.412  hidden 2  conns 10  species 3  54s/gen  selection 1.279
+gen  221   180.7 min  best 1.414  hidden 2  conns 9  species 3  50s/gen  selection 1.199
+selected generation 60 (selection fitness 1.395); topology /Users/alexisharvey/tetris-ml-arena-phase5/checkpoints/neat/seed0/topology.png

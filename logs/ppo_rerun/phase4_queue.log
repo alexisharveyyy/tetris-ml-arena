@@ -1,0 +1,18 @@
+2026-10-20 12:54:46  ppo rerun queue: start
+2026-10-20 12:54:46  start ppo_short0: -m tetris.agents.ppo.train --budget-minutes 60 --seed 0 --run-name short0 --no-promote
+2026-10-20 13:03:12  FAILED ppo_short0 (exit 1); see logs/ppo_short0.log
+--- relaunch after illegal-action crash (6e0270a)
+2026-10-20 13:35:29  ppo rerun queue: start
+2026-10-20 13:35:29  start ppo_short0: -m tetris.agents.ppo.train --budget-minutes 60 --seed 0 --run-name short0 --no-promote
+2026-10-20 14:36:17  done ppo_short0 in 60.8 min
+2026-10-20 14:36:17  start ppo_short1: -m tetris.agents.ppo.train --budget-minutes 60 --seed 1 --run-name short1 --no-promote
+2026-10-20 18:02:11  done ppo_short1 in 205.9 min
+2026-10-20 18:02:11  start ppo_short2: -m tetris.agents.ppo.train --budget-minutes 60 --seed 2 --run-name short2 --no-promote
+2026-10-20 19:03:10  done ppo_short2 in 61.0 min
+2026-10-20 19:03:10  start ppo_seed0: -m tetris.agents.ppo.train
+2026-10-20 22:04:17  done ppo_seed0 in 181.1 min
+2026-10-20 22:04:17  start leaderboard: scripts/evaluate.py --games 500 --marathon-games 100
+2026-10-20 22:45:26  done leaderboard in 41.1 min
+2026-10-20 22:45:26  start seed_spread: scripts/seed_spread.py
+2026-10-20 22:58:23  done seed_spread in 12.9 min
+2026-10-20 22:58:23  ppo rerun queue finished

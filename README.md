@@ -12,8 +12,8 @@ controller, and a web frontend can wrap the same controller later.
 | 1 | Engine, Gymnasium env, tests, Solo mode | Done |
 | 2 | Agent interface, path planner, GA heuristic, CEM, Watch AI | Done |
 | 3 | Race and Battle, opponent selection, difficulty, worker pool | Done |
-| 4 | DQN, PPO | Planned |
-| 5 | Imitation learning, recording mode, NEAT | Planned |
+| 4 | DQN, PPO | Done |
+| 5 | Imitation learning, recording mode, NEAT | Done |
 | 6 | Decision Transformer, optional LLM agent | Planned |
 | 7 | Evaluation harness, leaderboard, docs, web plan | Planned |
 

@@ -105,4 +105,21 @@ MPS and CPU gradients at the training size. Diagnosis and the check run:
 
 ## Results
 
-See the end of this file (filled in after training).
+Held-out garbage setting, 500 seeds (`reports/leaderboard.md`):
+
+| Agent | Fitness | Top-out rate |
+|---|---|---|
+| PPO (3-hour run, checkpoint selected at 147 min) | 1.339 | 0.12 |
+| PPO (raw actions) | 0.103 | 1.00 |
+
+- PPO is statistically tied with DQN (DQN minus PPO +0.006 [-0.023, +0.035])
+  and with CEM (PPO minus CEM +0.021 [-0.008, +0.051]), and ahead of GA
+  (+0.050 [+0.016, +0.083]).
+- Seed spread, three 1-hour runs: held-out 0.497, 0.544 and 1.045
+  (0.695 +/- 0.304, `reports/seed_spread.md`). One hour is not enough for PPO
+  to converge reliably; DQN's 1-hour runs give 1.173 +/- 0.066.
+- Every run passed the MPS gradient pre-flight check, and the illegal-action
+  guard never fired.
+- Raw actions stay near random play: the policy has to learn piece geometry
+  from scratch over 80 abstract actions, while the afterstate policy scores
+  each placement's result directly.

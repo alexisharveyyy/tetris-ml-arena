@@ -1,0 +1,103 @@
+pre-flight ppo seed0 on mps: minibatch 2048 states (about 114,688 afterstates), scorer chunk 4096: relative gradient difference 1.04e-06 (tolerance 0.01, 9.7s)
+ppo seed0: device mps, 64 envs x 128 steps, budget 180 min
+   1.9 min  steps     40960     367/s (rollout 3.1s)  pieces   16.8  top-out 1.00  ent 4.07  kl 0.0005  clip 0.000  ratio0 0.0e+00  pgrad 2.79e-02  ev 0.89  vloss 0.011
+   3.7 min  steps     81920     376/s (rollout 2.9s)  pieces   21.0  top-out 1.00  ent 3.78  kl 0.0119  clip 0.149  ratio0 0.0e+00  pgrad 1.57e-01  ev 0.96  vloss 0.006
+   5.5 min  steps    122880     368/s (rollout 3.2s)  pieces   26.4  top-out 1.00  ent 3.28  kl 0.0097  clip 0.128  ratio0 4.8e-07  pgrad 2.34e-01  ev 0.96  vloss 0.009
+   eval eval_0005min_114688.pt: fitness 0.095  top-out 1.00
+   7.4 min  steps    163840     362/s (rollout 2.6s)  pieces   32.8  top-out 1.00  ent 2.56  kl 0.0099  clip 0.124  ratio0 0.0e+00  pgrad 2.79e-01  ev 0.95  vloss 0.016
+   9.3 min  steps    204800     355/s (rollout 2.8s)  pieces   42.5  top-out 1.00  ent 1.85  kl 0.0077  clip 0.075  ratio0 0.0e+00  pgrad 2.93e-01  ev 0.92  vloss 0.039
+  11.2 min  steps    245760     356/s (rollout 2.6s)  pieces   54.5  top-out 1.00  ent 1.43  kl 0.0051  clip 0.043  ratio0 0.0e+00  pgrad 2.96e-01  ev 0.89  vloss 0.084
+  13.2 min  steps    286720     328/s (rollout 2.6s)  pieces   67.6  top-out 1.00  ent 1.21  kl 0.0037  clip 0.039  ratio0 0.0e+00  pgrad 3.39e-01  ev 0.86  vloss 0.143
+  15.2 min  steps    327680     334/s (rollout 2.6s)  pieces   80.6  top-out 1.00  ent 1.14  kl 0.0046  clip 0.038  ratio0 0.0e+00  pgrad 3.70e-01  ev 0.84  vloss 0.224
+   eval eval_0015min_327680.pt: fitness 0.237  top-out 1.00
+  17.4 min  steps    368640     323/s (rollout 2.6s)  pieces   90.1  top-out 1.00  ent 1.08  kl 0.0025  clip 0.040  ratio0 0.0e+00  pgrad 3.71e-01  ev 0.82  vloss 0.311
+  19.5 min  steps    409600     331/s (rollout 2.5s)  pieces  100.4  top-out 1.00  ent 1.03  kl 0.0044  clip 0.034  ratio0 0.0e+00  pgrad 3.58e-01  ev 0.80  vloss 0.396
+  21.6 min  steps    450560     321/s (rollout 2.6s)  pieces  110.7  top-out 1.00  ent 0.99  kl 0.0034  clip 0.025  ratio0 7.6e-06  pgrad 3.93e-01  ev 0.79  vloss 0.491
+  23.7 min  steps    491520     329/s (rollout 2.6s)  pieces  109.7  top-out 1.00  ent 0.99  kl 0.0024  clip 0.021  ratio0 0.0e+00  pgrad 4.03e-01  ev 0.82  vloss 0.440
+  25.8 min  steps    532480     316/s (rollout 3.6s)  pieces  129.6  top-out 0.99  ent 0.96  kl 0.0024  clip 0.020  ratio0 1.0e-05  pgrad 4.26e-01  ev 0.77  vloss 0.572
+   eval eval_0025min_524288.pt: fitness 0.500  top-out 1.00
+  27.9 min  steps    573440     327/s (rollout 2.7s)  pieces  136.8  top-out 1.00  ent 0.96  kl 0.0019  clip 0.014  ratio0 0.0e+00  pgrad 4.00e-01  ev 0.80  vloss 0.613
+  30.1 min  steps    614400     300/s (rollout 2.7s)  pieces  152.0  top-out 0.99  ent 0.94  kl 0.0038  clip 0.035  ratio0 0.0e+00  pgrad 4.19e-01  ev 0.78  vloss 0.738
+  32.4 min  steps    655360     293/s (rollout 2.6s)  pieces  150.9  top-out 0.99  ent 0.93  kl 0.0033  clip 0.026  ratio0 0.0e+00  pgrad 5.06e-01  ev 0.79  vloss 0.677
+  34.7 min  steps    696320     297/s (rollout 2.5s)  pieces  160.3  top-out 0.98  ent 0.93  kl 0.0034  clip 0.025  ratio0 0.0e+00  pgrad 4.89e-01  ev 0.81  vloss 0.657
+   eval eval_0035min_712704.pt: fitness 0.561  top-out 0.97
+  37.1 min  steps    737280     290/s (rollout 2.6s)  pieces  160.7  top-out 0.99  ent 0.92  kl 0.0052  clip 0.039  ratio0 0.0e+00  pgrad 5.28e-01  ev 0.78  vloss 0.735
+  39.4 min  steps    778240     295/s (rollout 2.6s)  pieces  168.1  top-out 0.98  ent 0.92  kl 0.0029  clip 0.023  ratio0 0.0e+00  pgrad 4.75e-01  ev 0.78  vloss 0.745
+  41.7 min  steps    819200     284/s (rollout 2.5s)  pieces  176.8  top-out 0.99  ent 0.93  kl 0.0031  clip 0.026  ratio0 0.0e+00  pgrad 5.12e-01  ev 0.80  vloss 0.788
+  44.0 min  steps    860160     300/s (rollout 2.7s)  pieces  190.5  top-out 0.97  ent 0.91  kl 0.0025  clip 0.024  ratio0 0.0e+00  pgrad 5.15e-01  ev 0.77  vloss 0.852
+  46.3 min  steps    901120     283/s (rollout 3.8s)  pieces  199.6  top-out 0.94  ent 0.92  kl 0.0045  clip 0.045  ratio0 0.0e+00  pgrad 5.65e-01  ev 0.80  vloss 0.858
+   eval eval_0045min_892928.pt: fitness 0.641  top-out 0.90
+  48.6 min  steps    942080     286/s (rollout 2.6s)  pieces  202.7  top-out 0.95  ent 0.90  kl 0.0037  clip 0.036  ratio0 0.0e+00  pgrad 5.42e-01  ev 0.79  vloss 0.842
+  51.0 min  steps    983040     284/s (rollout 2.7s)  pieces  222.9  top-out 0.92  ent 0.90  kl 0.0028  clip 0.029  ratio0 0.0e+00  pgrad 5.79e-01  ev 0.81  vloss 0.915
+  53.3 min  steps   1024000     290/s (rollout 2.7s)  pieces  233.6  top-out 0.90  ent 0.92  kl 0.0050  clip 0.040  ratio0 0.0e+00  pgrad 7.29e-01  ev 0.81  vloss 0.907
+  55.6 min  steps   1064960     298/s (rollout 2.6s)  pieces  232.7  top-out 0.91  ent 0.92  kl 0.0027  clip 0.023  ratio0 0.0e+00  pgrad 6.38e-01  ev 0.83  vloss 0.783
+   eval eval_0056min_1073152.pt: fitness 0.841  top-out 0.77
+  57.9 min  steps   1105920     292/s (rollout 2.9s)  pieces  228.6  top-out 0.91  ent 0.91  kl 0.0033  clip 0.034  ratio0 0.0e+00  pgrad 6.25e-01  ev 0.79  vloss 0.934
+  60.2 min  steps   1146880     291/s (rollout 2.8s)  pieces  260.4  top-out 0.84  ent 0.94  kl 0.0029  clip 0.023  ratio0 0.0e+00  pgrad 7.43e-01  ev 0.81  vloss 0.890
+  62.5 min  steps   1187840     291/s (rollout 2.7s)  pieces  280.4  top-out 0.83  ent 0.93  kl 0.0048  clip 0.045  ratio0 0.0e+00  pgrad 7.89e-01  ev 0.82  vloss 0.802
+  64.9 min  steps   1228800     313/s (rollout 2.6s)  pieces  289.8  top-out 0.83  ent 0.92  kl 0.0033  clip 0.029  ratio0 0.0e+00  pgrad 8.25e-01  ev 0.79  vloss 1.011
+   eval eval_0066min_1253376.pt: fitness 0.976  top-out 0.63
+  67.3 min  steps   1269760     279/s (rollout 2.6s)  pieces  306.5  top-out 0.76  ent 0.93  kl 0.0085  clip 0.060  ratio0 0.0e+00  pgrad 9.60e-01  ev 0.84  vloss 0.786
+  69.6 min  steps   1310720     293/s (rollout 2.7s)  pieces  318.8  top-out 0.78  ent 0.93  kl 0.0040  clip 0.033  ratio0 0.0e+00  pgrad 8.69e-01  ev 0.82  vloss 0.721
+  71.9 min  steps   1351680     291/s (rollout 2.7s)  pieces  323.7  top-out 0.72  ent 0.93  kl 0.0029  clip 0.034  ratio0 0.0e+00  pgrad 9.55e-01  ev 0.84  vloss 0.634
+  74.1 min  steps   1392640     300/s (rollout 2.6s)  pieces  341.3  top-out 0.65  ent 0.93  kl 0.0034  clip 0.028  ratio0 0.0e+00  pgrad 7.73e-01  ev 0.81  vloss 0.950
+  76.3 min  steps   1433600     303/s (rollout 2.6s)  pieces  347.3  top-out 0.63  ent 0.95  kl 0.0027  clip 0.024  ratio0 0.0e+00  pgrad 1.06e+00  ev 0.85  vloss 0.585
+   eval eval_0076min_1433600.pt: fitness 1.140  top-out 0.40
+  78.6 min  steps   1474560     314/s (rollout 2.7s)  pieces  368.6  top-out 0.57  ent 0.97  kl 0.0023  clip 0.030  ratio0 0.0e+00  pgrad 9.15e-01  ev 0.81  vloss 0.649
+  81.2 min  steps   1515520     261/s (rollout 2.7s)  pieces  379.0  top-out 0.53  ent 0.95  kl 0.0066  clip 0.056  ratio0 0.0e+00  pgrad 8.04e-01  ev 0.81  vloss 0.711
+  83.8 min  steps   1556480     251/s (rollout 2.6s)  pieces  372.2  top-out 0.54  ent 0.94  kl 0.0009  clip 0.010  ratio0 0.0e+00  pgrad 8.16e-01  ev 0.80  vloss 0.841
+  86.2 min  steps   1597440     274/s (rollout 2.6s)  pieces  379.6  top-out 0.51  ent 0.95  kl 0.0039  clip 0.036  ratio0 0.0e+00  pgrad 1.04e+00  ev 0.81  vloss 0.598
+   eval eval_0086min_1605632.pt: fitness 1.107  top-out 0.47
+  88.8 min  steps   1638400     295/s (rollout 2.7s)  pieces  395.9  top-out 0.46  ent 0.95  kl 0.0022  clip 0.027  ratio0 0.0e+00  pgrad 7.74e-01  ev 0.83  vloss 0.449
+  91.2 min  steps   1679360     309/s (rollout 2.7s)  pieces  404.2  top-out 0.46  ent 0.95  kl 0.0038  clip 0.036  ratio0 0.0e+00  pgrad 6.08e-01  ev 0.82  vloss 0.646
+  93.5 min  steps   1720320     333/s (rollout 2.6s)  pieces  397.8  top-out 0.51  ent 0.95  kl 0.0013  clip 0.021  ratio0 0.0e+00  pgrad 8.16e-01  ev 0.79  vloss 0.525
+  95.8 min  steps   1761280     286/s (rollout 2.6s)  pieces  405.8  top-out 0.43  ent 0.97  kl 0.0043  clip 0.041  ratio0 0.0e+00  pgrad 1.14e+00  ev 0.83  vloss 0.409
+   eval eval_0096min_1777664.pt: fitness 1.208  top-out 0.33
+  98.2 min  steps   1802240     248/s (rollout 2.6s)  pieces  422.3  top-out 0.36  ent 0.95  kl 0.0016  clip 0.020  ratio0 0.0e+00  pgrad 7.69e-01  ev 0.78  vloss 0.393
+ 100.4 min  steps   1843200     294/s (rollout 2.8s)  pieces  415.9  top-out 0.39  ent 0.96  kl 0.0029  clip 0.035  ratio0 0.0e+00  pgrad 9.31e-01  ev 0.82  vloss 0.619
+ 102.8 min  steps   1884160     323/s (rollout 2.6s)  pieces  414.1  top-out 0.36  ent 0.95  kl 0.0007  clip 0.007  ratio0 0.0e+00  pgrad 1.29e+00  ev 0.80  vloss 0.551
+ 105.1 min  steps   1925120     268/s (rollout 2.7s)  pieces  432.7  top-out 0.32  ent 0.97  kl 0.0031  clip 0.028  ratio0 0.0e+00  pgrad 8.35e-01  ev 0.81  vloss 0.329
+ 107.3 min  steps   1966080     294/s (rollout 3.8s)  pieces  420.5  top-out 0.34  ent 0.96  kl 0.0020  clip 0.025  ratio0 0.0e+00  pgrad 9.29e-01  ev 0.85  vloss 0.461
+   eval eval_0106min_1957888.pt: fitness 1.296  top-out 0.23
+ 109.6 min  steps   2007040     285/s (rollout 2.7s)  pieces  418.4  top-out 0.34  ent 0.96  kl 0.0014  clip 0.020  ratio0 0.0e+00  pgrad 9.07e-01  ev 0.84  vloss 0.360
+ 111.8 min  steps   2048000     295/s (rollout 2.7s)  pieces  424.3  top-out 0.30  ent 0.97  kl 0.0034  clip 0.021  ratio0 0.0e+00  pgrad 1.12e+00  ev 0.83  vloss 0.554
+ 114.1 min  steps   2088960     326/s (rollout 2.6s)  pieces  421.1  top-out 0.32  ent 0.98  kl 0.0010  clip 0.022  ratio0 0.0e+00  pgrad 1.05e+00  ev 0.84  vloss 0.538
+ 116.3 min  steps   2129920     310/s (rollout 2.6s)  pieces  419.8  top-out 0.30  ent 0.99  kl 0.0027  clip 0.021  ratio0 0.0e+00  pgrad 1.26e+00  ev 0.82  vloss 0.321
+   eval eval_0117min_2146304.pt: fitness 1.269  top-out 0.23
+ 118.4 min  steps   2170880     338/s (rollout 2.7s)  pieces  417.4  top-out 0.30  ent 0.98  kl 0.0025  clip 0.023  ratio0 0.0e+00  pgrad 9.50e-01  ev 0.76  vloss 0.555
+ 120.6 min  steps   2211840     295/s (rollout 3.0s)  pieces  434.3  top-out 0.29  ent 0.99  kl 0.0018  clip 0.018  ratio0 0.0e+00  pgrad 1.12e+00  ev 0.76  vloss 0.784
+ 122.7 min  steps   2252800     330/s (rollout 2.7s)  pieces  434.2  top-out 0.30  ent 1.00  kl 0.0022  clip 0.021  ratio0 0.0e+00  pgrad 7.33e-01  ev 0.77  vloss 0.518
+ 124.7 min  steps   2293760     349/s (rollout 2.7s)  pieces  431.0  top-out 0.30  ent 0.98  kl 0.0032  clip 0.030  ratio0 0.0e+00  pgrad 9.68e-01  ev 0.83  vloss 0.342
+ 126.8 min  steps   2334720     316/s (rollout 2.6s)  pieces  432.6  top-out 0.30  ent 0.98  kl 0.0018  clip 0.022  ratio0 0.0e+00  pgrad 1.06e+00  ev 0.80  vloss 0.783
+   eval eval_0127min_2342912.pt: fitness 1.334  top-out 0.13
+ 129.0 min  steps   2375680     283/s (rollout 2.8s)  pieces  427.9  top-out 0.34  ent 1.01  kl 0.0023  clip 0.022  ratio0 0.0e+00  pgrad 8.50e-01  ev 0.80  vloss 0.372
+ 131.2 min  steps   2416640     337/s (rollout 2.7s)  pieces  423.8  top-out 0.34  ent 0.99  kl 0.0014  clip 0.018  ratio0 0.0e+00  pgrad 8.15e-01  ev 0.75  vloss 0.548
+ 133.2 min  steps   2457600     333/s (rollout 2.6s)  pieces  423.4  top-out 0.33  ent 1.01  kl 0.0024  clip 0.017  ratio0 0.0e+00  pgrad 9.43e-01  ev 0.82  vloss 0.397
+ 135.2 min  steps   2498560     350/s (rollout 2.7s)  pieces  432.3  top-out 0.29  ent 1.00  kl 0.0023  clip 0.016  ratio0 0.0e+00  pgrad 9.45e-01  ev 0.84  vloss 0.331
+ 137.4 min  steps   2539520     284/s (rollout 2.6s)  pieces  435.9  top-out 0.28  ent 0.99  kl 0.0022  clip 0.017  ratio0 0.0e+00  pgrad 9.61e-01  ev 0.81  vloss 0.236
+   eval eval_0137min_2539520.pt: fitness 1.376  top-out 0.10
+ 139.4 min  steps   2580480     345/s (rollout 2.9s)  pieces  446.2  top-out 0.24  ent 1.00  kl 0.0007  clip 0.009  ratio0 0.0e+00  pgrad 9.55e-01  ev 0.83  vloss 0.371
+ 141.4 min  steps   2621440     350/s (rollout 2.7s)  pieces  459.2  top-out 0.20  ent 0.99  kl 0.0015  clip 0.015  ratio0 0.0e+00  pgrad 1.12e+00  ev 0.80  vloss 0.416
+ 143.6 min  steps   2662400     330/s (rollout 2.7s)  pieces  455.7  top-out 0.20  ent 1.00  kl 0.0015  clip 0.021  ratio0 0.0e+00  pgrad 8.65e-01  ev 0.78  vloss 0.372
+ 145.6 min  steps   2703360     350/s (rollout 2.6s)  pieces  454.5  top-out 0.20  ent 0.99  kl 0.0012  clip 0.011  ratio0 0.0e+00  pgrad 8.56e-01  ev 0.84  vloss 0.277
+ 147.6 min  steps   2744320     345/s (rollout 2.9s)  pieces  460.3  top-out 0.20  ent 1.01  kl 0.0005  clip 0.006  ratio0 0.0e+00  pgrad 9.51e-01  ev 0.83  vloss 0.285
+   eval eval_0147min_2744320.pt: fitness 1.392  top-out 0.03
+ 149.7 min  steps   2785280     347/s (rollout 2.7s)  pieces  458.4  top-out 0.19  ent 0.99  kl 0.0024  clip 0.026  ratio0 0.0e+00  pgrad 1.06e+00  ev 0.84  vloss 0.289
+ 151.8 min  steps   2826240     298/s (rollout 2.7s)  pieces  455.8  top-out 0.19  ent 1.00  kl 0.0017  clip 0.005  ratio0 0.0e+00  pgrad 8.02e-01  ev 0.83  vloss 0.227
+ 153.9 min  steps   2867200     347/s (rollout 2.8s)  pieces  459.1  top-out 0.17  ent 1.01  kl 0.0015  clip 0.009  ratio0 0.0e+00  pgrad 8.66e-01  ev 0.85  vloss 0.269
+ 156.0 min  steps   2908160     340/s (rollout 2.9s)  pieces  454.5  top-out 0.20  ent 0.98  kl 0.0011  clip 0.007  ratio0 0.0e+00  pgrad 9.86e-01  ev 0.86  vloss 0.238
+ 158.1 min  steps   2949120     285/s (rollout 4.0s)  pieces  444.1  top-out 0.24  ent 0.99  kl 0.0004  clip 0.003  ratio0 0.0e+00  pgrad 1.02e+00  ev 0.84  vloss 0.241
+   eval eval_0157min_2940928.pt: fitness 1.385  top-out 0.10
+ 160.1 min  steps   2990080     322/s (rollout 3.0s)  pieces  446.4  top-out 0.23  ent 0.99  kl 0.0010  clip 0.007  ratio0 0.0e+00  pgrad 8.64e-01  ev 0.81  vloss 0.281
+ 162.2 min  steps   3031040     344/s (rollout 2.8s)  pieces  451.4  top-out 0.21  ent 1.00  kl 0.0008  clip 0.004  ratio0 0.0e+00  pgrad 9.41e-01  ev 0.79  vloss 0.497
+ 164.2 min  steps   3072000     328/s (rollout 2.7s)  pieces  452.3  top-out 0.21  ent 0.99  kl 0.0010  clip 0.011  ratio0 0.0e+00  pgrad 8.49e-01  ev 0.81  vloss 0.309
+ 166.3 min  steps   3112960     312/s (rollout 2.8s)  pieces  454.4  top-out 0.22  ent 0.98  kl 0.0001  clip 0.003  ratio0 0.0e+00  pgrad 9.42e-01  ev 0.67  vloss 0.361
+ 168.3 min  steps   3153920     308/s (rollout 4.0s)  pieces  459.4  top-out 0.19  ent 0.99  kl 0.0000  clip 0.005  ratio0 0.0e+00  pgrad 1.08e+00  ev 0.85  vloss 0.348
+   eval eval_0167min_3145728.pt: fitness 1.374  top-out 0.07
+ 170.4 min  steps   3194880     313/s (rollout 2.8s)  pieces  446.5  top-out 0.21  ent 0.98  kl 0.0001  clip 0.000  ratio0 0.0e+00  pgrad 1.07e+00  ev 0.85  vloss 0.199
+ 172.4 min  steps   3235840     341/s (rollout 2.8s)  pieces  441.1  top-out 0.23  ent 0.99  kl 0.0003  clip 0.001  ratio0 0.0e+00  pgrad 8.51e-01  ev 0.79  vloss 0.524
+ 174.5 min  steps   3276800     342/s (rollout 2.7s)  pieces  452.0  top-out 0.20  ent 0.98  kl 0.0013  clip 0.009  ratio0 0.0e+00  pgrad 1.19e+00  ev 0.79  vloss 0.538
+ 176.6 min  steps   3317760     300/s (rollout 3.7s)  pieces  436.8  top-out 0.28  ent 1.00  kl 0.0010  clip 0.007  ratio0 0.0e+00  pgrad 9.16e-01  ev 0.81  vloss 0.407
+ 178.7 min  steps   3358720     307/s (rollout 4.0s)  pieces  438.0  top-out 0.27  ent 1.00  kl 0.0005  clip 0.005  ratio0 0.0e+00  pgrad 1.54e+00  ev 0.83  vloss 0.408
+   eval eval_0178min_3350528.pt: fitness 1.315  top-out 0.13
+selected eval_0147min_2744320.pt (selection fitness 1.392)

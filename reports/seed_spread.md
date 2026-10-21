@@ -10,7 +10,7 @@ The short runs have a 1-hour budget, not the main runs' 3 hours. Every schedule 
 | DQN (afterstates) | short1 | 15 min | 1.179 | 1.204 | 0.32 | 423 |
 | DQN (afterstates) | short2 | 15 min | 1.241 | 1.217 | 0.34 | 428 |
 | DQN (afterstates) | mean +/- std | | | 1.173 +/- 0.066 | | |
-| PPO | short0 | 25 min | 0.062 | 0.061 | 1.00 | 27 |
-| PPO | short1 | 15 min | 0.033 | 0.031 | 1.00 | 13 |
-| PPO | short2 | 15 min | 0.048 | 0.047 | 1.00 | 21 |
-| PPO | mean +/- std | | | 0.047 +/- 0.015 | | |
+| PPO | short0 | 57 min | 0.639 | 0.497 | 0.98 | 179 |
+| PPO | short1 | 60 min | 0.578 | 0.544 | 0.96 | 196 |
+| PPO | short2 | 57 min | 1.182 | 1.045 | 0.55 | 373 |
+| PPO | mean +/- std | | | 0.695 +/- 0.304 | | |

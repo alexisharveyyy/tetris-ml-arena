@@ -74,4 +74,22 @@ python -m tetris.agents.neuroevolution.train --budget-minutes 1 --pop-size 10 --
 
 ## Results
 
-Filled in after training.
+222 generations in 3 hours. The selected genome is from generation 60
+(44 minutes, selection fitness 1.395). It has 2 hidden nodes and 9
+connections and uses 6 of the 13 features (`reports/neat_topology.png`).
+Its output is dominated by a linear term in rows with holes, wells, row
+transitions and landing height; the hidden relu (over holes and eroded cells)
+contributes little.
+
+Held-out garbage setting, 500 seeds: fitness 1.280, top-out rate 0.19.
+
+| Comparison | Fitness difference |
+|---|---|
+| CEM minus NEAT | +0.038 [+0.004, +0.072] (CEM better) |
+| GA minus NEAT | +0.009 [-0.025, +0.045] (tie) |
+
+The nonlinear search did not beat the linear ones. Training fitness on the
+10 training seeds plateaued at about 1.41 from generation 20 on, while the
+best genome's selection fitness on 30 seeds varied between 1.07 and 1.40, so
+the selection step is noisy and the selected genome's held-out score is
+lower than its selection score.

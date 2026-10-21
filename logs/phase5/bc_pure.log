@@ -1,0 +1,81 @@
+encoded 200 episodes: 145866 states, 9992886 afterstate rows in 20s -> /Users/alexisharvey/tetris-ml-arena-phase5/data/imitation/ga_516555d0ef94.npz
+pure BC: 130629 train / 15237 validation states (9992886 afterstate rows)
+pre-flight bc_pure seed0 on mps: batch 256 states (17,556 afterstates), scorer chunk 4096: relative gradient difference 8.88e-07 (tolerance 0.01, 1.8s)
+   0.5 min  step     162  loss 2.6922  lr 3.0e-04  param change 5.5e-01
+   1.0 min  step     330  loss 1.1216  lr 3.0e-04  param change 2.9e-01
+   1.5 min  step     503  loss 0.7024  lr 3.0e-04  param change 1.3e-01
+   2.0 min  step     673  loss 0.5397  lr 3.0e-04  param change 1.1e-01
+   2.5 min  step     837  loss 0.4388  lr 3.0e-04  param change 9.4e-02
+   val top-1 0.871  top-3 0.996  loss 0.326
+   3.0 min  step     999  loss 0.3650  lr 2.9e-04  param change 8.4e-02
+   3.5 min  step    1167  loss 0.3065  lr 2.9e-04  param change 7.4e-02
+   4.0 min  step    1339  loss 0.2755  lr 2.9e-04  param change 5.5e-02
+   4.5 min  step    1513  loss 0.2512  lr 2.9e-04  param change 4.4e-02
+   5.0 min  step    1686  loss 0.2383  lr 2.8e-04  param change 4.1e-02
+   5.5 min  step    1860  loss 0.2229  lr 2.8e-04  param change 3.5e-02
+   val top-1 0.920  top-3 0.998  loss 0.199
+   eval eval_0003min_998.pt: fitness 0.945
+   6.1 min  step    2031  loss 0.2069  lr 2.7e-04  param change 3.2e-02
+   6.6 min  step    2201  loss 0.1980  lr 2.7e-04  param change 3.0e-02
+   7.1 min  step    2376  loss 0.1898  lr 2.6e-04  param change 3.0e-02
+   7.6 min  step    2548  loss 0.1876  lr 2.6e-04  param change 2.9e-02
+   8.1 min  step    2722  loss 0.1759  lr 2.5e-04  param change 2.5e-02
+   8.6 min  step    2896  loss 0.1694  lr 2.5e-04  param change 2.4e-02
+   val top-1 0.934  top-3 0.999  loss 0.163
+   eval eval_0006min_2030.pt: fitness 1.128
+   9.1 min  step    3065  loss 0.1702  lr 2.4e-04  param change 2.1e-02
+   9.6 min  step    3235  loss 0.1589  lr 2.4e-04  param change 2.2e-02
+  10.1 min  step    3409  loss 0.1562  lr 2.3e-04  param change 2.0e-02
+  10.6 min  step    3585  loss 0.1543  lr 2.2e-04  param change 2.0e-02
+  11.1 min  step    3759  loss 0.1507  lr 2.2e-04  param change 1.8e-02
+  11.6 min  step    3935  loss 0.1447  lr 2.1e-04  param change 1.8e-02
+   val top-1 0.939  top-3 0.999  loss 0.141
+   eval eval_0009min_3064.pt: fitness 1.275
+  12.1 min  step    4109  loss 0.1396  lr 2.0e-04  param change 1.9e-02
+  12.6 min  step    4278  loss 0.1399  lr 2.0e-04  param change 1.4e-02
+  13.1 min  step    4453  loss 0.1385  lr 1.9e-04  param change 1.6e-02
+  13.6 min  step    4632  loss 0.1347  lr 1.8e-04  param change 1.7e-02
+  14.1 min  step    4807  loss 0.1342  lr 1.8e-04  param change 1.6e-02
+  14.7 min  step    4981  loss 0.1286  lr 1.7e-04  param change 1.5e-02
+   val top-1 0.949  top-3 0.999  loss 0.121
+   eval eval_0012min_4108.pt: fitness 1.264
+  15.2 min  step    5152  loss 0.1251  lr 1.6e-04  param change 1.4e-02
+  15.7 min  step    5321  loss 0.1233  lr 1.6e-04  param change 1.4e-02
+  16.2 min  step    5498  loss 0.1219  lr 1.5e-04  param change 1.4e-02
+  16.7 min  step    5675  loss 0.1185  lr 1.4e-04  param change 1.1e-02
+  17.2 min  step    5853  loss 0.1182  lr 1.3e-04  param change 1.1e-02
+  17.7 min  step    6032  loss 0.1178  lr 1.3e-04  param change 1.0e-02
+   val top-1 0.952  top-3 1.000  loss 0.115
+   eval eval_0015min_5151.pt: fitness 1.249
+  18.2 min  step    6204  loss 0.1128  lr 1.2e-04  param change 1.1e-02
+  18.7 min  step    6376  loss 0.1138  lr 1.1e-04  param change 9.7e-03
+  19.2 min  step    6556  loss 0.1143  lr 1.1e-04  param change 9.8e-03
+  19.7 min  step    6730  loss 0.1061  lr 1.0e-04  param change 7.9e-03
+  20.2 min  step    6906  loss 0.1096  lr 9.5e-05  param change 8.6e-03
+  20.7 min  step    7081  loss 0.1083  lr 8.9e-05  param change 7.7e-03
+   val top-1 0.951  top-3 1.000  loss 0.115
+   eval eval_0018min_6203.pt: fitness 1.238
+  21.3 min  step    7253  loss 0.1052  lr 8.3e-05  param change 7.0e-03
+  21.8 min  step    7424  loss 0.1036  lr 7.7e-05  param change 6.4e-03
+  22.3 min  step    7603  loss 0.1047  lr 7.2e-05  param change 6.5e-03
+  22.8 min  step    7778  loss 0.1028  lr 6.7e-05  param change 5.9e-03
+  23.3 min  step    7951  loss 0.1006  lr 6.2e-05  param change 4.9e-03
+  23.8 min  step    8124  loss 0.1012  lr 5.8e-05  param change 5.7e-03
+   val top-1 0.959  top-3 1.000  loss 0.102
+   eval eval_0021min_7252.pt: fitness 1.358
+  24.3 min  step    8297  loss 0.0977  lr 5.3e-05  param change 4.4e-03
+  24.8 min  step    8466  loss 0.0992  lr 5.0e-05  param change 4.1e-03
+  25.3 min  step    8641  loss 0.0987  lr 4.6e-05  param change 4.0e-03
+  25.8 min  step    8815  loss 0.0966  lr 4.3e-05  param change 4.0e-03
+  26.3 min  step    8988  loss 0.0955  lr 4.0e-05  param change 3.6e-03
+  26.8 min  step    9166  loss 0.0966  lr 3.7e-05  param change 3.1e-03
+   val top-1 0.960  top-3 1.000  loss 0.099
+   eval eval_0024min_8296.pt: fitness 1.315
+  27.3 min  step    9342  loss 0.0966  lr 3.5e-05  param change 2.8e-03
+  27.8 min  step    9513  loss 0.0927  lr 3.3e-05  param change 3.3e-03
+  28.3 min  step    9690  loss 0.0962  lr 3.2e-05  param change 3.2e-03
+  28.8 min  step    9865  loss 0.0922  lr 3.1e-05  param change 2.5e-03
+  29.3 min  step   10041  loss 0.0917  lr 3.0e-05  param change 2.8e-03
+  29.8 min  step   10216  loss 0.0967  lr 3.0e-05  param change 2.9e-03
+selected eval_0021min_7252.pt (selection fitness 1.358)
+bc_pure: GA agreement on validation games: {'top1': 0.9514340093194198, 'top3': 0.9996062216971845, 'loss': 0.11453457667718545}

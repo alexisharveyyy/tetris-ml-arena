@@ -1,0 +1,16 @@
+2026-10-20 14:01:16  waiting for PPO queue pid 26224
+2026-10-20 22:58:41  PPO queue exited; starting phase 5 queue at 77e3713
+2026-10-20 22:58:41  phase 5 queue: start
+2026-10-20 22:58:41  start bc_pure: -m tetris.agents.imitation.train pure
+2026-10-20 23:30:01  done bc_pure in 31.3 min
+2026-10-20 23:30:01  start bc_dagger: -m tetris.agents.imitation.train dagger
+2026-10-20 23:54:04  done bc_dagger in 24.1 min
+2026-10-20 23:54:04  start bc_choose: -m tetris.agents.imitation.train choose
+2026-10-20 23:54:05  done bc_choose in 0.0 min
+2026-10-20 23:54:05  start bc_you: -m tetris.agents.imitation.train you
+2026-10-21 00:03:12  done bc_you in 9.1 min
+2026-10-21 00:03:12  start neat: -m tetris.agents.neuroevolution.train
+2026-10-21 03:03:56  done neat in 180.7 min
+2026-10-21 03:03:56  start leaderboard: scripts/evaluate.py --games 500 --marathon-games 100
+2026-10-21 04:36:02  done leaderboard in 92.1 min
+2026-10-21 04:36:02  phase 5 queue finished

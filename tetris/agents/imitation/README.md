@@ -126,4 +126,30 @@ tensorboard --logdir runs/bc_pure
 
 ## Results
 
-Filled in after training.
+Held-out garbage setting, 500 seeds (`reports/leaderboard.md`):
+
+| Agent | Selection fitness | Held-out fitness | Top-out rate | GA top-1 / top-3 agreement |
+|---|---|---|---|---|
+| Imitation (pure BC) | 1.358 | 1.296 | 0.20 | 0.951 / 1.000 |
+| Imitation (BC + DAgger) | 1.343 | 1.280 | 0.21 | 0.963 / 1.000 |
+| GA heuristic (teacher) | | 1.289 | 0.18 | |
+
+- Agreement is measured on the held-out GA games.
+- Pure BC minus DAgger: +0.017 [-0.017, +0.049], a tie. DAgger raised
+  agreement with the GA slightly but did not improve play; pure BC already
+  matches its teacher (pure BC minus GA +0.007 [-0.026, +0.040]).
+- The playable `bc` agent is pure BC (higher selection fitness).
+
+**BC (you)**, from 7 recorded plain games (1,397 on-space placements), split
+4 train / 1 validation / 2 test games (`reports/bc_you.json`):
+
+| Model | Top-1 on your test games | Top-3 |
+|---|---|---|
+| GA-trained BC (baseline) | 0.383 | 0.742 |
+| BC (you), selected at 6 min | 0.476 | 0.785 |
+| Difference | +0.093 [+0.051, +0.117] | +0.043 [+0.015, +0.059] |
+
+The interval resamples whole test games; with only 2 test games it is
+unreliable. As an opponent, BC (you) is much weaker than the GA-trained
+model: held-out garbage fitness 0.147 (top-out rate 1.00), plain-setting
+top-out rate 0.15. It was trained only on plain games.
