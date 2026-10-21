@@ -67,9 +67,17 @@ python scripts/eval_llm.py --runs qwen3-features,llama31-features
 ```
 
 Runs: `qwen3-features`, `qwen3-bare`, `llama31-features`, `api-features`,
-`api-bare`. Each plays the first 20 held-out seeds in the garbage setting,
-one game at a time; the GA plays the same seeds as the paired reference.
-Results: `reports/llm_agent.md`.
+`api-bare`. Each plays the first 20 held-out seeds in the garbage setting
+with a 100-piece cap, one game at a time; the GA plays the same seeds with
+the same cap as the paired reference.
+
+**Main metrics: pieces survived, top-out rate and lines per piece**, each
+with a 95% bootstrap interval over games and as paired differences from the
+GA and between runs. Leaderboard fitness is not used: with a 100-piece cap
+the GA reaches the cap in almost every game. The report also gives fallback
+rates by cause, seconds per piece, tokens per game and cost, and says that
+20 games gives wide intervals. The API model, gpt-4.1-mini, is a small API
+model, not a frontier model. Results: `reports/llm_agent.md`.
 
 ## Results
 

@@ -42,9 +42,6 @@ from tetris.agents.evaluation import (
     EvalSetting,
     GameStats,
     evaluate_agent,
-    fitness,
-    game_fitness,
-    paired_bootstrap,
     play_game,
 )
 from tetris.agents.llm.agent import LLMAgent, load_llm_config
@@ -84,8 +81,15 @@ def run_config(cfg: dict[str, Any], name: str) -> tuple[dict[str, Any], str]:
     else:
         provider = cfg["backend"] if cfg["backend"] != "ollama" else "openai"
         run_cfg["backend"] = provider
-        label = f"{provider} {run_cfg[provider]['model']}"
+        label = f"{run_cfg[provider]['model']} ({run_cfg[provider]['description']})"
     return run_cfg, f"{label}, {variant}"
+
+
+def api_note(cfg: dict[str, Any]) -> str:
+    """One sentence naming the API model and its class, for the report."""
+    provider = cfg["backend"] if cfg["backend"] != "ollama" else "openai"
+    section = cfg[provider]
+    return f"The API model is {section['model']}, a {section['description']}. "
 
 
 def check_prices(cfg: dict[str, Any], today: dt.date | None = None) -> None:
@@ -164,7 +168,7 @@ def evaluate_run(
             f.write(json.dumps(game) + "\n")
         o = game["outcomes"]
         print(
-            f"  seed {seed}: {game['pieces']} pieces, fitness {game_fitness(_stats(game)):.3f}, "
+            f"  seed {seed}: {game['pieces']} pieces, {game['lines']} lines, "
             f"fallbacks {sum(o.values()) - o['llm']}/{sum(o.values())}, "
             f"{game['seconds'] / max(game['pieces'], 1):.2f} s/piece, ${game['cost_usd']:.4f}",
             flush=True,
@@ -176,12 +180,47 @@ def _stats(game: dict[str, Any]) -> GameStats:
     return GameStats(**{k: game[k] for k in GameStats.__dataclass_fields__})
 
 
+#: Main metrics. Fitness is not used: with a 100-piece cap the GA reaches the
+#: cap in almost every game, so survival and line efficiency say more.
+METRICS: dict[str, tuple[str, Any]] = {
+    "pieces": ("Pieces survived", lambda s: float(s.pieces)),
+    "top_out": ("Top-out rate", lambda s: float(s.topped_out)),
+    "lines_per_piece": ("Lines per piece", lambda s: s.lines_per_piece),
+}
+
+
 def bootstrap_mean(values: list[float], n: int = 10_000, seed: int = 0) -> tuple[float, float]:
     rng = np.random.default_rng(seed)
     v = np.asarray(values, float)
     boots = v[rng.integers(0, len(v), size=(n, len(v)))].mean(1)
     lo, hi = np.percentile(boots, [2.5, 97.5])
     return float(lo), float(hi)
+
+
+def metric_summary(stats: list[GameStats]) -> dict[str, dict[str, float]]:
+    """Mean and 95% bootstrap interval (over games) of each main metric."""
+    out = {}
+    for key, (_, f) in METRICS.items():
+        values = [f(s) for s in stats]
+        lo, hi = bootstrap_mean(values)
+        out[key] = {"mean": float(np.mean(values)), "ci95": [lo, hi]}
+    return out
+
+
+def paired_metrics(
+    a: list[GameStats], b: list[GameStats], n: int = 10_000, seed: int = 0
+) -> dict[str, list[float]]:
+    """Mean difference a - b and 95% interval of each main metric, on the same seeds."""
+    if [s.seed for s in a] != [s.seed for s in b]:
+        raise ValueError("paired comparison needs the same seeds in the same order")
+    rng = np.random.default_rng(seed)
+    idx = rng.integers(0, len(a), size=(n, len(a)))
+    out = {}
+    for key, (_, f) in METRICS.items():
+        d = np.array([f(x) - f(y) for x, y in zip(a, b, strict=True)])
+        lo, hi = np.percentile(d[idx].mean(1), [2.5, 97.5])
+        out[key] = [float(d.mean()), float(lo), float(hi)]
+    return out
 
 
 def summarize_run(run: dict[str, Any], ga: dict[int, GameStats]) -> dict[str, Any]:
@@ -192,16 +231,12 @@ def summarize_run(run: dict[str, Any], ga: dict[int, GameStats]) -> dict[str, An
     outcomes = {k: sum(g["outcomes"][k] for g in games) for k in games[0]["outcomes"]}
     decisions = sum(outcomes.values())
     pieces = sum(g["pieces"] for g in games)
-    vs_ga = paired_bootstrap(stats, [ga[s.seed] for s in stats])["fitness"]
     return {
         "name": run["name"],
         "label": run["label"],
         "games": len(games),
         "stopped": run["stopped"],
-        "fitness": fitness(stats),
-        "fitness_ci95": bootstrap_mean([game_fitness(s) for s in stats]),
-        "top_out_rate": float(np.mean([s.topped_out for s in stats])),
-        "mean_pieces": pieces / len(games),
+        "metrics": metric_summary(stats),
         "fallback_rate": (decisions - outcomes["llm"]) / max(decisions, 1),
         "fallbacks": {k: v for k, v in outcomes.items() if k != "llm"},
         "seconds_per_piece": sum(g["seconds"] for g in games) / max(pieces, 1),
@@ -210,84 +245,122 @@ def summarize_run(run: dict[str, Any], ga: dict[int, GameStats]) -> dict[str, An
         "input_tokens": sum(g["input_tokens"] for g in games),
         "output_tokens": sum(g["output_tokens"] for g in games),
         "cost_usd": sum(g["cost_usd"] for g in games),
-        "minus_ga": vs_ga,
+        "minus_ga": paired_metrics(stats, [ga[s.seed] for s in stats]),
     }
 
 
 def compare(a: dict[str, Any], b: dict[str, Any]) -> dict[str, Any] | None:
-    """Paired difference a - b on the seeds both runs finished."""
+    """Paired differences a - b on the seeds both runs finished."""
     sa = {g["seed"]: _stats(g) for g in a["games"]}
     sb = {g["seed"]: _stats(g) for g in b["games"]}
     common = sorted(set(sa) & set(sb))
     if len(common) < 2:
         return None
-    res = paired_bootstrap([sa[s] for s in common], [sb[s] for s in common])["fitness"]
-    return {"a": a["name"], "b": b["name"], "games": len(common), "fitness": res}
+    diff = paired_metrics([sa[s] for s in common], [sb[s] for s in common])
+    return {"a": a["name"], "b": b["name"], "games": len(common), "difference": diff}
+
+
+def _fmt(key: str, value: float, signed: bool = False) -> str:
+    sign = "+" if signed else ""
+    if key == "pieces":
+        return f"{value:{sign}.1f}"
+    if key == "top_out":
+        return f"{value:{sign}.2f}"
+    return f"{value:{sign}.3f}"
+
+
+def _diff_cells(diff: dict[str, list[float]]) -> str:
+    cells = []
+    for key in METRICS:
+        m, lo, hi = diff[key]
+        cells.append(f"{_fmt(key, m, True)} [{_fmt(key, lo, True)}, {_fmt(key, hi, True)}]")
+    return " | ".join(cells)
 
 
 def write_report(
     summaries: list[dict[str, Any]],
     comparisons: list[dict[str, Any]],
-    ga_fit: float,
+    ga_stats: list[GameStats],
     setting: EvalSetting,
     spent: dict[str, Any],
+    api_note: str = "",
 ) -> None:
+    ga = metric_summary(ga_stats)
     out = {
         "setting": setting.to_dict(),
-        "ga_fitness": ga_fit,
+        "main_metrics": list(METRICS),
+        "ga_reference": ga,
         "runs": summaries,
         "comparisons": comparisons,
         "api_ledger": spent,
     }
     reports = ROOT / "reports"
     (reports / "llm_agent.json").write_text(json.dumps(out, indent=2))
-    n = max((s["games"] for s in summaries), default=0)
+    n = len(ga_stats)
+    ga_capped = sum(not s.topped_out for s in ga_stats)
+    names = [label for label, _ in METRICS.values()]
     lines = [
         "# LLM agent (novelty opponent)",
         "",
         f"Garbage setting (1 row every 3 pieces), {setting.max_pieces}-piece cap, the first "
-        f"{n} held-out seeds; the GA heuristic played the same seeds with the same cap "
-        f"(fitness {ga_fit:.3f}).",
+        f"{n} held-out seeds. The GA heuristic played the same seeds with the same cap as the "
+        f"reference; it reached the cap in {ga_capped} of {n} games.",
+        "",
+        "**Main metrics: pieces survived, top-out rate and lines per piece.** Leaderboard "
+        f"fitness is not used here: with a {setting.max_pieces}-piece cap the GA reaches the "
+        "cap in almost "
+        "every game, so fitness would mostly measure score per piece. Pieces survived and "
+        "top-out rate measure whether the model keeps the stack alive under garbage; lines "
+        "per piece measures how efficiently it clears.",
         "",
         f"**{n} games per run gives wide intervals.** The 95% intervals below (bootstrap over "
         "games) are often wider than the differences between runs; treat small differences "
         "as ties. The LLM agent is not on the main leaderboard.",
         "",
         "Every decision falls back to the GA heuristic's move on a timeout, an unparseable "
-        "or unlisted answer, or a backend error, so the fitness of a run with many "
-        "fallbacks partly measures the GA.",
+        "or unlisted answer, or a backend error, so a run with many fallbacks partly "
+        f"measures the GA. {api_note}The local models are 8-billion-parameter models "
+        "quantized to 4 bits.",
         "",
-        "| Run | Games | Fitness [95% interval] | Top-out rate | Mean pieces | Fallback rate "
+        f"| Run | Games | {' | '.join(f'{x} [95% interval]' for x in names)} | Fallback rate "
         "| Timeouts / invalid / errors | Seconds per piece | Tokens per game | Cost |",
         "|---|---|---|---|---|---|---|---|---|---|",
     ]
+
+    def metric_cells(m: dict[str, dict[str, Any]]) -> str:
+        return " | ".join(
+            f"{_fmt(k, m[k]['mean'])} [{_fmt(k, m[k]['ci95'][0])}, {_fmt(k, m[k]['ci95'][1])}]"
+            for k in METRICS
+        )
+
+    lines.append(f"| GA heuristic (reference) | {n} | {metric_cells(ga)} | | | | | |")
     for s in summaries:
         if not s["games"]:
             lines.append(f"| {s['label']} | 0 | | | | | | | | |")
             continue
         f = s["fallbacks"]
-        lo, hi = s["fitness_ci95"]
         lines.append(
-            f"| {s['label']} | {s['games']} | {s['fitness']:.3f} [{lo:.3f}, {hi:.3f}] "
-            f"| {s['top_out_rate']:.2f} | {s['mean_pieces']:.0f} | {s['fallback_rate']:.1%} "
+            f"| {s['label']} | {s['games']} | {metric_cells(s['metrics'])} "
+            f"| {s['fallback_rate']:.1%} "
             f"| {f.get('timeout', 0)} / {f.get('invalid', 0)} / {f.get('error', 0)} "
             f"| {s['seconds_per_piece']:.2f} | {s['tokens_per_game']:,.0f} "
             f"| ${s['cost_usd']:.2f} |"
         )
-    lines += ["", "Paired differences on the same seeds (fitness, 95% bootstrap interval):", ""]
-    lines += ["| Comparison | Games | Difference |", "|---|---|---|"]
+    lines += [
+        "",
+        "Paired differences on the same seeds (mean, 95% bootstrap interval over games):",
+        "",
+        f"| Comparison | Games | {' | '.join(names)} |",
+        "|---|---|---|---|---|",
+    ]
     by_name = {s["name"]: s for s in summaries}
     for s in summaries:
         if s["games"]:
-            m, lo, hi = s["minus_ga"]
-            lines.append(
-                f"| {s['label']} minus GA | {s['games']} | {m:+.3f} [{lo:+.3f}, {hi:+.3f}] |"
-            )
+            lines.append(f"| {s['label']} minus GA | {s['games']} | {_diff_cells(s['minus_ga'])} |")
     for c in comparisons:
-        m, lo, hi = c["fitness"]
         lines.append(
             f"| {by_name[c['a']]['label']} minus {by_name[c['b']]['label']} | {c['games']} "
-            f"| {m:+.3f} [{lo:+.3f}, {hi:+.3f}] |"
+            f"| {_diff_cells(c['difference'])} |"
         )
     stopped = [s for s in summaries if s.get("stopped")]
     if stopped:
@@ -340,7 +413,7 @@ def main(argv: list[str] | None = None) -> None:
         for c in [compare(by_name[a], by_name[b])]
         if c is not None
     ]
-    write_report(summaries, comparisons, fitness(ga_stats), setting, ledger.snapshot())
+    write_report(summaries, comparisons, ga_stats, setting, ledger.snapshot(), api_note(cfg))
     print("wrote reports/llm_agent.md", flush=True)
 
 

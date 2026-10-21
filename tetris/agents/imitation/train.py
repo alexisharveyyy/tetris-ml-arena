@@ -6,6 +6,9 @@ Usage:
     python -m tetris.agents.imitation.train choose  # bc = better of bc_pure, bc_dagger
     python -m tetris.agents.imitation.train you     # needs 800 on-space placements in 3+ games
 
+Add ``--resume`` to ``pure``, ``dagger`` or ``you`` to continue an interrupted
+run from its ``state.pt`` (saved at every check and at the end of each phase).
+
 The policy is the PPO afterstate policy (each legal action's logit scores its
 afterstate). The loss is the negative log of the total probability of the
 actions whose afterstate equals the teacher's (see dataset.py).
@@ -23,7 +26,7 @@ actions whose afterstate equals the teacher's (see dataset.py).
   only, at least 800 in 3 games) at a low learning rate. Games are split into
   train, validation (early stopping) and test games; ``reports/bc_you.json``
   gives top-1 and top-3 agreement on the test games for the GA-trained model
-  and the fine-tuned one, with a paired bootstrap interval over games.
+  and the fine-tuned one, and their difference on each test game.
 
 Every run on MPS starts with the gradient pre-flight check and runs under the
 parameter-change watchdog (tetris/rl/safeguards.py).
@@ -38,6 +41,7 @@ import json
 import math
 import shutil
 import time
+from dataclasses import asdict
 from pathlib import Path
 from typing import Any
 
@@ -60,11 +64,13 @@ from tetris.rl.nets import (
     save_checkpoint,
     score_afterstate_rows,
     select_device,
+    to_cpu,
 )
 from tetris.rl.safeguards import ParameterChange, ProgressWatchdog, preflight
 from tetris.rl.training import (
     Budget,
     CurveLogger,
+    EvalRecord,
     SelectionEvaluator,
     finalize_selection,
     linear_references,
@@ -198,10 +204,24 @@ def cosine(lr: float, lr_final: float, fraction: float) -> float:
 
 
 class Trainer:
-    """Minibatch BC on a fixed dataset for a wall-clock budget."""
+    """Minibatch BC on a fixed dataset for a wall-clock budget.
+
+    **Resume:** the trainer saves ``state.pt`` in the run directory at every
+    tick and at the end of every training phase: weights, the optimizer of the
+    phase in progress, its elapsed time and batch order, step count, RNG
+    states, the selection evaluations and any variant state
+    (:attr:`state_extras`). With ``resume=True`` a new trainer restores it;
+    :meth:`fit` continues the interrupted phase, and :attr:`completed` lists
+    the phases already finished, which the variants skip.
+    """
 
     def __init__(
-        self, cfg: dict[str, Any], agent_key: str, run_name: str, init: str | None = None
+        self,
+        cfg: dict[str, Any],
+        agent_key: str,
+        run_name: str,
+        init: str | None = None,
+        resume: bool = False,
     ) -> None:
         self.cfg = cfg
         self.agent_key = agent_key
@@ -217,11 +237,70 @@ class Trainer:
             self.net.load_state_dict(src.state_dict())
         self.device = select_device(cfg.get("device", "auto"))
         self.steps = 0
-        self.elapsed = 0.0
+        self.elapsed = 0.0  # seconds of completed phases
         self.logger = CurveLogger(agent_key, run_name)
         self.watchdog = ProgressWatchdog(
             f"{agent_key} {run_name}", "relative parameter change", 1e-6, 10
         )
+        self.state_path = self.run_dir / "state.pt"
+        self.completed: list[str] = []
+        self.state_extras: dict[str, Any] = {}
+        self.evaluator: SelectionEvaluator | None = None
+        self._resume: dict[str, Any] | None = None
+        if resume and self.state_path.exists():
+            state = torch.load(self.state_path, map_location="cpu", weights_only=False)
+            self.net.load_state_dict(state["model"])
+            self.steps, self.elapsed = state["steps"], state["elapsed"]
+            self.completed = list(state["completed"])
+            self.state_extras = state["extras"]
+            self.rng.bit_generator.state = state["rng"]
+            torch.set_rng_state(state["torch_rng"])
+            self._resume = state
+            phase = state["phase"]["name"] if state["phase"] else "between phases"
+            print(
+                f"resumed {agent_key} {run_name} at step {self.steps} "
+                f"(completed {self.completed or 'nothing'}; in progress: {phase})",
+                flush=True,
+            )
+
+    @property
+    def resumed(self) -> bool:
+        return self._resume is not None
+
+    def attach_evaluator(self, evaluator: SelectionEvaluator) -> None:
+        """Use ``evaluator`` for selection; on resume, restore its records and pending work."""
+        self.evaluator = evaluator
+        if self._resume is not None:
+            evaluator.records = [EvalRecord(**r) for r in self._resume["records"]]
+            for ckpt, step, at in self._resume["pending"]:
+                evaluator.submit(Path(ckpt), step, at)
+
+    def save_state(self, phase: dict[str, Any] | None = None) -> None:
+        """Write ``state.pt`` (``phase``: the interrupted fit's own state, if any)."""
+        ev = self.evaluator
+        state = {
+            "model": {k: v.detach().cpu() for k, v in self.net.state_dict().items()},
+            "steps": self.steps,
+            "elapsed": self.elapsed,
+            "completed": self.completed,
+            "phase": phase,
+            "extras": self.state_extras,
+            "rng": self.rng.bit_generator.state,
+            "torch_rng": torch.get_rng_state(),
+            "records": [asdict(r) for r in ev.records] if ev else [],
+            "pending": [(c, s, e) for c, s, e, _ in ev._pending] if ev else [],
+        }
+        tmp = self.state_path.with_suffix(".tmp")
+        torch.save(state, tmp)
+        tmp.replace(self.state_path)
+
+    def _take_phase(self, name: str) -> dict[str, Any] | None:
+        """The saved state of phase ``name`` if the resumed run stopped inside it."""
+        if self._resume is None:
+            return None
+        phase = self._resume.get("phase")
+        self._resume = None  # consumed (records were restored by attach_evaluator)
+        return phase if phase and phase["name"] == name else None
 
     def check_device(self, data: ImitationData) -> None:
         """MPS pre-flight on one real batch; switches to the CPU if it fails."""
@@ -249,9 +328,14 @@ class Trainer:
         on_tick=None,
         tick_seconds: float = 180.0,
         first_tick: float | None = None,
+        phase: str = "train",
     ) -> None:
         """Train for ``minutes``; ``on_tick(trainer, elapsed)`` runs every ``tick_seconds``
-        and stops training early by returning True."""
+        and stops training early by returning True.
+
+        ``phase`` names this call for resume: an interrupted phase continues
+        where it stopped (optimizer, elapsed time and batch order restored).
+        """
         cfg = self.cfg
         net = self.net
         net.train()
@@ -262,9 +346,25 @@ class Trainer:
         change = ParameterChange(net.scorer)
         bsz = int(cfg["batch_states"])
         perm, pos = self.rng.permutation(train_states), 0
-        next_log = 30.0
         next_tick = first_tick if first_tick is not None else tick_seconds
+        saved = self._take_phase(phase)
+        if saved is not None:
+            opt.load_state_dict(saved["optimizer"])
+            budget = Budget(minutes * 60, saved["elapsed"])
+            perm, pos, next_tick = saved["perm"], saved["pos"], saved["next_tick"]
+        next_log = budget.elapsed + 30.0
         losses: list[float] = []
+
+        def phase_state() -> dict[str, Any]:
+            return {
+                "name": phase,
+                "optimizer": to_cpu(opt.state_dict()),
+                "elapsed": budget.elapsed,
+                "perm": perm,
+                "pos": pos,
+                "next_tick": next_tick,
+            }
+
         while not budget.done:
             if pos + bsz > len(perm):
                 perm, pos = self.rng.permutation(train_states), 0
@@ -298,7 +398,10 @@ class Trainer:
                 if on_tick(self, self.elapsed + budget.elapsed):
                     break  # early stopping
                 next_tick = budget.elapsed + tick_seconds
+                self.save_state(phase_state())
         self.elapsed += budget.elapsed
+        self.completed.append(phase)
+        self.save_state()
 
     def save(self, name: str, **meta: Any) -> Path:
         path = self.run_dir / name
@@ -347,7 +450,7 @@ def finish(trainer: Trainer, evaluator: SelectionEvaluator, promote: bool = True
 # ---------------------------------------------------------------- variants
 
 
-def train_pure(cfg: dict[str, Any], run_name: str = "seed0") -> dict:
+def train_pure(cfg: dict[str, Any], run_name: str = "seed0", resume: bool = False) -> dict:
     data = teacher_data(cfg)
     train_idx, val_idx = split_episodes(data, float(cfg["val_fraction"]), int(cfg["seed"]))
     print(
@@ -355,25 +458,28 @@ def train_pure(cfg: dict[str, Any], run_name: str = "seed0") -> dict:
         f"({data.n_rows} afterstate rows)",
         flush=True,
     )
-    trainer = Trainer(cfg, "bc_pure", run_name)
+    trainer = Trainer(cfg, "bc_pure", run_name, resume=resume)
     trainer.check_device(data)
     evaluator = SelectionEvaluator("bc_pure", workers=int(cfg["eval_workers"]))
-    trainer.fit(
-        data,
-        train_idx,
-        float(cfg["budget_minutes"]),
-        float(cfg["lr"]),
-        float(cfg["lr_final"]),
-        selection_tick(evaluator, (data, val_idx)),
-        float(cfg["eval_every_minutes"]) * 60,
-        float(cfg["first_eval_minutes"]) * 60,
-    )
+    trainer.attach_evaluator(evaluator)
+    if "pure" not in trainer.completed:
+        trainer.fit(
+            data,
+            train_idx,
+            float(cfg["budget_minutes"]),
+            float(cfg["lr"]),
+            float(cfg["lr_final"]),
+            selection_tick(evaluator, (data, val_idx)),
+            float(cfg["eval_every_minutes"]) * 60,
+            float(cfg["first_eval_minutes"]) * 60,
+            phase="pure",
+        )
     summary = finish(trainer, evaluator)
     write_agreement_report(cfg, "bc_pure", summary, data, val_idx)
     return summary
 
 
-def train_dagger(cfg: dict[str, Any], run_name: str = "seed0") -> dict:
+def train_dagger(cfg: dict[str, Any], run_name: str = "seed0", resume: bool = False) -> dict:
     from tetris.agents.imitation.dagger import collect_round
 
     init = CHECKPOINT_DIR / "bc_pure" / "best.pt"
@@ -381,21 +487,29 @@ def train_dagger(cfg: dict[str, Any], run_name: str = "seed0") -> dict:
         raise FileNotFoundError("DAgger starts from the pure BC model; run `pure` first")
     base = teacher_data(cfg)
     train_idx, val_idx = split_episodes(base, float(cfg["val_fraction"]), int(cfg["seed"]))
-    trainer = Trainer(cfg, "bc_dagger", run_name, init=str(init))
+    trainer = Trainer(cfg, "bc_dagger", run_name, init=str(init), resume=resume)
     trainer.check_device(base)
     evaluator = SelectionEvaluator("bc_dagger", workers=int(cfg["eval_workers"]))
+    trainer.attach_evaluator(evaluator)
     parts = [base.subset(train_idx)]
     current = str(init)
+    games = int(cfg["dagger_games_per_setting"])
     for r in range(1, int(cfg["dagger_rounds"]) + 1):
         t0 = time.time()
-        files = collect_round(
-            current,
-            r,
-            int(cfg["dagger_games_per_setting"]),
-            DAGGER_DIR / run_name,
-            DAGGER_SEED_BASE + 1000 * r,
-            default_workers(),
-        )
+        round_dir = DAGGER_DIR / run_name / f"round{r}"
+        files = sorted(round_dir.glob("*/*.jsonl.gz"))
+        # On resume, a round whose games were all collected is not played again.
+        if not resume or len(files) != 2 * games:
+            files = collect_round(
+                current,
+                r,
+                games,
+                DAGGER_DIR / run_name,
+                DAGGER_SEED_BASE + 1000 * r,
+                default_workers(),
+            )
+        else:
+            print(f"DAgger round {r}: reusing {len(files)} collected games", flush=True)
         parts.append(cached_dataset(files, Path(cfg["cache_dir"]), f"dagger_{run_name}_r{r}"))
         data = ImitationData.concat(parts)
         print(
@@ -403,16 +517,21 @@ def train_dagger(cfg: dict[str, Any], run_name: str = "seed0") -> dict:
             f"training on {len(data)} states",
             flush=True,
         )
-        trainer.fit(
-            data,
-            np.arange(len(data)),
-            float(cfg["dagger_round_minutes"]),
-            float(cfg["lr"]) * 0.5,
-            float(cfg["lr_final"]),
-            selection_tick(evaluator, (base, val_idx)),
-            float(cfg["eval_every_minutes"]) * 60,
-        )
-        current = str(trainer.save(f"round{r}.pt", dagger_round=r))
+        if f"dagger_r{r}" not in trainer.completed:
+            trainer.fit(
+                data,
+                np.arange(len(data)),
+                float(cfg["dagger_round_minutes"]),
+                float(cfg["lr"]) * 0.5,
+                float(cfg["lr_final"]),
+                selection_tick(evaluator, (base, val_idx)),
+                float(cfg["eval_every_minutes"]) * 60,
+                phase=f"dagger_r{r}",
+            )
+        round_ckpt = trainer.run_dir / f"round{r}.pt"
+        if not round_ckpt.exists():  # weights now are this round's final weights
+            trainer.save(round_ckpt.name, dagger_round=r)
+        current = str(round_ckpt)
     summary = finish(trainer, evaluator)
     write_agreement_report(cfg, "bc_dagger", summary, base, val_idx)
     return summary
@@ -447,7 +566,7 @@ def choose_version() -> dict:
     return choice
 
 
-def train_you(cfg: dict[str, Any], run_name: str = "seed0") -> dict:
+def train_you(cfg: dict[str, Any], run_name: str = "seed0", resume: bool = False) -> dict:
     """Fine-tune the GA-trained BC model on your recordings.
 
     Your games are split by game, in recording order: the most recent games
@@ -478,45 +597,55 @@ def train_you(cfg: dict[str, Any], run_name: str = "seed0") -> dict:
     train_idx, val_idx, test_idx = split_recordings(
         data, float(cfg["you_val_fraction"]), float(cfg["you_test_fraction"])
     )
-    trainer = Trainer(cfg, "bc_you", run_name, init=str(init))
+    trainer = Trainer(cfg, "bc_you", run_name, init=str(init), resume=resume)
     trainer.check_device(data)
-    baseline = agreement(trainer.net, data, test_idx, trainer.device, per_state=True)
     patience = int(cfg["you_patience"])
-    best: dict[str, Any] = {"top1": -1.0}
-    best_state: dict[str, torch.Tensor] = {}
-    curve: list[dict[str, float]] = []
-    stale = 0
+    # Early-stopping state lives in the trainer's resumable extras.
+    es = trainer.state_extras
+    if not es:
+        es.update(
+            baseline=agreement(trainer.net, data, test_idx, trainer.device, per_state=True),
+            best={"top1": -1.0},
+            best_state={},
+            curve=[],
+            stale=0,
+        )
+    baseline = es["baseline"]
 
     def tick(tr: Trainer, elapsed: float) -> bool:
-        nonlocal best, best_state, stale
         m = agreement(tr.net, data, val_idx, tr.device)
-        curve.append({"minutes": elapsed / 60, "top1": m["top1"], "top3": m["top3"]})
+        es["curve"].append({"minutes": elapsed / 60, "top1": m["top1"], "top3": m["top3"]})
         tr.logger.scalar("val/top1", m["top1"], tr.steps)
         tr.logger.scalar("val/top3", m["top3"], tr.steps)
         print(
             f"   {elapsed / 60:4.1f} min  validation top-1 {m['top1']:.3f}  top-3 {m['top3']:.3f}",
             flush=True,
         )
-        if m["top1"] > best["top1"]:
-            best = {**m, "minutes": elapsed / 60}
-            best_state = copy.deepcopy({k: v.cpu() for k, v in tr.net.state_dict().items()})
-            stale = 0
+        if m["top1"] > es["best"]["top1"]:
+            es["best"] = {**m, "minutes": elapsed / 60}
+            es["best_state"] = copy.deepcopy({k: v.cpu() for k, v in tr.net.state_dict().items()})
+            es["stale"] = 0
         else:
-            stale += 1
-        return stale >= patience
+            es["stale"] += 1
+        return es["stale"] >= patience
 
-    tick(trainer, 0.0)  # the first check is the GA-trained model itself
-    trainer.fit(
-        data,
-        train_idx,
-        float(cfg["you_minutes"]),
-        float(cfg["you_lr"]),
-        float(cfg["you_lr"]) * 0.1,
-        tick,
-        tick_seconds=30.0,
-    )
-    if stale < patience:  # ended on the time limit: check the final weights too
-        tick(trainer, trainer.elapsed)
+    if not es["curve"]:
+        tick(trainer, 0.0)  # the first check is the GA-trained model itself
+    if "you" not in trainer.completed and es["stale"] < patience:
+        trainer.fit(
+            data,
+            train_idx,
+            float(cfg["you_minutes"]),
+            float(cfg["you_lr"]),
+            float(cfg["you_lr"]) * 0.1,
+            tick,
+            tick_seconds=float(cfg.get("you_check_seconds", 30.0)),
+            phase="you",
+        )
+        if es["stale"] < patience:  # ended on the time limit: check the final weights too
+            tick(trainer, trainer.elapsed)
+            trainer.save_state()
+    best, best_state, curve = es["best"], es["best_state"], es["curve"]
     trainer.net.load_state_dict(best_state)
     tuned = agreement(trainer.net, data, test_idx, trainer.device, per_state=True)
     trainer.net.cpu()
@@ -622,6 +751,9 @@ def main(argv: list[str] | None = None) -> None:
     parser.add_argument("--you-minutes", dest="you_minutes", type=float)
     parser.add_argument("--device")
     parser.add_argument("--run-name", default="seed0")
+    parser.add_argument(
+        "--resume", action="store_true", help="continue from the run's state.pt (pure, dagger, you)"
+    )
     args = parser.parse_args(argv)
     keys = (
         "budget_minutes",
@@ -633,13 +765,13 @@ def main(argv: list[str] | None = None) -> None:
     )
     cfg = load_config(args.config, {k: getattr(args, k) for k in keys})
     if args.variant == "pure":
-        train_pure(cfg, args.run_name)
+        train_pure(cfg, args.run_name, args.resume)
     elif args.variant == "dagger":
-        train_dagger(cfg, args.run_name)
+        train_dagger(cfg, args.run_name, args.resume)
     elif args.variant == "choose":
         choose_version()
     else:
-        train_you(cfg, args.run_name)
+        train_you(cfg, args.run_name, args.resume)
 
 
 if __name__ == "__main__":

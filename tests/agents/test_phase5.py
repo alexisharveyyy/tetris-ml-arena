@@ -366,3 +366,103 @@ def test_bc_you_fine_tunes_with_game_split_and_reports_baseline(tmp_path, monkey
     assert report["validation_curve"][0]["minutes"] == 0.0  # first check: the baseline model
     assert (tmp_path / "ckpt" / "bc_you" / "best.pt").exists()
     assert json.loads((tmp_path / "reports" / "bc_you.json").read_text())["fine_tuned"]
+
+
+def _bc_you_setup(tmp_path, monkeypatch, games: int = 5):
+    import tetris.agents.imitation.train as bc_train
+    import tetris.match.recording as recording
+    import tetris.rl.training as rl_training
+
+    rec_root = tmp_path / "rec"
+    monkeypatch.setattr(recording, "RECORDINGS_DIR", rec_root)
+    monkeypatch.setattr(bc_train, "CHECKPOINT_DIR", tmp_path / "ckpt")
+    monkeypatch.setattr(bc_train, "ROOT", tmp_path)
+    monkeypatch.setattr(rl_training, "ROOT", tmp_path)
+    monkeypatch.setattr(rl_training, "CHECKPOINT_DIR", tmp_path / "ckpt")
+    (tmp_path / "reports").mkdir(exist_ok=True)
+    (tmp_path / "ckpt" / "bc").mkdir(parents=True, exist_ok=True)
+    (tmp_path / "ckpt" / "bc_you").mkdir(parents=True, exist_ok=True)
+    save_checkpoint(tmp_path / "ckpt" / "bc" / "best.pt", "ppo", AfterstateActorCritic())
+    for seed in range(games):
+        match, recorder, _ = _recorded_match(10, seed=seed)
+        recorder.save(match.players["h"].game, root=rec_root)
+    cfg = {
+        **bc_train.load_config(bc_train.DEFAULT_CONFIG),
+        "device": "cpu",
+        "cache_dir": str(tmp_path / "cache"),
+        "you_min_placements": 40,
+        "batch_states": 16,
+    }
+    return bc_train, cfg, rec_root
+
+
+class _Crash(RuntimeError):
+    pass
+
+
+def test_bc_trainer_resumes_an_interrupted_phase(tmp_path, monkeypatch) -> None:
+    import time
+
+    from tetris.agents.imitation.dataset import encode_files
+    from tetris.match.recording import recording_files
+
+    bc_train, cfg, rec_root = _bc_you_setup(tmp_path, monkeypatch)
+    data = encode_files(recording_files(rec_root))
+    states = np.arange(len(data))
+    ticks = []
+
+    def crash_on_third(tr, elapsed):
+        ticks.append(elapsed)
+        if len(ticks) == 3:
+            raise _Crash
+
+    trainer = bc_train.Trainer(cfg, "bc_test", "run")
+    with pytest.raises(_Crash):
+        trainer.fit(data, states, 0.2, 1e-3, 1e-4, crash_on_third, tick_seconds=1.0, phase="a")
+    saved = torch.load(trainer.state_path, weights_only=False)
+    assert saved["phase"]["name"] == "a" and saved["completed"] == []
+    assert saved["steps"] > 0 and saved["phase"]["elapsed"] >= 2.0
+
+    resumed = bc_train.Trainer(cfg, "bc_test", "run", resume=True)
+    assert resumed.steps == saved["steps"]
+    for k, v in resumed.net.state_dict().items():
+        torch.testing.assert_close(v, saved["model"][k])
+    t0 = time.perf_counter()
+    resumed.fit(data, states, 0.2, 1e-3, 1e-4, lambda tr, e: None, tick_seconds=1.0, phase="a")
+    # Only the remaining part of the 12-second phase ran.
+    assert time.perf_counter() - t0 < 12.0 - saved["phase"]["elapsed"] + 1.5
+    assert resumed.steps > saved["steps"] and resumed.completed == ["a"]
+    final = bc_train.Trainer(cfg, "bc_test", "run", resume=True)
+    assert final.completed == ["a"] and final.elapsed == pytest.approx(resumed.elapsed)
+
+
+def test_bc_you_resumes_after_a_crash(tmp_path, monkeypatch) -> None:
+    bc_train, cfg, _ = _bc_you_setup(tmp_path, monkeypatch)
+    cfg.update(you_minutes=0.12, you_patience=100, you_check_seconds=1.0)
+    real = bc_train.agreement
+    calls = []
+
+    def crashing(*args, **kwargs):
+        calls.append(1)
+        if len(calls) == 5:  # baseline, initial check, then the third check in training
+            raise _Crash
+        return real(*args, **kwargs)
+
+    monkeypatch.setattr(bc_train, "agreement", crashing)
+    with pytest.raises(_Crash):
+        bc_train.train_you(cfg, "test")
+    state = torch.load(tmp_path / "ckpt" / "bc_you" / "test" / "state.pt", weights_only=False)
+    before = state["extras"]["curve"]
+    assert len(before) == 3 and before[0]["minutes"] == 0.0
+    monkeypatch.setattr(bc_train, "agreement", real)
+    report = bc_train.train_you(cfg, "test", resume=True)
+    curve = report["validation_curve"]
+    assert curve[:3] == before and len(curve) > 3
+    assert report["baseline_ga_trained_bc"]["top1"] == pytest.approx(
+        state["extras"]["baseline"]["top1"]
+    )
+    assert (tmp_path / "ckpt" / "bc_you" / "best.pt").exists()
+    # Resuming a finished run trains nothing more and reproduces the report.
+    again = bc_train.train_you(cfg, "test", resume=True)
+    assert again["validation_curve"] == curve
+    assert again["fine_tuned"] == report["fine_tuned"]

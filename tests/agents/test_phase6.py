@@ -485,3 +485,73 @@ def test_llm_eval_requires_recent_prices() -> None:
     run_cfg, label = mod.run_config(cfg, "llama31-features")
     assert run_cfg["ollama"]["model"] == "llama3.1:8b" and run_cfg["prompt"] == "features"
     assert cfg["ollama"]["model"] == "qwen3:8b"  # the default agent model is unchanged
+
+
+def _eval_llm_module():
+    import importlib.util
+
+    path = Path(__file__).resolve().parents[2] / "scripts" / "eval_llm.py"
+    spec = importlib.util.spec_from_file_location("eval_llm_report", path)
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod
+
+
+def test_llm_report_uses_survival_metrics_with_ga_reference(tmp_path, monkeypatch) -> None:
+    mod = _eval_llm_module()
+    monkeypatch.setattr(mod, "ROOT", tmp_path)
+    (tmp_path / "reports").mkdir()
+    setting = EvalSetting("garbage", max_pieces=100, garbage_every=3)
+    seeds = [900000, 900001, 900002]
+    ga = [GameStats(s, 100, 40, 9000, 3, False, 100) for s in seeds]
+
+    def game(seed, pieces, lines, topped):
+        outcomes = {"llm": pieces - 2, "timeout": 1, "invalid": 1, "error": 0, "budget": 0}
+        return {
+            **GameStats(seed, pieces, lines, 100 * lines, 0, topped, 100).to_dict(),
+            "seconds": 2.0 * pieces,
+            "outcomes": outcomes,
+            "llm_seconds": 1.9 * pieces,
+            "input_tokens": 850 * pieces,
+            "output_tokens": 6 * pieces,
+            "cost_usd": 0.0,
+        }
+
+    runs = [
+        {
+            "name": "qwen3-features",
+            "label": "Ollama qwen3:8b, features",
+            "games": [game(s, 60 + 10 * i, 20, True) for i, s in enumerate(seeds)],
+            "stopped": None,
+        },
+        {
+            "name": "llama31-features",
+            "label": "Ollama llama3.1:8b, features",
+            "games": [game(s, 40, 10, True) for s in seeds],
+            "stopped": None,
+        },
+    ]
+    summaries = [mod.summarize_run(r, {s.seed: s for s in ga}) for r in runs]
+    q = summaries[0]
+    assert q["metrics"]["pieces"]["mean"] == pytest.approx(70.0)
+    assert q["metrics"]["top_out"]["mean"] == 1.0
+    assert q["minus_ga"]["pieces"][0] == pytest.approx(-30.0)
+    assert q["minus_ga"]["top_out"][0] == pytest.approx(1.0)
+    assert q["fallback_rate"] == pytest.approx(6 / 210)
+    comparison = mod.compare(runs[0], runs[1])
+    assert comparison["difference"]["pieces"][0] == pytest.approx(30.0)
+    cfg = load_llm_config()
+    mod.write_report(summaries, [comparison], ga, setting, {}, mod.api_note(cfg))
+    text = (tmp_path / "reports" / "llm_agent.md").read_text()
+    assert "Pieces survived" in text and "Lines per piece" in text and "Top-out rate" in text
+    assert "GA heuristic (reference)" in text and "reached the cap in 3 of 3 games" in text
+    assert "gpt-4.1-mini, a small API model, not a frontier model" in text
+    assert "3 games per run gives wide intervals" in text
+    assert "Fitness [" not in text
+    header = next(line for line in text.splitlines() if line.startswith("| Run "))
+    sep = text.splitlines()[text.splitlines().index(header) + 1]
+    assert header.count("|") == sep.count("|")
+    data = json.loads((tmp_path / "reports" / "llm_agent.json").read_text())
+    assert data["main_metrics"] == ["pieces", "top_out", "lines_per_piece"]
+    run_cfg, label = mod.run_config(cfg, "api-features")
+    assert label == "gpt-4.1-mini (small API model, not a frontier model), features"

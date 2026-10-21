@@ -122,8 +122,16 @@ python -m tetris.agents.imitation.train pure     # 30 minutes
 python -m tetris.agents.imitation.train dagger   # 2 rounds, about 25 minutes
 python -m tetris.agents.imitation.train choose   # sets the playable bc agent
 python -m tetris.agents.imitation.train you      # after recording 800 placements (3+ games)
+python -m tetris.agents.imitation.train pure --resume   # continue an interrupted run
 tensorboard --logdir runs/bc_pure
 ```
+
+`--resume` works for `pure`, `dagger` and `you`. The trainer saves
+`state.pt` in the run directory at every check and at the end of each phase
+(weights, optimizer, elapsed time, batch order, RNG states, selection
+evaluations, and for BC (you) the early-stopping state and baseline). An
+interrupted phase continues where it stopped; finished phases, including
+DAgger rounds whose games were already collected, are skipped.
 
 ## Results
 
