@@ -1,0 +1,11 @@
+{
+    "settings": [
+        "plain",
+        "garbage"
+    ],
+    "totals": {
+        "games": 0,
+        "on_space": 0,
+        "off_space": 0
+    }
+}

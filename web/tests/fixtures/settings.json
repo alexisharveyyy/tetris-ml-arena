@@ -1,0 +1,39 @@
+{
+  "bindings": {
+    "left": [
+      "left"
+    ],
+    "right": [
+      "right"
+    ],
+    "soft": [
+      "down"
+    ],
+    "hard": [
+      "space"
+    ],
+    "cw": [
+      "up",
+      "x"
+    ],
+    "ccw": [
+      "z"
+    ],
+    "hold": [
+      "c",
+      "left shift",
+      "right shift"
+    ],
+    "pause": [
+      "escape"
+    ]
+  },
+  "das_ms": 133,
+  "arr_ms": 10,
+  "soft_drop_rate": 30.0,
+  "show_ghost": true,
+  "fps": 60,
+  "look": "tetromino",
+  "show_thinking": true,
+  "last_match": {}
+}

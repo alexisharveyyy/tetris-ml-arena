@@ -28,7 +28,7 @@ def test_sources_round_trip_and_staleness(tmp_path, monkeypatch) -> None:
     sources = load_sources(reports)
     assert set(sources["sections"]) == {"garbage", "marathon"}
     assert sources["sections"]["garbage"]["agents"]["ga"]["checkpoint"] == "ga/best.json"
-    assert result_status(sources, "garbage", "ga") == (VALID, "evaluated ga/best.json")
+    assert result_status(sources, "garbage", "ga") == (VALID, "evaluated", "evaluated ga/best.json")
     assert result_status(sources, "garbage", "dellacherie")[0] == VALID
     # No source recorded for this agent or section.
     assert result_status(sources, "garbage", "cem")[0] == PENDING
@@ -39,8 +39,8 @@ def test_sources_round_trip_and_staleness(tmp_path, monkeypatch) -> None:
     path.write_text(path.read_text() + "\n")
     t = time.time() + 5
     os.utime(path, (t, t))
-    status, reason = result_status(sources, "garbage", "ga")
-    assert status == PENDING and "changed" in reason
+    status, code, _ = result_status(sources, "garbage", "ga")
+    assert status == PENDING and code == "changed"
 
     # The promoted file is gone.
     path.unlink()
@@ -60,10 +60,10 @@ def test_buggy_checkpoints_are_never_valid(tmp_path) -> None:
             }
         }
     }
-    status, reason = result_status(sources, "garbage", "ga")
-    assert status == PENDING and "buggy" in reason
-    status, reason = result_status(sources, "garbage", "cem")
-    assert status == PENDING and "changed during evaluation" in reason
+    status, code, _ = result_status(sources, "garbage", "ga")
+    assert status == PENDING and code == "buggy"
+    status, code, detail = result_status(sources, "garbage", "cem")
+    assert status == PENDING and code == "invalid" and "changed during evaluation" in detail
     assert "mpsbug" in provenance.INVALID_MARKERS
 
 

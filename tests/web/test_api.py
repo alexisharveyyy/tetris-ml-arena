@@ -154,7 +154,8 @@ def test_leaderboard_from_reports(client) -> None:
     assert abs(cem["lo"] - 0.1214) < 1e-3 and abs(cem["hi"] - 0.1840) < 1e-3
     assert not cem["off_scale"]
     ppo = rows["ppo"]
-    assert ppo["status"] == "pending_rerun" and "MPS" in ppo["reason"]
+    assert ppo["status"] == "pending_rerun" and "known bug" in ppo["reason"]
+    assert "MPS" in ppo["detail"]
     assert "top_out_rate" not in ppo
     assert rows["dqn"]["status"] == "pending_rerun" and "top_out_rate" not in rows["dqn"]
     assert rows["neat"] == {"key": "neat", "evaluated": False, "status": "not_evaluated"}
@@ -186,3 +187,48 @@ def test_significance_note_wording() -> None:
         "A paired bootstrap on the same seeds finds a and b better than the baseline, "
         "and c worse. a and b are not significantly different from each other."
     )
+
+
+def test_record_mode_saves_a_recording(client, web_config, tmp_path) -> None:
+    web_config.recordings_dir = tmp_path / "recordings"
+    assert client.get("/api/recordings").json()["totals"]["games"] == 0
+    info = start(client, mode="record", opponents=(), record_setting="garbage")
+    assert info["mode"] == "record" and info["recording"]["setting"] == "garbage"
+    mid = info["match"]
+    session = client.app.state.arena.sessions[mid]
+    assert session.match.config.eval_garbage_every == 3
+    assert client.post(f"/api/matches/{mid}/recording/save").status_code == 409  # still running
+    game = session.match.players["human"].game
+
+    async def ignore(text: str) -> None:
+        return None
+
+    session.attach(ignore)
+    for _ in range(500):
+        if session.match.finished:
+            break
+        session.handle_input("hard", True, 0, 0.0)
+        session.handle_input("hard", False, 0, 0.0)
+        session.step(0.0)
+    saved = client.post(f"/api/matches/{mid}/recording/save").json()
+    assert saved["recording"]["saved"].endswith(".jsonl.gz")
+    assert saved["totals"]["games"] == 1
+    assert saved["recording"]["on_space"] + saved["recording"]["off_space"] == game.pieces_placed
+    client.post(f"/api/matches/{mid}/rematch", json={"new_seed": True})
+    assert client.get(f"/api/matches/{mid}").json()["recording"]["saved"] is None
+
+
+def test_watch_speed_change(client) -> None:
+    info = start(client, mode="watch", opponents=(("ga", "Easy"),))
+    mid = info["match"]
+    res = client.post(f"/api/matches/{mid}/difficulty", json={"player": "ai1", "preset": "Hard"})
+    assert res.status_code == 200 and res.json()["players"][0]["preset"] == "Hard"
+    session = client.app.state.arena.sessions[mid]
+    assert session.match.players["ai1"].spec.difficulty.pps == 2.0
+    bad = client.post(f"/api/matches/{mid}/difficulty", json={"player": "human", "preset": "Hard"})
+    assert bad.status_code == 422
+
+
+def test_index_without_a_build(client) -> None:
+    res = client.get("/")
+    assert res.status_code == 200 and "/debug" in res.text

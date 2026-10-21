@@ -17,6 +17,8 @@ def web_config(tmp_path, monkeypatch) -> WebConfig:
         runner_factory=InlineRunner,
         start_countdown=0.0,
         inline_checks=True,
+        recordings_dir=tmp_path / "recordings",
+        static_dir=tmp_path / "static",
     )
 
 

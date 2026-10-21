@@ -20,7 +20,7 @@ from typing import Any
 
 from tetris.agents.evaluation import wilson_interval
 from tetris.agents.identity import identity
-from tetris.agents.provenance import PENDING, load_sources, result_status
+from tetris.agents.provenance import PENDING, REASON_TEXT, load_sources, result_status
 
 PRESETS = ("Easy", "Medium", "Hard", "Unlimited")
 MINUTES = (1, 3, 5, 10)
@@ -137,9 +137,17 @@ def survival(reports: Path, keys: list[str], name_to_key: dict[str, str]) -> dic
         if r is None:
             rows.append({"key": key, "evaluated": False, "status": "not_evaluated"})
             continue
-        status, reason = result_status(sources, "garbage", key)
+        status, code, detail = result_status(sources, "garbage", key)
         if status == PENDING:
-            pending.append({"key": key, "evaluated": False, "status": PENDING, "reason": reason})
+            pending.append(
+                {
+                    "key": key,
+                    "evaluated": False,
+                    "status": PENDING,
+                    "reason": REASON_TEXT[code],
+                    "detail": detail,
+                }
+            )
             continue
         games = int(float(r["games"]))
         rate = float(r["top_out_rate"])
@@ -149,7 +157,7 @@ def survival(reports: Path, keys: list[str], name_to_key: dict[str, str]) -> dic
                 "key": key,
                 "evaluated": True,
                 "status": status,
-                "source": reason,
+                "source": detail,
                 "games": games,
                 "top_out_rate": rate,
                 "lo": lo,
@@ -206,7 +214,7 @@ def marathon(reports: Path, keys: list[str]) -> dict[str, Any]:
                 }
             )
             continue
-        status, reason = result_status(sources, "marathon", key)
+        status, code, detail = result_status(sources, "marathon", key)
         if status == PENDING:
             rows.append(
                 {
@@ -214,7 +222,8 @@ def marathon(reports: Path, keys: list[str]) -> dict[str, Any]:
                     "presets": dict.fromkeys(PRESETS),
                     "evaluated": False,
                     "status": PENDING,
-                    "reason": reason,
+                    "reason": REASON_TEXT[code],
+                    "detail": detail,
                 }
             )
             continue
@@ -236,6 +245,6 @@ def marathon(reports: Path, keys: list[str]) -> dict[str, Any]:
                 "cap_hit_rate": cap,
             }
         rows.append(
-            {"key": key, "presets": presets, "evaluated": True, "status": status, "source": reason}
+            {"key": key, "presets": presets, "evaluated": True, "status": status, "source": detail}
         )
     return {"minutes": list(MINUTES), "presets": list(PRESETS), "rows": rows}

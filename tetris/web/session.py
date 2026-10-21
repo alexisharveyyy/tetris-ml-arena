@@ -23,6 +23,7 @@ from tetris.engine.game import Move
 from tetris.match.controller import MatchConfig, MatchController, PlayerSpec
 from tetris.match.das import InputRepeater, RepeatSettings
 from tetris.match.history import MarathonHistory
+from tetris.match.recording import GameRecorder
 from tetris.web.protocol import dumps, encode_snapshot
 
 TICK = 1 / 60
@@ -45,7 +46,10 @@ class MatchSession:
         repeat: RepeatSettings,
         history: MarathonHistory | None = None,
         countdown: float = 0.0,
+        record_setting: str | None = None,
     ) -> None:
+        """``record_setting`` ("plain" or "garbage") records the human's game for
+        behavior cloning (see :mod:`tetris.match.recording`)."""
         self.id = uuid.uuid4().hex[:12]
         config.countdown = countdown
         self.match = MatchController(config, players, runner=runner, top_k=TOP_K)
@@ -66,6 +70,25 @@ class MatchSession:
         self._closed = False
         self.bytes_sent = 0
         self.snapshots_sent = 0
+        self.record_setting = record_setting
+        self.recorder: GameRecorder | None = None
+        self.saved_recording: str | None = None
+        self._start_recorder()
+
+    def _start_recorder(self) -> None:
+        if self.record_setting is None or self.human_id is None:
+            return
+        self.recorder = GameRecorder(self.human_id, self.match.config.seed, self.record_setting)
+        self.match.lock_listeners[:] = [self.recorder.on_lock]
+        self.recorder.start(self.match.players[self.human_id].game)
+        self.saved_recording = None
+
+    def save_recording(self, root=None):
+        """Write the finished recorded game; returns its path."""
+        assert self.recorder is not None and self.human_id is not None
+        path = self.recorder.save(self.match.players[self.human_id].game, root)
+        self.saved_recording = str(path)
+        return path
 
     # ------------------------------------------------------------ lifecycle
 
@@ -146,6 +169,7 @@ class MatchSession:
         self.user_paused = False
         self.repeater.reset()
         self._events.clear()
+        self._start_recorder()
 
     def keep_watching(self) -> None:
         self.match.keep_watching()

@@ -12,12 +12,14 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 from fastapi import FastAPI
-from fastapi.responses import FileResponse, RedirectResponse
+from fastapi.responses import FileResponse, HTMLResponse
+from fastapi.staticfiles import StaticFiles
 
 from tetris.agents.checkpoint_check import CheckpointVerifier
 from tetris.agents.registry import AGENTS, ROOT
 from tetris.match.agent_runtime import AgentRunner, ProcessRunner
 from tetris.match.history import DEFAULT_HISTORY_PATH, MarathonHistory
+from tetris.match.recording import RECORDINGS_DIR
 from tetris.settings import DEFAULT_SETTINGS_PATH, Settings
 from tetris.web.session import MatchSession
 
@@ -34,6 +36,9 @@ class WebConfig:
     start_countdown: float = 3.0
     #: Run checkpoint load tests in-process (tests with light agents only).
     inline_checks: bool = False
+    recordings_dir: Path = RECORDINGS_DIR
+    #: Built frontend (``npm run build`` in ``web/`` writes it here).
+    static_dir: Path = WEB_DIR / "static"
 
 
 @dataclass
@@ -79,9 +84,19 @@ def create_app(config: WebConfig | None = None) -> FastAPI:
     app.include_router(api_router)
     app.include_router(ws_router)
 
-    @app.get("/", include_in_schema=False)
-    async def index() -> RedirectResponse:
-        return RedirectResponse("/debug")
+    index_html = config.static_dir / "index.html"
+    if (config.static_dir / "assets").is_dir():
+        app.mount("/assets", StaticFiles(directory=config.static_dir / "assets"), name="assets")
+
+    @app.get("/", include_in_schema=False, response_model=None)
+    async def index() -> FileResponse | HTMLResponse:
+        if index_html.exists():
+            return FileResponse(index_html, headers={"Cache-Control": "no-cache"})
+        return HTMLResponse(
+            "<!doctype html><title>Tetris ML Arena</title><p>The frontend is not built yet. "
+            "Run <code>npm run build</code> in <code>web/</code>, or open "
+            '<a href="/debug">the debug page</a>.</p>'
+        )
 
     @app.get("/debug", include_in_schema=False)
     async def debug_page() -> FileResponse:

@@ -15,8 +15,9 @@ from tetris.agents.identity import GROUPS, HUMAN, IDENTITIES, LOOKS, Identity, i
 from tetris.agents.registry import AGENTS
 from tetris.match.controller import MatchConfig, PlayerSpec
 from tetris.match.lobby import HUMAN_ID, MAX_OPPONENTS, Lobby, OpponentSlot
+from tetris.match.recording import RECORD_SETTINGS, recording_totals
 from tetris.match.rules import RaceRules
-from tetris.settings import ACTIONS
+from tetris.settings import ACTIONS, Settings
 from tetris.web import leaderboard
 from tetris.web.app import AppState
 from tetris.web.protocol import json_schema
@@ -120,6 +121,11 @@ def get_settings(request: Request) -> dict[str, Any]:
     return _state(request).settings().to_dict()
 
 
+@router.get("/settings/defaults")
+def get_settings_defaults() -> dict[str, Any]:
+    return Settings().to_dict()
+
+
 @router.put("/settings")
 def put_settings(patch: SettingsPatch, request: Request) -> dict[str, Any]:
     state = _state(request)
@@ -190,10 +196,12 @@ class OpponentIn(BaseModel):
 
 
 class MatchIn(BaseModel):
-    mode: Literal["marathon", "race", "watch", "solo"]
+    mode: Literal["marathon", "race", "watch", "solo", "record"]
     opponents: list[OpponentIn] = []
     seed: int | None = Field(None, ge=0)
     race: dict[str, Any] | None = None
+    #: Record mode: "plain" (level gravity) or "garbage" (the training setting).
+    record_setting: Literal["plain", "garbage"] = "plain"
 
 
 def _player_specs(mode: str, opponents: list[OpponentIn]) -> list[PlayerSpec]:
@@ -215,9 +223,18 @@ def _player_specs(mode: str, opponents: list[OpponentIn]) -> list[PlayerSpec]:
 
 def _session_info(session: MatchSession) -> dict[str, Any]:
     m = session.match
+    rec = session.recorder
     return {
         "match": session.id,
-        "mode": m.config.mode,
+        "mode": "record" if session.record_setting else m.config.mode,
+        "recording": None
+        if rec is None
+        else {
+            "setting": session.record_setting,
+            "on_space": rec.on_space,
+            "off_space": rec.off_space,
+            "saved": session.saved_recording,
+        },
         "seed": m.config.seed,
         "ws": f"/ws?match={session.id}",
         "finished": m.finished,
@@ -244,6 +261,7 @@ async def create_match(body: MatchIn, request: Request) -> dict[str, Any]:
         "race": (1, MAX_OPPONENTS),
         "watch": (1, 1),
         "solo": (0, 0),
+        "record": (0, 0),
     }
     lo, hi = limits[body.mode]
     if not lo <= count <= hi:
@@ -279,7 +297,13 @@ async def create_match(body: MatchIn, request: Request) -> dict[str, Any]:
 
     await state.close_sessions()  # one match at a time: agents hold worker processes
     seed = body.seed if body.seed is not None else secrets.randbelow(100_000)
-    config = MatchConfig(mode=body.mode, seed=seed, race=race)
+    record = body.mode == "record"
+    config = MatchConfig(
+        mode="solo" if record else body.mode,
+        seed=seed,
+        race=race,
+        eval_garbage_every=(RECORD_SETTINGS[body.record_setting].garbage_every if record else None),
+    )
     specs = _player_specs(body.mode, body.opponents)
     runner = state.config.runner_factory() if body.opponents else None
     session = MatchSession(
@@ -289,6 +313,7 @@ async def create_match(body: MatchIn, request: Request) -> dict[str, Any]:
         settings.repeat_settings(),
         history=state.history() if body.mode == "marathon" else None,
         countdown=state.config.start_countdown if body.mode in LOBBY_MODES else 0.0,
+        record_setting=body.record_setting if record else None,
     )
     state.sessions[session.id] = session
     session.start()
@@ -361,3 +386,39 @@ async def delete_match(match_id: str, request: Request) -> None:
     session = _session(request, match_id)
     await session.close()
     state.sessions.pop(match_id, None)
+
+
+@router.get("/recordings")
+def get_recordings(request: Request) -> dict[str, Any]:
+    root = _state(request).config.recordings_dir
+    return {"settings": list(RECORD_SETTINGS), "totals": recording_totals(root)}
+
+
+@router.post("/matches/{match_id}/recording/save")
+def save_recording(match_id: str, request: Request) -> dict[str, Any]:
+    state = _state(request)
+    session = _session(request, match_id)
+    if session.recorder is None:
+        raise HTTPException(409, "this match is not being recorded")
+    if not session.match.finished:
+        raise HTTPException(409, "the game is still running")
+    if session.saved_recording is None:
+        session.save_recording(state.config.recordings_dir)
+    return {**_session_info(session), "totals": recording_totals(state.config.recordings_dir)}
+
+
+class DifficultyIn(BaseModel):
+    player: str
+    preset: Literal["Easy", "Medium", "Hard", "Unlimited"]
+
+
+@router.post("/matches/{match_id}/difficulty")
+def set_difficulty(match_id: str, body: DifficultyIn, request: Request) -> dict[str, Any]:
+    """Change an agent's speed mid-match (Watch AI)."""
+    session = _session(request, match_id)
+    player = session.match.players.get(body.player)
+    if player is None or player.spec.kind != "agent":
+        raise HTTPException(422, f"{body.player} is not an agent player")
+    session.match.set_difficulty(body.player, PRESETS[body.preset])
+    player.spec.preset = body.preset
+    return _session_info(session)

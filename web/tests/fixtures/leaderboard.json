@@ -1,0 +1,930 @@
+{
+  "survival": {
+    "scale_max": 0.5,
+    "setting": {
+      "garbage_rows": 1,
+      "garbage_every": 3,
+      "max_pieces": 500
+    },
+    "method": "Intervals are 95% Wilson score intervals from 500 games each. A garbage row arrives every 3 pieces and cannot be cancelled, and games stop at 500 pieces.",
+    "significance": "A paired bootstrap on the same seeds finds DQN, CEM, and GA heuristic better than the baseline, and PPO (raw actions) worse. DQN and CEM are not significantly different from each other, nor are CEM and GA heuristic.",
+    "rows": [
+      {
+        "key": "dqn",
+        "evaluated": true,
+        "status": "valid",
+        "source": "evaluated dqn/best.pt",
+        "games": 500,
+        "top_out_rate": 0.126,
+        "lo": 0.09973485690292784,
+        "hi": 0.1579683577581879,
+        "off_scale": false,
+        "pieces_survived": 475.612,
+        "score_per_piece": 1573.6900209623575
+      },
+      {
+        "key": "cem",
+        "evaluated": true,
+        "status": "valid",
+        "source": "evaluated cem/best.json",
+        "games": 500,
+        "top_out_rate": 0.15,
+        "lo": 0.12137548023138253,
+        "hi": 0.1839617527402498,
+        "off_scale": false,
+        "pieces_survived": 468.658,
+        "score_per_piece": 1522.4644671183216
+      },
+      {
+        "key": "ga",
+        "evaluated": true,
+        "status": "valid",
+        "source": "evaluated ga/best.json",
+        "games": 500,
+        "top_out_rate": 0.182,
+        "lo": 0.15064591449727432,
+        "hi": 0.21820334288838023,
+        "off_scale": false,
+        "pieces_survived": 457.86,
+        "score_per_piece": 1495.0250535681462
+      },
+      {
+        "key": "dellacherie",
+        "evaluated": true,
+        "status": "valid",
+        "source": "no checkpoint needed",
+        "games": 500,
+        "top_out_rate": 0.31,
+        "lo": 0.27103822626974466,
+        "hi": 0.3518591287719986,
+        "off_scale": false,
+        "pieces_survived": 427.504,
+        "score_per_piece": 1362.3645025779815
+      },
+      {
+        "key": "ppo_raw",
+        "evaluated": true,
+        "status": "valid",
+        "source": "evaluated ppo_raw/best.pt",
+        "games": 500,
+        "top_out_rate": 1.0,
+        "lo": 0.9923753814690964,
+        "hi": 0.9999999999999999,
+        "off_scale": true,
+        "pieces_survived": 44.352,
+        "score_per_piece": 58.82208543318747
+      },
+      {
+        "key": "ppo",
+        "evaluated": false,
+        "status": "pending_rerun",
+        "reason": "the evaluated checkpoint was produced by a known bug",
+        "detail": "ppo/best_mpsbug.pt: trained with the unchunked MPS bug (reports/ppo_mps_bug.md); evaluated as ppo/best.pt before it was renamed"
+      },
+      {
+        "key": "bc_you",
+        "evaluated": false,
+        "status": "not_evaluated"
+      },
+      {
+        "key": "neat",
+        "evaluated": false,
+        "status": "not_evaluated"
+      },
+      {
+        "key": "dt",
+        "evaluated": false,
+        "status": "not_evaluated"
+      },
+      {
+        "key": "llm",
+        "evaluated": false,
+        "status": "not_evaluated"
+      },
+      {
+        "key": "bc_pure",
+        "evaluated": false,
+        "status": "not_evaluated"
+      },
+      {
+        "key": "bc_dagger",
+        "evaluated": false,
+        "status": "not_evaluated"
+      }
+    ]
+  },
+  "marathon": {
+    "minutes": [
+      1,
+      3,
+      5,
+      10
+    ],
+    "presets": [
+      "Easy",
+      "Medium",
+      "Hard",
+      "Unlimited"
+    ],
+    "rows": [
+      {
+        "key": "dqn",
+        "presets": {
+          "Easy": {
+            "games": 100,
+            "score": {
+              "1": 1898.96,
+              "3": 10915.96,
+              "5": 26443.1,
+              "10": 78115.68
+            },
+            "lines": {
+              "1": 7.91,
+              "3": 30.61,
+              "5": 53.14,
+              "10": 98.04
+            },
+            "alive": {
+              "1": 1.0,
+              "3": 1.0,
+              "5": 0.98,
+              "10": 0.04
+            },
+            "time_to_top_out": 531.9223333331765,
+            "time_is_lower_bound": false,
+            "cap_hit_rate": 0.0
+          },
+          "Medium": {
+            "games": 100,
+            "score": {
+              "1": 6295.76,
+              "3": 41007.52,
+              "5": 103123.76,
+              "10": 370889.33
+            },
+            "lines": {
+              "1": 21.06,
+              "3": 68.22,
+              "5": 115.3,
+              "10": 231.12
+            },
+            "alive": {
+              "1": 1.0,
+              "3": 1.0,
+              "5": 1.0,
+              "10": 1.0
+            },
+            "time_to_top_out": 2012.442666665196,
+            "time_is_lower_bound": true,
+            "cap_hit_rate": 0.96
+          },
+          "Hard": {
+            "games": 100,
+            "score": {
+              "1": 20256.02,
+              "3": 145390.99,
+              "5": 371554.29,
+              "10": 983144.29
+            },
+            "lines": {
+              "1": 44.46,
+              "3": 138.85,
+              "5": 231.95,
+              "10": 462.0
+            },
+            "alive": {
+              "1": 1.0,
+              "3": 1.0,
+              "5": 1.0,
+              "10": 1.0
+            },
+            "time_to_top_out": 1037.5149999993853,
+            "time_is_lower_bound": true,
+            "cap_hit_rate": 1.0
+          },
+          "Unlimited": null
+        },
+        "evaluated": true,
+        "status": "valid",
+        "source": "evaluated dqn/best.pt"
+      },
+      {
+        "key": "cem",
+        "presets": {
+          "Easy": {
+            "games": 100,
+            "score": {
+              "1": 2009.12,
+              "3": 11050.36,
+              "5": 27116.44,
+              "10": 80899.79
+            },
+            "lines": {
+              "1": 8.54,
+              "3": 30.8,
+              "5": 53.29,
+              "10": 98.32
+            },
+            "alive": {
+              "1": 1.0,
+              "3": 0.99,
+              "5": 0.94,
+              "10": 0.06
+            },
+            "time_to_top_out": 529.5418333331756,
+            "time_is_lower_bound": false,
+            "cap_hit_rate": 0.0
+          },
+          "Medium": {
+            "games": 100,
+            "score": {
+              "1": 6443.8,
+              "3": 41074.86,
+              "5": 102766.5,
+              "10": 373106.29
+            },
+            "lines": {
+              "1": 21.58,
+              "3": 68.72,
+              "5": 115.64,
+              "10": 233.38
+            },
+            "alive": {
+              "1": 1.0,
+              "3": 1.0,
+              "5": 1.0,
+              "10": 1.0
+            },
+            "time_to_top_out": 1994.2326666651823,
+            "time_is_lower_bound": true,
+            "cap_hit_rate": 0.97
+          },
+          "Hard": {
+            "games": 100,
+            "score": {
+              "1": 20384.68,
+              "3": 142420.1,
+              "5": 366885.94,
+              "10": 975625.94
+            },
+            "lines": {
+              "1": 45.18,
+              "3": 139.04,
+              "5": 232.91,
+              "10": 464.55
+            },
+            "alive": {
+              "1": 1.0,
+              "3": 1.0,
+              "5": 1.0,
+              "10": 1.0
+            },
+            "time_to_top_out": 1031.5511666660575,
+            "time_is_lower_bound": true,
+            "cap_hit_rate": 1.0
+          },
+          "Unlimited": null
+        },
+        "evaluated": true,
+        "status": "valid",
+        "source": "evaluated cem/best.json"
+      },
+      {
+        "key": "ga",
+        "presets": {
+          "Easy": {
+            "games": 100,
+            "score": {
+              "1": 1980.4,
+              "3": 11216.42,
+              "5": 26775.96,
+              "10": 81923.02
+            },
+            "lines": {
+              "1": 8.52,
+              "3": 31.14,
+              "5": 53.14,
+              "10": 99.17
+            },
+            "alive": {
+              "1": 1.0,
+              "3": 1.0,
+              "5": 0.93,
+              "10": 0.06
+            },
+            "time_to_top_out": 533.2981666665075,
+            "time_is_lower_bound": false,
+            "cap_hit_rate": 0.0
+          },
+          "Medium": {
+            "games": 100,
+            "score": {
+              "1": 6354.04,
+              "3": 40172.92,
+              "5": 99445.86,
+              "10": 363607.49
+            },
+            "lines": {
+              "1": 21.54,
+              "3": 68.74,
+              "5": 115.71,
+              "10": 232.21
+            },
+            "alive": {
+              "1": 1.0,
+              "3": 1.0,
+              "5": 1.0,
+              "10": 1.0
+            },
+            "time_to_top_out": 1973.4873333318706,
+            "time_is_lower_bound": true,
+            "cap_hit_rate": 0.93
+          },
+          "Hard": {
+            "games": 100,
+            "score": {
+              "1": 19609.4,
+              "3": 136888.11,
+              "5": 357612.67,
+              "10": 950482.67
+            },
+            "lines": {
+              "1": 45.14,
+              "3": 139.03,
+              "5": 233.12,
+              "10": 464.13
+            },
+            "alive": {
+              "1": 1.0,
+              "3": 1.0,
+              "5": 1.0,
+              "10": 1.0
+            },
+            "time_to_top_out": 1031.820666666057,
+            "time_is_lower_bound": true,
+            "cap_hit_rate": 1.0
+          },
+          "Unlimited": null
+        },
+        "evaluated": true,
+        "status": "valid",
+        "source": "evaluated ga/best.json"
+      },
+      {
+        "key": "ppo",
+        "presets": {
+          "Easy": null,
+          "Medium": null,
+          "Hard": null,
+          "Unlimited": null
+        },
+        "evaluated": false,
+        "status": "pending_rerun",
+        "reason": "the evaluated checkpoint was produced by a known bug",
+        "detail": "ppo/best_mpsbug.pt: trained with the unchunked MPS bug (reports/ppo_mps_bug.md); evaluated as ppo/best.pt before it was renamed"
+      },
+      {
+        "key": "bc_you",
+        "presets": {
+          "Easy": null,
+          "Medium": null,
+          "Hard": null,
+          "Unlimited": null
+        },
+        "evaluated": false,
+        "status": "not_evaluated"
+      },
+      {
+        "key": "neat",
+        "presets": {
+          "Easy": null,
+          "Medium": null,
+          "Hard": null,
+          "Unlimited": null
+        },
+        "evaluated": false,
+        "status": "not_evaluated"
+      },
+      {
+        "key": "dt",
+        "presets": {
+          "Easy": null,
+          "Medium": null,
+          "Hard": null,
+          "Unlimited": null
+        },
+        "evaluated": false,
+        "status": "not_evaluated"
+      },
+      {
+        "key": "dellacherie",
+        "presets": {
+          "Easy": {
+            "games": 100,
+            "score": {
+              "1": 1993.78,
+              "3": 10816.08,
+              "5": 26338.64,
+              "10": 77120.9
+            },
+            "lines": {
+              "1": 8.74,
+              "3": 30.78,
+              "5": 53.28,
+              "10": 97.98
+            },
+            "alive": {
+              "1": 1.0,
+              "3": 0.98,
+              "5": 0.96,
+              "10": 0.1
+            },
+            "time_to_top_out": 529.9511666665088,
+            "time_is_lower_bound": false,
+            "cap_hit_rate": 0.0
+          },
+          "Medium": {
+            "games": 100,
+            "score": {
+              "1": 6240.92,
+              "3": 39031.38,
+              "5": 96883.3,
+              "10": 357140.98
+            },
+            "lines": {
+              "1": 21.74,
+              "3": 68.93,
+              "5": 116.12,
+              "10": 232.82
+            },
+            "alive": {
+              "1": 1.0,
+              "3": 1.0,
+              "5": 1.0,
+              "10": 1.0
+            },
+            "time_to_top_out": 2001.9718333318428,
+            "time_is_lower_bound": true,
+            "cap_hit_rate": 0.96
+          },
+          "Hard": {
+            "games": 100,
+            "score": {
+              "1": 19317.46,
+              "3": 133009.82,
+              "5": 347027.6,
+              "10": 924187.6
+            },
+            "lines": {
+              "1": 45.45,
+              "3": 139.39,
+              "5": 232.22,
+              "10": 461.4
+            },
+            "alive": {
+              "1": 1.0,
+              "3": 1.0,
+              "5": 0.99,
+              "10": 0.99
+            },
+            "time_to_top_out": 1024.06883333273,
+            "time_is_lower_bound": true,
+            "cap_hit_rate": 0.99
+          },
+          "Unlimited": null
+        },
+        "evaluated": true,
+        "status": "valid",
+        "source": "no checkpoint needed"
+      },
+      {
+        "key": "llm",
+        "presets": {
+          "Easy": null,
+          "Medium": null,
+          "Hard": null,
+          "Unlimited": null
+        },
+        "evaluated": false,
+        "status": "not_evaluated"
+      },
+      {
+        "key": "ppo_raw",
+        "presets": {
+          "Easy": {
+            "games": 100,
+            "score": {
+              "1": 908.8,
+              "3": 1313.66,
+              "5": 1313.66,
+              "10": 1313.66
+            },
+            "lines": {
+              "1": 2.08,
+              "3": 4.26,
+              "5": 4.26,
+              "10": 4.26
+            },
+            "alive": {
+              "1": 1.0,
+              "3": 0.0,
+              "5": 0.0,
+              "10": 0.0
+            },
+            "time_to_top_out": 99.07066666666283,
+            "time_is_lower_bound": false,
+            "cap_hit_rate": 0.0
+          },
+          "Medium": {
+            "games": 100,
+            "score": {
+              "1": 2585.97,
+              "3": 3346.58,
+              "5": 3346.58,
+              "10": 3346.58
+            },
+            "lines": {
+              "1": 10.2,
+              "3": 12.96,
+              "5": 12.96,
+              "10": 12.96
+            },
+            "alive": {
+              "1": 0.95,
+              "3": 0.0,
+              "5": 0.0,
+              "10": 0.0
+            },
+            "time_to_top_out": 77.22866666666357,
+            "time_is_lower_bound": false,
+            "cap_hit_rate": 0.0
+          },
+          "Hard": {
+            "games": 100,
+            "score": {
+              "1": 5865.04,
+              "3": 5873.2,
+              "5": 5873.2,
+              "10": 5873.2
+            },
+            "lines": {
+              "1": 20.11,
+              "3": 20.13,
+              "5": 20.13,
+              "10": 20.13
+            },
+            "alive": {
+              "1": 0.02,
+              "3": 0.0,
+              "5": 0.0,
+              "10": 0.0
+            },
+            "time_to_top_out": 48.0248333333319,
+            "time_is_lower_bound": false,
+            "cap_hit_rate": 0.0
+          },
+          "Unlimited": null
+        },
+        "evaluated": true,
+        "status": "valid",
+        "source": "evaluated ppo_raw/best.pt"
+      },
+      {
+        "key": "bc_pure",
+        "presets": {
+          "Easy": null,
+          "Medium": null,
+          "Hard": null,
+          "Unlimited": null
+        },
+        "evaluated": false,
+        "status": "not_evaluated"
+      },
+      {
+        "key": "bc_dagger",
+        "presets": {
+          "Easy": null,
+          "Medium": null,
+          "Hard": null,
+          "Unlimited": null
+        },
+        "evaluated": false,
+        "status": "not_evaluated"
+      }
+    ]
+  },
+  "records": {
+    "dqn": {
+      "Easy": {
+        "wins": 0,
+        "losses": 0,
+        "ties": 0,
+        "text": "no games yet"
+      },
+      "Medium": {
+        "wins": 0,
+        "losses": 0,
+        "ties": 0,
+        "text": "no games yet"
+      },
+      "Hard": {
+        "wins": 0,
+        "losses": 0,
+        "ties": 0,
+        "text": "no games yet"
+      },
+      "Unlimited": {
+        "wins": 0,
+        "losses": 0,
+        "ties": 0,
+        "text": "no games yet"
+      }
+    },
+    "cem": {
+      "Easy": {
+        "wins": 0,
+        "losses": 0,
+        "ties": 0,
+        "text": "no games yet"
+      },
+      "Medium": {
+        "wins": 0,
+        "losses": 0,
+        "ties": 0,
+        "text": "no games yet"
+      },
+      "Hard": {
+        "wins": 0,
+        "losses": 0,
+        "ties": 0,
+        "text": "no games yet"
+      },
+      "Unlimited": {
+        "wins": 0,
+        "losses": 0,
+        "ties": 0,
+        "text": "no games yet"
+      }
+    },
+    "ga": {
+      "Easy": {
+        "wins": 0,
+        "losses": 0,
+        "ties": 0,
+        "text": "no games yet"
+      },
+      "Medium": {
+        "wins": 0,
+        "losses": 0,
+        "ties": 0,
+        "text": "no games yet"
+      },
+      "Hard": {
+        "wins": 0,
+        "losses": 0,
+        "ties": 0,
+        "text": "no games yet"
+      },
+      "Unlimited": {
+        "wins": 0,
+        "losses": 0,
+        "ties": 0,
+        "text": "no games yet"
+      }
+    },
+    "ppo": {
+      "Easy": {
+        "wins": 0,
+        "losses": 0,
+        "ties": 0,
+        "text": "no games yet"
+      },
+      "Medium": {
+        "wins": 0,
+        "losses": 0,
+        "ties": 0,
+        "text": "no games yet"
+      },
+      "Hard": {
+        "wins": 0,
+        "losses": 0,
+        "ties": 0,
+        "text": "no games yet"
+      },
+      "Unlimited": {
+        "wins": 0,
+        "losses": 0,
+        "ties": 0,
+        "text": "no games yet"
+      }
+    },
+    "bc_you": {
+      "Easy": {
+        "wins": 0,
+        "losses": 0,
+        "ties": 0,
+        "text": "no games yet"
+      },
+      "Medium": {
+        "wins": 0,
+        "losses": 0,
+        "ties": 0,
+        "text": "no games yet"
+      },
+      "Hard": {
+        "wins": 0,
+        "losses": 0,
+        "ties": 0,
+        "text": "no games yet"
+      },
+      "Unlimited": {
+        "wins": 0,
+        "losses": 0,
+        "ties": 0,
+        "text": "no games yet"
+      }
+    },
+    "neat": {
+      "Easy": {
+        "wins": 0,
+        "losses": 0,
+        "ties": 0,
+        "text": "no games yet"
+      },
+      "Medium": {
+        "wins": 0,
+        "losses": 0,
+        "ties": 0,
+        "text": "no games yet"
+      },
+      "Hard": {
+        "wins": 0,
+        "losses": 0,
+        "ties": 0,
+        "text": "no games yet"
+      },
+      "Unlimited": {
+        "wins": 0,
+        "losses": 0,
+        "ties": 0,
+        "text": "no games yet"
+      }
+    },
+    "dt": {
+      "Easy": {
+        "wins": 0,
+        "losses": 0,
+        "ties": 0,
+        "text": "no games yet"
+      },
+      "Medium": {
+        "wins": 0,
+        "losses": 0,
+        "ties": 0,
+        "text": "no games yet"
+      },
+      "Hard": {
+        "wins": 0,
+        "losses": 0,
+        "ties": 0,
+        "text": "no games yet"
+      },
+      "Unlimited": {
+        "wins": 0,
+        "losses": 0,
+        "ties": 0,
+        "text": "no games yet"
+      }
+    },
+    "dellacherie": {
+      "Easy": {
+        "wins": 0,
+        "losses": 0,
+        "ties": 0,
+        "text": "no games yet"
+      },
+      "Medium": {
+        "wins": 0,
+        "losses": 0,
+        "ties": 0,
+        "text": "no games yet"
+      },
+      "Hard": {
+        "wins": 0,
+        "losses": 0,
+        "ties": 0,
+        "text": "no games yet"
+      },
+      "Unlimited": {
+        "wins": 0,
+        "losses": 0,
+        "ties": 0,
+        "text": "no games yet"
+      }
+    },
+    "llm": {
+      "Easy": {
+        "wins": 0,
+        "losses": 0,
+        "ties": 0,
+        "text": "no games yet"
+      },
+      "Medium": {
+        "wins": 0,
+        "losses": 0,
+        "ties": 0,
+        "text": "no games yet"
+      },
+      "Hard": {
+        "wins": 0,
+        "losses": 0,
+        "ties": 0,
+        "text": "no games yet"
+      },
+      "Unlimited": {
+        "wins": 0,
+        "losses": 0,
+        "ties": 0,
+        "text": "no games yet"
+      }
+    },
+    "ppo_raw": {
+      "Easy": {
+        "wins": 0,
+        "losses": 0,
+        "ties": 0,
+        "text": "no games yet"
+      },
+      "Medium": {
+        "wins": 0,
+        "losses": 0,
+        "ties": 0,
+        "text": "no games yet"
+      },
+      "Hard": {
+        "wins": 0,
+        "losses": 0,
+        "ties": 0,
+        "text": "no games yet"
+      },
+      "Unlimited": {
+        "wins": 0,
+        "losses": 0,
+        "ties": 0,
+        "text": "no games yet"
+      }
+    },
+    "bc_pure": {
+      "Easy": {
+        "wins": 0,
+        "losses": 0,
+        "ties": 0,
+        "text": "no games yet"
+      },
+      "Medium": {
+        "wins": 0,
+        "losses": 0,
+        "ties": 0,
+        "text": "no games yet"
+      },
+      "Hard": {
+        "wins": 0,
+        "losses": 0,
+        "ties": 0,
+        "text": "no games yet"
+      },
+      "Unlimited": {
+        "wins": 0,
+        "losses": 0,
+        "ties": 0,
+        "text": "no games yet"
+      }
+    },
+    "bc_dagger": {
+      "Easy": {
+        "wins": 0,
+        "losses": 0,
+        "ties": 0,
+        "text": "no games yet"
+      },
+      "Medium": {
+        "wins": 0,
+        "losses": 0,
+        "ties": 0,
+        "text": "no games yet"
+      },
+      "Hard": {
+        "wins": 0,
+        "losses": 0,
+        "ties": 0,
+        "text": "no games yet"
+      },
+      "Unlimited": {
+        "wins": 0,
+        "losses": 0,
+        "ties": 0,
+        "text": "no games yet"
+      }
+    }
+  }
+}

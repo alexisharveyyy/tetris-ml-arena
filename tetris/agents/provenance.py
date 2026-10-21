@@ -85,24 +85,40 @@ def write_sources(reports: Path, section: str, sources: dict[str, dict[str, Any]
     (reports / SOURCES_FILE).write_text(json.dumps(data, indent=2) + "\n")
 
 
-def result_status(sources: dict[str, Any], section: str, key: str) -> tuple[str, str]:
-    """``(VALID or PENDING, reason)`` for one agent's result in one report section."""
+#: Plain sentences for each pending reason code (UI copy).
+REASON_TEXT: dict[str, str] = {
+    "unrecorded": "the report does not say which checkpoint it evaluated",
+    "invalid": "the evaluated checkpoint was produced by a known bug",
+    "buggy": "the evaluated checkpoint was produced by a known bug",
+    "unregistered": "the agent is not registered",
+    "missing": "the evaluated checkpoint is not on this computer",
+    "changed": "the agent's checkpoint changed after it was evaluated",
+}
+
+
+def result_status(sources: dict[str, Any], section: str, key: str) -> tuple[str, str, str]:
+    """``(VALID or PENDING, reason code, detail)`` for one agent's result in one section.
+
+    Codes: ``no_checkpoint`` and ``evaluated`` (valid); ``unrecorded``,
+    ``invalid``, ``buggy``, ``unregistered``, ``missing`` and ``changed``
+    (pending; see :data:`REASON_TEXT`).
+    """
     entry = sources.get("sections", {}).get(section, {}).get("agents", {}).get(key)
     if entry is None:
-        return PENDING, "the report does not record which checkpoint produced this result"
-    if entry.get("invalid"):
-        return PENDING, f"result marked invalid: {entry['invalid']}"
+        return PENDING, "unrecorded", "no source recorded for this agent"
     name = entry.get("checkpoint")
+    if entry.get("invalid"):
+        return PENDING, "invalid", f"{name}: {entry['invalid']}"
     if name is not None and any(m in Path(name).name for m in INVALID_MARKERS):
-        return PENDING, f"produced by {name}, a checkpoint marked as buggy"
+        return PENDING, "buggy", f"{name} is marked as produced by a bug"
     spec = AGENTS.get(key)
     if spec is None:
-        return PENDING, "agent is not registered"
+        return PENDING, "unregistered", f"{key} is not in the registry"
     current = spec.checkpoint_path
     if name is None and current is None:
-        return VALID, "no checkpoint needed"
+        return VALID, "no_checkpoint", "no checkpoint needed"
     if current is None or not current.exists():
-        return PENDING, "the evaluated checkpoint is not the current promoted file (none found)"
+        return PENDING, "missing", f"no promoted checkpoint found for {key}"
     if file_sha256(current) != entry.get("sha256"):
-        return PENDING, f"the promoted checkpoint changed since {name} was evaluated"
-    return VALID, f"evaluated {name}"
+        return PENDING, "changed", f"{current} differs from the evaluated {name}"
+    return VALID, "evaluated", f"evaluated {name}"
