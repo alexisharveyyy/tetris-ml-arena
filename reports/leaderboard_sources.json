@@ -1,0 +1,109 @@
+{
+  "sections": {
+    "garbage": {
+      "written_at": "2026-10-20T03:44",
+      "basis": "inferred on 2026-10-20 for reports written before evaluate.py recorded sources: every checkpoint listed was last modified before the report was written (garbage and plain 03:44-03:52, marathon 12:12 on 2026-10-20) and has not changed since",
+      "agents": {
+        "dellacherie": {
+          "checkpoint": null
+        },
+        "ga": {
+          "checkpoint": "ga/best.json",
+          "sha256": "2fb7b2a8c1befeb39d0d623902daa25ac64fbf943e0b091c335b8129eb603a46",
+          "size": 2413
+        },
+        "cem": {
+          "checkpoint": "cem/best.json",
+          "sha256": "c519fe6806021581e9587011c14764b1fca796f2892b1dfa9573abdeafafc54e",
+          "size": 2316
+        },
+        "dqn": {
+          "checkpoint": "dqn/best.pt",
+          "sha256": "2a40d5e844ce0adde44007d7ecc2c67c42231dfd8d753fdab113c06e8a4f7502",
+          "size": 464125
+        },
+        "ppo_raw": {
+          "checkpoint": "ppo_raw/best.pt",
+          "sha256": "7c500942c6cf4a7b95d04b9a21188d3e5dce1fda5c864fba0a34dae101c0e51e",
+          "size": 736359
+        },
+        "ppo": {
+          "checkpoint": "ppo/best_mpsbug.pt",
+          "sha256": "97cf51d9504187593b5a926e7be095bd610bd9d23949791b3c3c1248e276eab2",
+          "size": 1116297,
+          "invalid": "trained with the unchunked MPS bug (reports/ppo_mps_bug.md); evaluated as ppo/best.pt before it was renamed"
+        }
+      }
+    },
+    "plain": {
+      "written_at": "2026-10-20T03:52",
+      "basis": "inferred on 2026-10-20 for reports written before evaluate.py recorded sources: every checkpoint listed was last modified before the report was written (garbage and plain 03:44-03:52, marathon 12:12 on 2026-10-20) and has not changed since",
+      "agents": {
+        "dellacherie": {
+          "checkpoint": null
+        },
+        "ga": {
+          "checkpoint": "ga/best.json",
+          "sha256": "2fb7b2a8c1befeb39d0d623902daa25ac64fbf943e0b091c335b8129eb603a46",
+          "size": 2413
+        },
+        "cem": {
+          "checkpoint": "cem/best.json",
+          "sha256": "c519fe6806021581e9587011c14764b1fca796f2892b1dfa9573abdeafafc54e",
+          "size": 2316
+        },
+        "dqn": {
+          "checkpoint": "dqn/best.pt",
+          "sha256": "2a40d5e844ce0adde44007d7ecc2c67c42231dfd8d753fdab113c06e8a4f7502",
+          "size": 464125
+        },
+        "ppo_raw": {
+          "checkpoint": "ppo_raw/best.pt",
+          "sha256": "7c500942c6cf4a7b95d04b9a21188d3e5dce1fda5c864fba0a34dae101c0e51e",
+          "size": 736359
+        },
+        "ppo": {
+          "checkpoint": "ppo/best_mpsbug.pt",
+          "sha256": "97cf51d9504187593b5a926e7be095bd610bd9d23949791b3c3c1248e276eab2",
+          "size": 1116297,
+          "invalid": "trained with the unchunked MPS bug (reports/ppo_mps_bug.md); evaluated as ppo/best.pt before it was renamed"
+        }
+      }
+    },
+    "marathon": {
+      "written_at": "2026-10-20T12:12",
+      "basis": "inferred on 2026-10-20 for reports written before evaluate.py recorded sources: every checkpoint listed was last modified before the report was written (garbage and plain 03:44-03:52, marathon 12:12 on 2026-10-20) and has not changed since",
+      "agents": {
+        "dellacherie": {
+          "checkpoint": null
+        },
+        "ga": {
+          "checkpoint": "ga/best.json",
+          "sha256": "2fb7b2a8c1befeb39d0d623902daa25ac64fbf943e0b091c335b8129eb603a46",
+          "size": 2413
+        },
+        "cem": {
+          "checkpoint": "cem/best.json",
+          "sha256": "c519fe6806021581e9587011c14764b1fca796f2892b1dfa9573abdeafafc54e",
+          "size": 2316
+        },
+        "dqn": {
+          "checkpoint": "dqn/best.pt",
+          "sha256": "2a40d5e844ce0adde44007d7ecc2c67c42231dfd8d753fdab113c06e8a4f7502",
+          "size": 464125
+        },
+        "ppo_raw": {
+          "checkpoint": "ppo_raw/best.pt",
+          "sha256": "7c500942c6cf4a7b95d04b9a21188d3e5dce1fda5c864fba0a34dae101c0e51e",
+          "size": 736359
+        },
+        "ppo": {
+          "checkpoint": "ppo/best_mpsbug.pt",
+          "sha256": "97cf51d9504187593b5a926e7be095bd610bd9d23949791b3c3c1248e276eab2",
+          "size": 1116297,
+          "invalid": "trained with the unchunked MPS bug (reports/ppo_mps_bug.md); evaluated as ppo/best.pt before it was renamed"
+        }
+      }
+    }
+  }
+}

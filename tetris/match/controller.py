@@ -1,9 +1,10 @@
 """Match controller: owns every board and the shared clock.
 
-Frontends (Pygame now, a WebSocket server later) only call
+Frontends (the Pygame app and the web server) only call
 :meth:`MatchController.step`, :meth:`MatchController.apply_input` and
 :meth:`MatchController.get_snapshot`. The snapshot is plain JSON-serializable
-data, so the same controller can drive any renderer.
+data, so the same controller can drive any renderer. :meth:`MatchController.pop_feed`
+returns the typed event feed (see :mod:`tetris.match.feed`).
 
 Two clock modes:
 
@@ -28,6 +29,7 @@ from tetris.engine.rng import derive_seed
 from tetris.env.tetris_env import inject_scheduled_garbage
 from tetris.match.agent_driver import AgentDriver
 from tetris.match.agent_runtime import AgentRunner, InlineRunner
+from tetris.match.feed import FeedTracker
 from tetris.match.rules import (
     FIRST_TO_LINES,
     LINES_IN_TIME,
@@ -175,6 +177,9 @@ class MatchController:
             [s.player_id for s in self.specs], derive_seed(seed, _ROUTER_SEED_STREAM), default_mode
         )
         self.events: list[dict[str, Any]] = []
+        self.feed = getattr(self, "feed", None) or FeedTracker()
+        self.feed.reset(self.live_standings())
+        self._standings_dirty = False
 
     def close(self) -> None:
         """Shut down agent runners."""
@@ -233,6 +238,7 @@ class MatchController:
         changed = player.game.apply(action)
         self._collect(player)
         self._check_end()
+        self._update_feed()
         return changed
 
     def step(self, dt: float) -> None:
@@ -259,10 +265,39 @@ class MatchController:
                 player.game.tick(dt)
             self._collect(player)
         self._check_end()
+        self._update_feed()
 
     def pop_events(self) -> list[dict[str, Any]]:
         events, self.events = self.events, []
         return events
+
+    def pop_feed(self) -> list[dict[str, Any]]:
+        """Typed feed events since the last call (see :mod:`tetris.match.feed`)."""
+        return self.feed.pop()
+
+    def live_standings(self) -> list[str]:
+        """Player ids by current place (the final standings once finished)."""
+        rows = self.standings if self.finished else self._rank()
+        return [r["id"] for r in rows]
+
+    def _human_id(self) -> str | None:
+        return next((s.player_id for s in self.specs if s.kind == "human"), None)
+
+    def _update_feed(self) -> None:
+        if self.runner is not None:
+            for player in self.players.values():
+                if player.driver is not None:
+                    reason = self.runner.fallback_reason(player.spec.player_id)
+                    if reason is not None:
+                        self.feed.on_fallback(player.spec.player_id, reason, self.time)
+        if (
+            self._standings_dirty
+            and not self.finished
+            and self.config.mode in ("marathon", "race")
+            and len(self.players) > 1
+        ):
+            self.feed.on_standings(self._rank(), self.time, self._human_id())
+        self._standings_dirty = False
 
     # ------------------------------------------------------------- events
 
@@ -278,6 +313,11 @@ class MatchController:
             d = ev.to_dict()
             d["player_id"] = pid
             self.events.append(d)
+            self.feed.on_engine_event(
+                pid, d, self.time, player.game.lines, player.spec.kind == "human"
+            )
+            if ev.type in ("lock", "game_over"):
+                self._standings_dirty = True
             if ev.type == "lock":
                 self._on_lock(player, ev.data)
             elif ev.type == "game_over" and player.finish_time is None:
@@ -351,6 +391,7 @@ class MatchController:
         self.standings = self._rank()
         self.winner = self.standings[0]["id"] if self.standings else None
         self.events.append({"type": "match_over", "winner": self.winner})
+        self.feed.on_match_end(self.winner, self.standings, self.time)
 
     def _rank(self) -> list[dict[str, Any]]:
         players = list(self.players.values())
@@ -379,6 +420,10 @@ class MatchController:
 
         ranked = sorted(players, key=key)
         return [{"place": i + 1, **self._result_row(p)} for i, p in enumerate(ranked)]
+
+    def player_row(self, player_id: str) -> dict[str, Any]:
+        """Current stats of one player, in the same form as a standings row."""
+        return self._result_row(self.players[player_id])
 
     def _result_row(self, p: PlayerState) -> dict[str, Any]:
         g = p.game

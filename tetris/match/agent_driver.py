@@ -59,6 +59,11 @@ class AgentDriver:
         self._redecisions = 0
         self.redecisions_total = 0
         self.candidate_cells: list[dict[str, Any]] = []
+        # The previous piece's candidates, kept for overlays (see :meth:`overlay`).
+        self._last_cells: list[dict[str, Any]] = []
+        self._last_token = -1
+        self._last_lines = -1
+        self._cand_lines = -1
 
     @property
     def thinking(self) -> bool:
@@ -119,7 +124,12 @@ class AgentDriver:
         self.decisions += 1
         self.total_think_time += decision.think_time
         self.last_error = decision.error
-        self.candidate_cells = self._cells_for(game, decision.candidates)
+        self.candidate_cells = (
+            [] if decision.fallback else self._cells_for(game, decision.candidates)
+        )
+        self._cand_lines = game.lines
+        if decision.fallback:
+            self._last_cells = []
         self.phase = Phase.WAITING
 
     def _drop_allowed(self) -> bool:
@@ -156,7 +166,29 @@ class AgentDriver:
         self.phase = Phase.IDLE
         self._decision = None
         self._executor = None
+        if self.candidate_cells:
+            self._last_cells = self.candidate_cells
+            self._last_token = self._token
+            self._last_lines = self._cand_lines
         self.candidate_cells = []
+
+    def overlay(self, game: Game) -> tuple[list[dict[str, Any]], bool]:
+        """Candidates to draw, and whether they are for the current piece.
+
+        Fast agents (Unlimited) decide, move and lock within one frame, so the
+        current piece rarely has candidates when a frame is drawn. Then the
+        previous piece's candidates are returned instead, as long as that lock
+        cleared no lines (so the outlined rows have not moved).
+        """
+        if self.candidate_cells:
+            return self.candidate_cells, True
+        if (
+            self._last_cells
+            and game.pieces_placed == self._last_token + 1
+            and game.lines == self._last_lines
+        ):
+            return self._last_cells, False
+        return [], False
 
     @staticmethod
     def _cells_for(game: Game, candidates: list[tuple[Placement, float]]) -> list[dict[str, Any]]:

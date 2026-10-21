@@ -26,6 +26,8 @@ class Decision:
     candidates: list[tuple[Placement, float]] = field(default_factory=list)
     think_time: float = 0.0
     error: str | None = None
+    #: Made by the baseline after this slot fell back (no model candidates).
+    fallback: bool = False
 
 
 class AgentRunner(ABC):
@@ -66,6 +68,11 @@ class AgentRunner(ABC):
         """A warning to show for this player (for example after a fallback), or None."""
         return None
 
+    def fallback_reason(self, player_id: str) -> str | None:
+        """Why this slot uses the baseline (a :data:`~tetris.match.feed.FALLBACK_TEXT`
+        code: ``timeout``, ``crash``, ``load_failed`` or ``load_timeout``), or None."""
+        return None
+
     def close(self) -> None:  # noqa: B027 - optional hook, default does nothing
         """Release resources."""
 
@@ -83,6 +90,14 @@ def decide(agent: Any, request_id: int, state: dict[str, Any], top_k: int) -> De
         )
     except Exception as exc:  # noqa: BLE001 - surfaced to the driver, which falls back
         return Decision(request_id, None, [], time.perf_counter() - t0, error=repr(exc))
+
+
+def _fallback_decision(agent: Any, request_id: int, state: dict[str, Any], top_k: int) -> Decision:
+    """A baseline decision for a fallen-back slot. Its candidates are dropped: the
+    overlay shows the model's thinking, and the model is no longer playing."""
+    decision = decide(agent, request_id, state, 0)
+    decision.fallback = True
+    return decision
 
 
 class InlineRunner(AgentRunner):
@@ -138,6 +153,7 @@ class _Worker:
     result: Decision | None = None
     fallback: Any = None  # in-process agent after a failure
     warning: str | None = None
+    reason: str | None = None  # fallback reason code
 
 
 class ProcessRunner(AgentRunner):
@@ -220,15 +236,15 @@ class ProcessRunner(AgentRunner):
                     w.ready = True
                     w.startup_seconds = time.perf_counter() - w.started
                 else:
-                    self._fall_back(w, "failed to load")
+                    self._fall_back(w, "failed to load", "load_failed")
                 return
         except (EOFError, OSError):
-            self._fall_back(w, "crashed while loading")
+            self._fall_back(w, "crashed while loading", "load_failed")
             return
         if not w.process.is_alive():
-            self._fall_back(w, "crashed while loading")
+            self._fall_back(w, "crashed while loading", "load_failed")
         elif time.perf_counter() - w.started > w.startup_timeout:
-            self._fall_back(w, "load timed out")
+            self._fall_back(w, "load timed out", "load_timeout")
 
     def ready(self) -> bool:
         for w in self._workers.values():
@@ -253,13 +269,14 @@ class ProcessRunner(AgentRunner):
 
     # ------------------------------------------------------------ fallback
 
-    def _fall_back(self, w: _Worker, reason: str) -> None:
+    def _fall_back(self, w: _Worker, reason: str, code: str = "crash") -> None:
         from tetris.agents.registry import AGENTS, create_agent
 
         if w.fallback is not None:
             return
         w.fallback = create_agent(FALLBACK_AGENT, difficulty=w.difficulty, seed=w.seed)
         w.warning = f"{reason}; using {AGENTS[FALLBACK_AGENT].name}"
+        w.reason = code
         try:
             w.process.kill()
         except Exception:  # noqa: BLE001 - already gone
@@ -267,11 +284,14 @@ class ProcessRunner(AgentRunner):
         w.conn.close()
         if w.pending is not None:
             request_id, _, state, top_k = w.pending
-            w.result = decide(w.fallback, request_id, state, top_k)
+            w.result = _fallback_decision(w.fallback, request_id, state, top_k)
             w.pending = None
 
     def status(self, player_id: str) -> str | None:
         return self._workers[player_id].warning
+
+    def fallback_reason(self, player_id: str) -> str | None:
+        return self._workers[player_id].reason
 
     # ----------------------------------------------------------- requests
 
@@ -290,7 +310,7 @@ class ProcessRunner(AgentRunner):
         w = self._workers[player_id]
         w.result = None
         if w.fallback is not None:
-            w.result = decide(w.fallback, request_id, state, top_k)
+            w.result = _fallback_decision(w.fallback, request_id, state, top_k)
             return
         w.pending = (request_id, time.perf_counter(), state, top_k)
         if not w.ready:
@@ -330,7 +350,7 @@ class ProcessRunner(AgentRunner):
         if not w.process.is_alive():
             self._fall_back(w, "crashed")
         elif time.perf_counter() - w.pending[1] > w.timeout:
-            self._fall_back(w, f"timed out (>{w.timeout:g}s)")
+            self._fall_back(w, f"timed out (>{w.timeout:g}s)", "timeout")
 
     def poll(self, player_id: str) -> Decision | None:
         w = self._workers[player_id]

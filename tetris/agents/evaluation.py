@@ -7,6 +7,7 @@ garbage schedule as :class:`~tetris.env.TetrisEnv`.
 
 from __future__ import annotations
 
+import math
 import multiprocessing as mp
 import os
 from collections.abc import Callable, Iterable, Sequence
@@ -154,6 +155,21 @@ def paired_bootstrap(
     return out
 
 
+def wilson_interval(successes: int, n: int, z: float = 1.96) -> tuple[float, float]:
+    """Wilson score interval for a binomial proportion (95% for z = 1.96).
+
+    Unlike the normal approximation it stays inside [0, 1] and has nonzero
+    width at 0% and 100%.
+    """
+    if n <= 0:
+        return (0.0, 1.0)
+    p = successes / n
+    denom = 1 + z * z / n
+    center = (p + z * z / (2 * n)) / denom
+    half = z * math.sqrt(p * (1 - p) / n + z * z / (4 * n * n)) / denom
+    return (max(0.0, center - half), min(1.0, center + half))
+
+
 def summarize(stats: Sequence[GameStats]) -> dict[str, float]:
     """Aggregate metrics for reports.
 
@@ -169,6 +185,13 @@ def summarize(stats: Sequence[GameStats]) -> dict[str, float]:
         "score_per_piece": float(np.mean([s.score_per_piece for s in stats])),
         "lines_per_piece": float(np.mean([s.lines_per_piece for s in stats])),
         "top_out_rate": float(np.mean([s.topped_out for s in stats])),
+        **dict(
+            zip(
+                ("top_out_lo", "top_out_hi"),
+                wilson_interval(sum(bool(s.topped_out) for s in stats), len(stats)),
+                strict=True,
+            )
+        ),
         "attack_per_minute": float(
             np.mean([s.attack / m if m > 0 else 0.0 for s, m in zip(stats, minutes, strict=True)])
         ),

@@ -7,6 +7,7 @@ spawning a worker process) never imports heavy dependencies it does not need.
 from __future__ import annotations
 
 import importlib
+import os
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -16,7 +17,12 @@ from tetris.agents.base import Agent
 from tetris.agents.difficulty import DifficultyParams
 
 ROOT = Path(__file__).resolve().parent.parent.parent
+#: Where trainers write. Play and evaluation also read from here.
 CHECKPOINT_DIR = ROOT / "checkpoints"
+#: Environment variable naming an extra, read-only checkpoint directory, searched
+#: before CHECKPOINT_DIR for each agent's promoted file (for example another
+#: checkout's ``checkpoints/``). Nothing in this package writes to it.
+CHECKPOINT_ENV = "TETRIS_CHECKPOINT_DIR"
 DEFAULT_DECISION_TIMEOUT = 2.0
 DEFAULT_STARTUP_TIMEOUT = 60.0
 
@@ -58,12 +64,22 @@ class AgentSpec:
 
     @property
     def checkpoint_path(self) -> Path | None:
-        return CHECKPOINT_DIR / self.key / self.checkpoint if self.checkpoint else None
+        """The promoted checkpoint: the first that exists in :func:`read_checkpoint_dirs`."""
+        if not self.checkpoint:
+            return None
+        candidates = [d / self.key / self.checkpoint for d in read_checkpoint_dirs()]
+        return next((p for p in candidates if p.exists()), candidates[-1])
 
     @property
     def available(self) -> bool:
         path = self.checkpoint_path
         return path is None or path.exists()
+
+
+def read_checkpoint_dirs() -> list[Path]:
+    """Directories searched for promoted checkpoints, in order."""
+    extra = os.environ.get(CHECKPOINT_ENV)
+    return ([Path(extra).expanduser()] if extra else []) + [CHECKPOINT_DIR]
 
 
 AGENTS: dict[str, AgentSpec] = {

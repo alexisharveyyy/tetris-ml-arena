@@ -52,6 +52,10 @@ class Settings:
     soft_drop_rate: float = 30.0
     show_ghost: bool = True
     fps: int = 60
+    #: Web UI look id (tetromino, terminal, broadcast or poster).
+    look: str = "tetromino"
+    #: Web UI: draw agents' top three candidate placements.
+    show_thinking: bool = True
     #: Last opponent selection and rules per mode ("race", "battle"), restored next time.
     last_match: dict[str, Any] = field(default_factory=dict)
 

@@ -125,3 +125,15 @@ def test_game_log_format(tmp_path) -> None:
         json.loads((tmp_path / "dellacherie" / "manifest.json").read_text())["agent"]
         == "dellacherie"
     )
+
+
+def test_wilson_interval() -> None:
+    from tetris.agents.evaluation import wilson_interval
+
+    lo, hi = wilson_interval(75, 500)
+    assert lo == pytest.approx(0.1214, abs=1e-4) and hi == pytest.approx(0.1840, abs=1e-4)
+    lo, hi = wilson_interval(500, 500)
+    assert 0.99 < lo < 1.0 and hi == pytest.approx(1.0)
+    lo, hi = wilson_interval(0, 500)
+    assert lo == 0.0 and 0.0 < hi < 0.01
+    assert wilson_interval(0, 0) == (0.0, 1.0)
