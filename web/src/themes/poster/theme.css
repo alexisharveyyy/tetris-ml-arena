@@ -155,7 +155,7 @@
   color: var(--ink);
   padding: 4px 12px;
   font-weight: 700;
-  font-size: 17px;
+  font-size: 18px;
   cursor: pointer;
 }
 
@@ -221,7 +221,7 @@
 [data-look="poster"] .po-stripe__foot {
   display: grid;
   gap: 8px;
-  font-size: 16px;
+  font-size: 18px;
   font-weight: 700;
   font-stretch: 72%;
   line-height: 1.15;
@@ -316,7 +316,7 @@
 
 [data-look="poster"] .po-tile__in {
   font-weight: 700;
-  font-size: 16px;
+  font-size: 18px;
 }
 
 [data-look="poster"] .po-tile__name {
@@ -325,12 +325,12 @@
 }
 
 [data-look="poster"] .po-tile__blurb {
-  font-size: 17px;
+  font-size: 18px;
   line-height: 1.3;
 }
 
 [data-look="poster"] .po-tile__record {
-  font-size: 16px;
+  font-size: 18px;
 }
 
 [data-look="poster"] .po-tile__add {
@@ -407,7 +407,7 @@
   background: transparent;
   color: var(--po-text);
   font-weight: 800;
-  font-size: 17px;
+  font-size: 18px;
   padding: 8px 2px;
   cursor: pointer;
 }
@@ -502,7 +502,7 @@
 
 [data-look="poster"] .po-col__lines {
   font-weight: 700;
-  font-size: 17px;
+  font-size: 18px;
 }
 
 [data-look="poster"] .po-col__name {
@@ -512,7 +512,7 @@
 
 [data-look="poster"] .po-col__meta {
   font-weight: 700;
-  font-size: 17px;
+  font-size: 18px;
   min-height: 2.7em; /* two lines, so boards and scores line up across columns */
 }
 
@@ -627,7 +627,7 @@
 
 [data-look="poster"] .po-band__family {
   font-weight: 700;
-  font-size: 17px;
+  font-size: 18px;
 }
 
 [data-look="poster"] .po-band__chart {

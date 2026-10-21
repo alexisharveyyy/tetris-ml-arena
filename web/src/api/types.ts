@@ -230,3 +230,11 @@ export interface Snapshot {
   ev: FeedEvent[];
   players: PlayerSnap[];
 }
+
+/** GET /api/demo: demo mode settings (configs/demo.yaml), when --demo is on. */
+export interface DemoInfo {
+  enabled: boolean;
+  look?: LookId;
+  seed?: number;
+  opponents?: { agent: string; preset: Preset }[];
+}

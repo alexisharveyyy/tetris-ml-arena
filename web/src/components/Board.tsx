@@ -2,6 +2,7 @@
 // plain label so screen readers get the state without the drawing.
 import { useEffect, useRef } from "react";
 import type { Agent, PlayerSnap } from "../api/types";
+import { useFitCell } from "../lib/fit";
 import { fmtInt } from "../lib/format";
 import { useApp } from "../state/app";
 
@@ -19,8 +20,9 @@ export function boardLabel(p: PlayerSnap): string {
   return `${who}: ${fmtInt(p.stats.score)} points, ${p.stats.lines} lines, level ${p.stats.level}. ${p.status.text}.`;
 }
 
-export function Board({ player, agent, cell, human = false, showThinking, className }: Props) {
+export function Board({ player, agent, cell: baseCell, human = false, showThinking, className }: Props) {
   const { theme, settings } = useApp();
+  const cell = useFitCell(baseCell);
   const ref = useRef<HTMLCanvasElement>(null);
   const { width, height } = theme.board.size(cell);
   const showGhost = settings?.show_ghost ?? true;

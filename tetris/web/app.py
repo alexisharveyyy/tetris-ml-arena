@@ -21,6 +21,7 @@ from tetris.match.agent_runtime import AgentRunner, ProcessRunner
 from tetris.match.history import DEFAULT_HISTORY_PATH, MarathonHistory
 from tetris.match.recording import RECORDINGS_DIR
 from tetris.settings import DEFAULT_SETTINGS_PATH, Settings
+from tetris.web.demo import DemoConfig
 from tetris.web.session import MatchSession
 
 WEB_DIR = Path(__file__).resolve().parent
@@ -39,6 +40,8 @@ class WebConfig:
     recordings_dir: Path = RECORDINGS_DIR
     #: Built frontend (``npm run build`` in ``web/`` writes it here).
     static_dir: Path = WEB_DIR / "static"
+    #: Demo mode (``--demo``): preselected opponents, fixed seed and starting look.
+    demo: DemoConfig | None = None
 
 
 @dataclass
@@ -46,6 +49,9 @@ class AppState:
     config: WebConfig
     verifier: CheckpointVerifier
     sessions: dict[str, MatchSession] = field(default_factory=dict)
+    #: Demo mode keeps lobby choices in memory, so a rehearsal never changes the
+    #: saved lobby of normal runs.
+    demo_lobbies: dict[str, dict] = field(default_factory=dict)
 
     def settings(self) -> Settings:
         return Settings.load(self.config.settings_path)

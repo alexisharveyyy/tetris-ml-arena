@@ -105,3 +105,8 @@ export function placeText(place: number, of: number): string {
 export function aOrAn(word: string): string {
   return /^[aeiou]/i.test(word) ? "an" : "a";
 }
+
+/** Ticker lines, newest first: the new line goes in front and the oldest drops off. */
+export function pushTicker(lines: string[], line: string, max: number): string[] {
+  return [line, ...lines].slice(0, max);
+}

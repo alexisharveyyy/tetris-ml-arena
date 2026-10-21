@@ -1,4 +1,5 @@
 // A queue or hold piece (board colors), drawn with DOM cells.
+import { useFitCell } from "../lib/fit";
 import { PREVIEW_CELLS } from "../lib/pieces";
 import { useApp } from "../state/app";
 
@@ -9,8 +10,9 @@ interface Props {
   dim?: boolean;
 }
 
-export function PiecePreview({ letter, cell = 14, color, dim }: Props) {
+export function PiecePreview({ letter, cell: baseCell = 14, color, dim }: Props) {
   const { theme, look } = useApp();
+  const cell = useFitCell(baseCell, 3);
   if (!letter) return <span className="piece-preview piece-preview--empty" aria-hidden="true" />;
   const cells = PREVIEW_CELLS[letter];
   if (look === "terminal") {

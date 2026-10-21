@@ -114,7 +114,7 @@
   background: var(--bg);
   padding: 6px 10px;
   font-weight: 700;
-  font-size: 16px;
+  font-size: 18px;
   cursor: pointer;
 }
 
@@ -201,13 +201,13 @@
 
 [data-look="tetromino"] .lineup-card__family {
   color: var(--text-3);
-  font-size: 16px;
+  font-size: 18px;
 }
 
 [data-look="tetromino"] .lineup-card__status {
   margin-top: auto;
   padding-top: 6px;
-  font-size: 16px;
+  font-size: 18px;
   font-weight: 700;
   color: var(--text-2);
 }
@@ -375,7 +375,7 @@
 
 [data-look="tetromino"] .slot__label {
   color: var(--text-3);
-  font-size: 16px;
+  font-size: 18px;
 }
 
 [data-look="tetromino"] .slot__name {
@@ -401,7 +401,7 @@
 
 [data-look="tetromino"] .seg--difficulty .seg__opt {
   padding: 10px 4px;
-  font-size: 17px;
+  font-size: 18px;
 }
 
 [data-look="tetromino"] .slot__desc {
@@ -508,8 +508,8 @@
 [data-look="tetromino"] .match__agents {
   display: flex;
   gap: 20px;
-  flex-wrap: wrap;
   flex: 1;
+  min-width: 0;
 }
 
 [data-look="tetromino"] .human-panel {
@@ -544,7 +544,7 @@
 }
 
 [data-look="tetromino"] .side__label {
-  font-size: 17px;
+  font-size: 18px;
   font-weight: 700;
   margin-bottom: 8px;
 }
@@ -594,7 +594,7 @@
 
 [data-look="tetromino"] .stats__label {
   color: var(--text-2);
-  font-size: 17px;
+  font-size: 18px;
 }
 
 [data-look="tetromino"] .stats__value {
@@ -605,8 +605,11 @@
   font-size: 28px;
 }
 
+/* The cards share the row; on a small window the boards shrink to fit
+   (lib/fit.tsx) instead of the third card wrapping below. */
 [data-look="tetromino"] .agent-card {
-  width: 238px;
+  flex: 0 1 238px;
+  min-width: 0;
   background: var(--panel);
   border: 2px solid var(--border);
 }
@@ -630,7 +633,7 @@
 }
 
 [data-look="tetromino"] .agent-card__meta {
-  font-size: 16px;
+  font-size: 18px;
   line-height: 1.25;
 }
 
@@ -655,7 +658,7 @@
 [data-look="tetromino"] .agent-card__status {
   padding: 14px;
   color: var(--text-2);
-  font-size: 17px;
+  font-size: 18px;
   line-height: 1.4;
 }
 
@@ -712,7 +715,7 @@
 
 [data-look="tetromino"] .results-table thead th {
   text-align: left;
-  font-size: 17px;
+  font-size: 18px;
   padding: 12px 20px 14px;
   border-bottom: 2px solid var(--ink);
 }
@@ -762,7 +765,7 @@
 
 [data-look="tetromino"] .results-table__meta {
   display: block;
-  font-size: 16px;
+  font-size: 18px;
   color: var(--text-2);
 }
 
@@ -824,7 +827,7 @@
 }
 
 [data-look="tetromino"] .survival-table thead th {
-  font-size: 17px;
+  font-size: 18px;
   text-align: left;
   padding: 18px 20px;
   border-bottom: 2px solid var(--ink);
@@ -895,7 +898,7 @@
 [data-look="tetromino"] .survival-table__family {
   display: block;
   color: var(--text-2);
-  font-size: 16px;
+  font-size: 18px;
 }
 
 [data-look="tetromino"] .survival-table__chart {
@@ -985,7 +988,7 @@
 }
 
 [data-look="tetromino"] .people-table thead th {
-  font-size: 17px;
+  font-size: 18px;
   border-top: 0;
 }
 

@@ -29,6 +29,11 @@ export function TerminalMatch(m: MatchModel) {
           <button type="button" className="term-link" onClick={m.togglePause}>
             [Esc] Pause
           </button>
+          {m.demoSkip ? (
+            <button type="button" className="demo-link term-link" onClick={m.demoSkip} aria-keyshortcuts="F9">
+              Demo: results
+            </button>
+          ) : null}
         </span>
       </header>
       {m.snap.spectating ? (

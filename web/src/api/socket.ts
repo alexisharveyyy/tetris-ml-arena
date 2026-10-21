@@ -1,5 +1,6 @@
 // One WebSocket per match. Reconnects on its own; the server pauses the match
 // while no client is attached and resumes it after a countdown.
+import { perfAcked, perfMessage } from "../lib/perf";
 import type { Action, FeedEvent, Snapshot } from "./types";
 
 export type SocketStatus = "connecting" | "open" | "lost" | "gone";
@@ -85,18 +86,22 @@ export class MatchSocket {
       const text = String(m.data);
       this.stats.messages += 1;
       this.stats.bytes += text.length;
+      perfMessage(text.length);
       const msg = JSON.parse(text);
       if (msg.t !== "snap") return;
       const snap = msg as Snapshot;
       this.latest = snap;
       if (snap.ack) {
         const now = performance.now();
+        const done: number[] = [];
         for (const [s, ts] of this.pending) {
           if (s <= snap.ack.seq) {
             this.stats.latencies.push(now - ts);
+            done.push(ts);
             this.pending.delete(s);
           }
         }
+        perfAcked(snap.f, done);
         if (this.stats.latencies.length > 2000) this.stats.latencies.splice(0, 1000);
       }
       for (const ev of snap.ev) this.eventListeners.forEach((fn) => fn(ev, snap));

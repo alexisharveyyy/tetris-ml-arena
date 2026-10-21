@@ -291,12 +291,21 @@
   color: #fff;
 }
 
+/* Newest first. Lines that do not fit wrap onto a hidden second row, so the
+   oldest drop off whole instead of being cut mid-line. No scrolling. */
 [data-look="broadcast"] .ticker__lines {
   display: flex;
-  align-items: center;
-  gap: 36px;
+  flex-wrap: wrap;
+  align-content: flex-start;
+  column-gap: 36px;
+  flex: 1;
+  min-width: 0;
+  height: 54px;
   padding: 0 24px;
+  margin: 0;
+  list-style: none;
   font-size: 19px;
+  line-height: 54px;
   overflow: hidden;
   white-space: nowrap;
 }
@@ -446,7 +455,7 @@
 }
 
 [data-look="broadcast"] .bc-slot__label {
-  font-size: 16px;
+  font-size: 18px;
   font-weight: 700;
 }
 
@@ -595,6 +604,11 @@
   display: block;
 }
 
+/* Room under your board for the taller banner, so it only overlaps the frame. */
+[data-look="broadcast"] .bc-well--you {
+  padding-bottom: 52px;
+}
+
 [data-look="broadcast"] .bc-well--you .board {
   border: 4px solid var(--coral);
 }
@@ -604,6 +618,8 @@
   left: -8px;
   bottom: 4px;
   font: italic 900 30px/1 var(--font-head);
+  /* One line, even when the board is narrower than the banner (small windows). */
+  white-space: nowrap;
 }
 
 [data-look="broadcast"] .bc-banner .plate__in {
@@ -625,6 +641,11 @@
 [data-look="broadcast"] .bc-banner__meta {
   font-weight: 700;
   font-size: 0.55em;
+}
+
+/* White on coral passes only from 24px (3.1:1). */
+[data-look="broadcast"] .bc-banner--you .bc-banner__meta {
+  font-size: 24px;
 }
 
 [data-look="broadcast"] .bc-side {
@@ -897,6 +918,12 @@
 [data-look="broadcast"] .keycap {
   border-color: currentColor;
   font-style: normal;
+}
+
+/* A 16px key cap on coral needs navy, like the other small coral text. */
+[data-look="broadcast"] .btn--primary .keycap,
+[data-look="broadcast"] .btn[aria-pressed="true"] .keycap {
+  color: var(--deep);
 }
 
 [data-look="broadcast"] .seg,

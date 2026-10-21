@@ -1,7 +1,9 @@
 // Live match hooks: the socket, the latest snapshot (at most one render per
 // animation frame) and keyboard input mapped through the user's bindings.
+import { flushSync } from "react-dom";
 import { useEffect, useRef, useState } from "react";
 import { MatchSocket, type SocketStatus } from "../api/socket";
+import { inAnimationFrame } from "../lib/perf";
 import type { Action, FeedEvent, Snapshot } from "../api/types";
 import { fromFormField, GAME_ACTIONS, keyName, keymap } from "../lib/keys";
 
@@ -27,7 +29,9 @@ export function useMatchSession(matchId: string | null, onEvent?: (e: FeedEvent,
       if (frame) return;
       frame = requestAnimationFrame(() => {
         frame = 0;
-        setSnap(s.latest);
+        // Render and draw inside this animation frame, so the new boards are
+        // painted at its end instead of one frame later.
+        inAnimationFrame(() => flushSync(() => setSnap(s.latest)));
       });
     });
     const offEvent = s.onEvent((e, snap) => eventRef.current?.(e, snap));

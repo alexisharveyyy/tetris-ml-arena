@@ -29,6 +29,10 @@ tetris-arena = "tetris.ui.pygame.app:main"
 [tool.setuptools.packages.find]
 include = ["tetris*"]
 
+[tool.setuptools.package-data]
+# The committed frontend build, so the server runs without Node.
+"tetris.web" = ["static/**/*", "debug/*"]
+
 [tool.ruff]
 line-length = 100
 target-version = "py311"

@@ -124,7 +124,9 @@ class MarathonHistory:
 
     def save(self) -> None:
         self.path.parent.mkdir(parents=True, exist_ok=True)
-        tmp = self.path.with_name(self.path.name + ".tmp")
+        # A temporary name per writer, so two processes sharing configs/ (two
+        # servers, or the server and the Pygame app) never rename each other's file.
+        tmp = self.path.with_name(f"{self.path.name}.{os.getpid()}.{uuid.uuid4().hex[:8]}.tmp")
         tmp.write_text(
             json.dumps(
                 {"version": VERSION, "marathon": self.records, "matches": self.matches}, indent=2

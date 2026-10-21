@@ -232,3 +232,59 @@ def test_watch_speed_change(client) -> None:
 def test_index_without_a_build(client) -> None:
     res = client.get("/")
     assert res.status_code == 200 and "/debug" in res.text
+
+
+class _SlowVerifier:
+    """Reports ``slow`` as checking for the first ``polls`` status calls."""
+
+    def __init__(self, real, slow: str, polls: int) -> None:
+        self.real, self.slow, self.polls = real, slow, polls
+
+    def status(self, spec):
+        from tetris.agents.checkpoint_check import CHECKING, CheckResult
+
+        if spec.key == self.slow and self.polls > 0:
+            self.polls -= 1
+            return CheckResult(CHECKING, "loading")
+        return self.real.status(spec)
+
+    def close(self) -> None:
+        self.real.close()
+
+
+def test_agents_report_checking_then_available(client) -> None:
+    state = client.app.state.arena
+    state.verifier = _SlowVerifier(state.verifier, "dellacherie", polls=1)
+    first = {a["key"]: a for a in client.get("/api/agents").json()["agents"]}
+    assert first["dellacherie"]["status"]["state"] == "checking"
+    assert first["dellacherie"]["available"] is False
+    second = {a["key"]: a for a in client.get("/api/agents").json()["agents"]}
+    assert second["dellacherie"]["available"] is True
+
+
+def test_lobby_keeps_agents_still_checking(client) -> None:
+    start(client, opponents=(("dellacherie", "Hard"),))
+    state = client.app.state.arena
+    state.verifier = _SlowVerifier(state.verifier, "dellacherie", polls=1_000)
+    lobby = client.get("/api/lobby/marathon").json()
+    assert lobby["slots"][0] == {"agent": "dellacherie", "preset": "Hard", "custom": None}
+
+
+def test_start_waits_for_a_running_check(client) -> None:
+    state = client.app.state.arena
+    # Every agent_entries() call reads each agent once, so a few polls pass
+    # before the check reports OK.
+    state.verifier = _SlowVerifier(state.verifier, "dellacherie", polls=3)
+    start(client, opponents=(("dellacherie", "Easy"),))
+
+
+def test_ending_a_match_records_it_once(client, web_config) -> None:
+    import json
+    import time
+
+    info = start(client, opponents=(("dellacherie", "Easy"),))
+    for _ in range(5):
+        client.post(f"/api/matches/{info['match']}/end")
+    time.sleep(0.2)  # let the session loop run a few ticks after the end
+    data = json.loads(web_config.history_path.read_text())
+    assert len(data["matches"]) == 1

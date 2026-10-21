@@ -47,6 +47,20 @@ export function OpponentsScreen({ mode }: { mode: "marathon" | "race" }) {
     };
   }, [mode]);
 
+  // The lobby keeps agents whose load check is still running. Once a check fails
+  // for good, take that agent out of its slots.
+  useEffect(() => {
+    const failed = (key: string) => {
+      const a = app.agent(key);
+      return !!a && !a.available && a.status?.state !== "checking";
+    };
+    setSlots((cur) => {
+      if (!cur.some((s) => s && failed(s.agent))) return cur;
+      const kept = cur.filter((s) => s && !failed(s.agent));
+      return [...kept, null, null, null].slice(0, MAX);
+    });
+  }, [app]);
+
   const model: OpponentsModel = useMemo(() => {
     const filled = slots.filter(Boolean) as Slot[];
     const count = (key: string) => filled.filter((s) => s.agent === key).length;

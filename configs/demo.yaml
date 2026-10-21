@@ -1,0 +1,22 @@
+# Demo mode: python -m tetris.web --demo
+#
+# Change these after reviewing the Phase 5 results. Agent keys are the registry
+# keys (dellacherie, ga, cem, dqn, ppo, ppo_raw, bc, bc_you, neat); presets are
+# Easy, Medium, Hard or Unlimited. Up to three opponents.
+
+# Look the demo starts on: tetromino, terminal, broadcast or poster.
+look: tetromino
+
+# Opponents preselected on the opponent screen, for Marathon and Race.
+opponents:
+  - agent: bc_you
+    preset: Medium
+  - agent: cem
+    preset: Easy
+  - agent: ppo
+    preset: Medium
+
+# Every Marathon and Race started in demo mode uses this seed, so the piece
+# sequence is the same in every rehearsal. "New seed" on the results screen
+# still picks a random one.
+seed: 48213

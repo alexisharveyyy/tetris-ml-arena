@@ -45,6 +45,11 @@ export function BroadcastMatch(m: MatchModel) {
           <button type="button" className="bc-btn bc-btn--outline" onClick={m.togglePause}>
             Pause
           </button>
+          {m.demoSkip ? (
+            <button type="button" className="demo-link" onClick={m.demoSkip} aria-keyshortcuts="F9">
+              Demo: results
+            </button>
+          ) : null}
         </div>
       </header>
       <p className="visually-hidden">{m.modeLine}</p>
@@ -105,7 +110,7 @@ export function BroadcastMatch(m: MatchModel) {
           );
         })}
       </div>
-      <Ticker label="Live" lines={m.ticker.slice(-4)} />
+      <Ticker label="Live" lines={m.ticker.slice(0, 4)} />
       <MatchState snap={m.snap} onResume={m.togglePause} onEnd={m.endMatch} />
     </div>
   );

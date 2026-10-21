@@ -424,6 +424,36 @@
   gap: 28px 40px;
 }
 
+/* Below 1200px of height two rows of agent boards cannot fit beside yours
+   (B3 is 1214px tall), so all agents share one row. */
+@media (max-height: 1199px) {
+  [data-look="terminal"] .term-agents-grid {
+    grid-template-columns: none;
+    grid-auto-flow: column;
+    grid-auto-columns: min-content;
+    gap: 28px 28px;
+  }
+
+  [data-look="terminal"] .term-agent-board {
+    min-width: 0;
+  }
+
+  [data-look="terminal"] .term-match {
+    grid-template-columns: 200px auto minmax(0, 1fr);
+    gap: 24px;
+  }
+
+  [data-look="terminal"] .term-you {
+    gap: 12px;
+  }
+}
+
+[data-look="terminal"] .term-agent-board {
+  /* As wide as the board; labels wrap under it instead of widening the page. */
+  width: min-content;
+  min-width: 220px;
+}
+
 [data-look="terminal"] .term-agent-board p {
   font-size: 22px;
 }
@@ -799,4 +829,9 @@
   text-shadow: none;
   font-weight: 400;
   font-size: 28px;
+}
+
+[data-look="terminal"] .demo-link {
+  color: var(--dim);
+  text-decoration: underline;
 }

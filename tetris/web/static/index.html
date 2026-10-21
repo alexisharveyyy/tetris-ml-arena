@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="en" data-look="tetromino">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Tetris ML Arena</title>
+    <script>
+      try {
+        var look = localStorage.getItem("arena.look");
+        if (look) document.documentElement.dataset.look = look;
+      } catch (e) {}
+    </script>
+    <script type="module" crossorigin src="/assets/index-BOzW8Ebl.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-BDc3GLmE.css">
+  </head>
+  <body>
+    <div id="root"></div>
+  </body>
+</html>

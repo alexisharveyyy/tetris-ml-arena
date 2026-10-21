@@ -70,3 +70,27 @@ def test_version_1_file_keeps_its_totals(tmp_path) -> None:
     again = MarathonHistory(path)
     assert again.get("ga", "Easy") == {"wins": 2, "losses": 2, "ties": 0}
     assert len(again.matches) == 1
+
+
+def test_concurrent_saves_do_not_collide(tmp_path) -> None:
+    """Two writers (two servers sharing configs/) each use their own temp file."""
+    import threading
+
+    path = tmp_path / "history.json"
+    errors: list[BaseException] = []
+
+    def writer() -> None:
+        h = MarathonHistory(path)
+        try:
+            for _ in range(50):
+                h.save()
+        except BaseException as exc:  # noqa: BLE001 - collected for the assert
+            errors.append(exc)
+
+    threads = [threading.Thread(target=writer) for _ in range(4)]
+    for t in threads:
+        t.start()
+    for t in threads:
+        t.join()
+    assert errors == []
+    assert list(tmp_path.glob("*.tmp")) == []

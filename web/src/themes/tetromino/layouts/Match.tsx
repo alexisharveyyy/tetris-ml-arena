@@ -47,6 +47,11 @@ export function TetrominoMatch(m: MatchModel) {
         <Button variant="secondary" onClick={m.togglePause}>
           Pause (Esc)
         </Button>
+        {m.demoSkip ? (
+          <button type="button" className="demo-link" onClick={m.demoSkip} aria-keyshortcuts="F9">
+            Demo: skip to results
+          </button>
+        ) : null}
       </div>
       <SpectatingBar m={m} />
       <div className="match__boards">

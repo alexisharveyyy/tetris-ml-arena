@@ -88,8 +88,10 @@ export interface MatchModel {
   showGhost: boolean;
   togglePause: () => void;
   endMatch: () => void;
-  /** Recent ticker lines, newest last. */
+  /** Recent ticker lines, newest first. */
   ticker: string[];
+  /** Demo mode only: end the match now and show the results (also F9). */
+  demoSkip: (() => void) | null;
   /** Spectating after the match ended (Keep watching). */
   resultsHref: string;
 }

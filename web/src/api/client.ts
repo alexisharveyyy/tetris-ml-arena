@@ -1,6 +1,7 @@
 // REST client for /api.
 import type {
   AgentsResponse,
+  DemoInfo,
   LeaderboardResponse,
   LobbyResponse,
   MatchInfo,
@@ -47,6 +48,7 @@ export const api = {
   settingsDefaults: () => call<Settings>("/api/settings/defaults"),
   saveSettings: (patch: Partial<Settings>) => call<Settings>("/api/settings", { method: "PUT", body: JSON.stringify(patch) }),
   lobby: (mode: "marathon" | "race") => call<LobbyResponse>(`/api/lobby/${mode}`),
+  demo: () => call<DemoInfo>("/api/demo").catch((): DemoInfo => ({ enabled: false })),
   leaderboard: () => call<LeaderboardResponse>("/api/leaderboard"),
   recordings: () => call<{ settings: string[]; totals: RecordingTotals }>("/api/recordings"),
   startMatch: (body: StartMatch) => post<MatchInfo>("/api/matches", body),

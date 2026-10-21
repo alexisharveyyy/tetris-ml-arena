@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { PlayerSnap, StandingRow } from "../../src/api/types";
-import { agentStatusLine, endedText, resultsHeadline, resultsSummary, tickerLine } from "../../src/lib/copy";
+import { agentStatusLine, endedText, pushTicker, resultsHeadline, resultsSummary, tickerLine } from "../../src/lib/copy";
 import { clock, ordinal, ordinalWord } from "../../src/lib/format";
 import { raceGoal } from "../../src/lib/race";
 
@@ -83,5 +83,13 @@ describe("formatting", () => {
   it("describes race rules", () => {
     expect(raceGoal({ condition: "lines_in_time", time_limit: 120, target_lines: 40 })).toBe("most lines in 2 minutes");
     expect(raceGoal({ condition: "first_to_lines", time_limit: 120, target_lines: 40 })).toBe("first to 40 lines");
+  });
+});
+
+describe("ticker", () => {
+  it("puts the newest line first and drops the oldest", () => {
+    let lines: string[] = [];
+    for (const l of ["a", "b", "c", "d"]) lines = pushTicker(lines, l, 3);
+    expect(lines).toEqual(["d", "c", "b"]);
   });
 });

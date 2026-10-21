@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+import asyncio
 import secrets
+import time
 from collections import Counter
 from dataclasses import replace
 from typing import Any, Literal
@@ -10,6 +12,7 @@ from typing import Any, Literal
 from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel, Field
 
+from tetris.agents.checkpoint_check import CHECKING
 from tetris.agents.difficulty import PRESETS
 from tetris.agents.identity import GROUPS, HUMAN, IDENTITIES, LOOKS, Identity, identity
 from tetris.agents.registry import AGENTS
@@ -33,6 +36,8 @@ PRESET_TEXT: dict[str, str] = {
     "Unlimited": "As fast as the model can decide, with no deliberate mistakes.",
 }
 LOBBY_MODES = ("marathon", "race")
+#: How long starting a match waits for an opponent's load check to finish.
+CHECK_WAIT_S = 20.0
 
 
 def _state(request: Request) -> AppState:
@@ -127,7 +132,7 @@ def get_settings_defaults() -> dict[str, Any]:
 
 
 @router.put("/settings")
-def put_settings(patch: SettingsPatch, request: Request) -> dict[str, Any]:
+async def put_settings(patch: SettingsPatch, request: Request) -> dict[str, Any]:
     state = _state(request)
     settings = state.settings()
     changes = patch.model_dump(exclude_none=True)
@@ -147,7 +152,16 @@ def put_settings(patch: SettingsPatch, request: Request) -> dict[str, Any]:
 
 
 def _available_playable(state: AppState) -> list[str]:
-    return [e["key"] for e in agent_entries(state) if e["available"] and e["playable"]]
+    """Playable agents a lobby may keep in its slots.
+
+    Agents whose startup load check is still running count, so a saved lobby is
+    not emptied just because the page was opened before the checks finished.
+    """
+    return [
+        e["key"]
+        for e in agent_entries(state)
+        if e["playable"] and (e["available"] or e["status"]["state"] == CHECKING)
+    ]
 
 
 @router.get("/lobby/{mode}")
@@ -155,8 +169,17 @@ def get_lobby(mode: Literal["marathon", "race"], request: Request) -> dict[str, 
     state = _state(request)
     available = _available_playable(state)
     saved = state.settings().last_match.get(mode)
+    demo = state.config.demo
+    if demo is not None:
+        saved = state.demo_lobbies.get(mode) or {**(saved or {}), "slots": demo.lobby_slots()}
     lobby = Lobby.from_dict(mode, saved, available) if saved else Lobby.default(mode, available)
     return {"mode": mode, **lobby.to_dict()}
+
+
+@router.get("/demo")
+def get_demo(request: Request) -> dict[str, Any]:
+    demo = _state(request).config.demo
+    return {"enabled": False} if demo is None else {"enabled": True, **demo.to_dict()}
 
 
 # ------------------------------------------------------------- leaderboard
@@ -267,6 +290,14 @@ async def create_match(body: MatchIn, request: Request) -> dict[str, Any]:
     if not lo <= count <= hi:
         raise HTTPException(422, f"{body.mode} takes {lo} to {hi} opponents, got {count}")
     entries = {e["key"]: e for e in agent_entries(state)}
+    wanted = {o.agent for o in body.opponents}
+    deadline = time.perf_counter() + CHECK_WAIT_S
+    while (
+        any(entries.get(k, {}).get("status", {}).get("state") == CHECKING for k in wanted)
+        and time.perf_counter() < deadline
+    ):
+        await asyncio.sleep(0.1)
+        entries = {e["key"]: e for e in agent_entries(state)}
     for o in body.opponents:
         e = entries.get(o.agent)
         if e is None or not e["registered"]:
@@ -291,12 +322,19 @@ async def create_match(body: MatchIn, request: Request) -> dict[str, Any]:
         lobby.slots = [OpponentSlot(o.agent, o.preset) for o in body.opponents] + [None] * (
             MAX_OPPONENTS - count
         )
-        settings.last_match[body.mode] = lobby.to_dict()
-        state.save_settings(settings)
+        if state.config.demo is not None:
+            state.demo_lobbies[body.mode] = lobby.to_dict()
+        else:
+            settings.last_match[body.mode] = lobby.to_dict()
+            state.save_settings(settings)
         race = lobby.race if body.mode == "race" else None
 
     await state.close_sessions()  # one match at a time: agents hold worker processes
-    seed = body.seed if body.seed is not None else secrets.randbelow(100_000)
+    seed = body.seed
+    if seed is None and state.config.demo is not None and body.mode in LOBBY_MODES:
+        seed = state.config.demo.seed
+    if seed is None:
+        seed = secrets.randbelow(100_000)
     record = body.mode == "record"
     config = MatchConfig(
         mode="solo" if record else body.mode,
@@ -320,6 +358,12 @@ async def create_match(body: MatchIn, request: Request) -> dict[str, Any]:
     return _session_info(session)
 
 
+# Endpoints that read or change a live session are ``async def`` so they run on
+# the event loop with the session's 60 Hz loop. A plain ``def`` endpoint runs in
+# a worker thread, where it could end a match while the loop is stepping it (and
+# record it in the history twice).
+
+
 def _session(request: Request, match_id: str) -> MatchSession:
     session = _state(request).sessions.get(match_id)
     if session is None:
@@ -328,7 +372,7 @@ def _session(request: Request, match_id: str) -> MatchSession:
 
 
 @router.get("/matches/{match_id}")
-def get_match(match_id: str, request: Request) -> dict[str, Any]:
+async def get_match(match_id: str, request: Request) -> dict[str, Any]:
     session = _session(request, match_id)
     m = session.match
     return {
@@ -339,10 +383,10 @@ def get_match(match_id: str, request: Request) -> dict[str, Any]:
 
 
 @router.post("/matches/{match_id}/end")
-def end_match(match_id: str, request: Request) -> dict[str, Any]:
+async def end_match(match_id: str, request: Request) -> dict[str, Any]:
     session = _session(request, match_id)
     session.end()
-    return get_match(match_id, request)
+    return await get_match(match_id, request)
 
 
 class RematchIn(BaseModel):
@@ -351,7 +395,7 @@ class RematchIn(BaseModel):
 
 
 @router.post("/matches/{match_id}/rematch")
-def rematch(match_id: str, body: RematchIn, request: Request) -> dict[str, Any]:
+async def rematch(match_id: str, body: RematchIn, request: Request) -> dict[str, Any]:
     session = _session(request, match_id)
     seed = body.seed
     if seed is None and body.new_seed:
@@ -361,7 +405,7 @@ def rematch(match_id: str, body: RematchIn, request: Request) -> dict[str, Any]:
 
 
 @router.post("/matches/{match_id}/keep_watching")
-def keep_watching(match_id: str, request: Request) -> dict[str, Any]:
+async def keep_watching(match_id: str, request: Request) -> dict[str, Any]:
     session = _session(request, match_id)
     if not session.match.finished:
         raise HTTPException(409, "the match is still running")
@@ -374,7 +418,7 @@ class PauseIn(BaseModel):
 
 
 @router.post("/matches/{match_id}/pause")
-def pause(match_id: str, body: PauseIn, request: Request) -> dict[str, Any]:
+async def pause(match_id: str, body: PauseIn, request: Request) -> dict[str, Any]:
     session = _session(request, match_id)
     session.set_paused(body.paused)
     return {"paused": session.match.paused}
@@ -395,7 +439,7 @@ def get_recordings(request: Request) -> dict[str, Any]:
 
 
 @router.post("/matches/{match_id}/recording/save")
-def save_recording(match_id: str, request: Request) -> dict[str, Any]:
+async def save_recording(match_id: str, request: Request) -> dict[str, Any]:
     state = _state(request)
     session = _session(request, match_id)
     if session.recorder is None:
@@ -413,7 +457,7 @@ class DifficultyIn(BaseModel):
 
 
 @router.post("/matches/{match_id}/difficulty")
-def set_difficulty(match_id: str, body: DifficultyIn, request: Request) -> dict[str, Any]:
+async def set_difficulty(match_id: str, body: DifficultyIn, request: Request) -> dict[str, Any]:
     """Change an agent's speed mid-match (Watch AI)."""
     session = _session(request, match_id)
     player = session.match.players.get(body.player)

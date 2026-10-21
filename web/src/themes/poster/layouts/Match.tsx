@@ -29,6 +29,11 @@ export function PosterMatch(m: MatchModel) {
           <button type="button" className="po-btn po-btn--small po-btn--outline" onClick={m.togglePause}>
             Pause
           </button>
+          {m.demoSkip ? (
+            <button type="button" className="demo-link" onClick={m.demoSkip} aria-keyshortcuts="F9">
+              Demo: results
+            </button>
+          ) : null}
         </span>
       </header>
       {m.snap.spectating ? (
