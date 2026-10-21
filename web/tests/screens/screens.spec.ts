@@ -21,7 +21,7 @@ const SHOTS: { name: string; file: string; hash: string; ready: string }[] = [
   { name: "opponents", file: "2-opponents", hash: "#/play/marathon", ready: "section[aria-label=Agents]" },
   { name: "match", file: "3-match", hash: `#/match/${MATCH_ID}`, ready: "canvas.board" },
   { name: "results", file: "4-results", hash: `#/results/${MATCH_ID}`, ready: "h1" },
-  { name: "leaderboard", file: "5-leaderboard", hash: "#/leaderboard", ready: "table, [role=table]" },
+  { name: "leaderboard", file: "5-leaderboard", hash: "#/leaderboard", ready: "table, [role=table], .po-bands" },
   { name: "people", file: "leaderboard-people", hash: "#/leaderboard/people", ready: "table" },
   { name: "watch", file: "watch", hash: `#/watch/${MATCH_ID}`, ready: "canvas.board" },
   { name: "solo", file: "solo", hash: `#/solo/${MATCH_ID}`, ready: "canvas.board" },

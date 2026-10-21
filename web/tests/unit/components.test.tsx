@@ -4,7 +4,7 @@ import { Segmented } from "../../src/components/Segmented";
 import { Tabs } from "../../src/components/Tabs";
 import { keyLabel, keyName } from "../../src/lib/keys";
 import { pos } from "../../src/themes/tetromino/layouts/Leaderboard";
-import { getTheme, THEMES } from "../../src/themes/registry";
+import { allThemes, getTheme } from "../../src/themes/registry";
 
 describe("toggles and tabs", () => {
   it("marks the chosen option with aria-pressed", () => {
@@ -42,9 +42,9 @@ describe("keys", () => {
 
 describe("themes", () => {
   it("registers every theme folder and falls back to Tetromino", () => {
-    expect(THEMES.map((t) => t.id)).toContain("tetromino");
+    expect(allThemes().map((t) => t.id)).toContain("tetromino");
     expect(getTheme("nope").id).toBe("tetromino");
-    for (const t of THEMES) {
+    for (const t of allThemes()) {
       expect(t.board.size(10).width).toBeGreaterThan(0);
       for (const letter of "IOTSZJLG") expect(t.pieceColors[letter]).toBeTruthy();
     }

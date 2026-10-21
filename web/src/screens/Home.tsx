@@ -4,7 +4,7 @@ import type { LeaderboardResponse } from "../api/types";
 import { pct } from "../lib/format";
 import { go } from "../router";
 import { useApp } from "../state/app";
-import { THEMES, layout } from "../themes/registry";
+import { allThemes, layout } from "../themes/registry";
 import type { ControlHint, HomeModel } from "./models";
 
 function pick(keys: string[] | undefined): string[] {
@@ -51,7 +51,7 @@ export function HomeScreen() {
   const model: HomeModel = useMemo(
     () => ({
       lineup: app.agents.filter((a) => a.group === "main"),
-      looks: THEMES.map((t) => ({ id: t.id, label: t.label })),
+      looks: allThemes().map((t) => ({ id: t.id, label: t.label })),
       look: app.look,
       setLook: app.setLook,
       controls: controlHints(app.settings?.bindings),

@@ -6,7 +6,7 @@ import { KeyCap } from "../components/KeyCap";
 import { LookSwitcher } from "../components/LookSwitcher";
 import { keyName } from "../lib/keys";
 import { useApp } from "../state/app";
-import { THEMES } from "../themes/registry";
+import { allThemes } from "../themes/registry";
 import { PageHead } from "./PageHead";
 
 const ACTIONS: [string, string][] = [
@@ -80,7 +80,7 @@ export function SettingsScreen() {
         <h2 id="set-look" className="section-title">
           Look
         </h2>
-        <LookSwitcher looks={THEMES.map((t) => ({ id: t.id, label: t.label }))} look={app.look} setLook={app.setLook} />
+        <LookSwitcher looks={allThemes().map((t) => ({ id: t.id, label: t.label }))} look={app.look} setLook={app.setLook} />
         <p className="setting__help">Switching takes effect immediately, including during a match.</p>
       </section>
       <section className="settings__group" aria-labelledby="set-display">
