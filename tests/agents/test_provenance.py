@@ -74,8 +74,10 @@ def test_repo_reports_record_their_sources() -> None:
         # The Phase 5 reports evaluated the fixed PPO, not the MPS-bug checkpoint.
         assert agents["ppo"]["checkpoint"] == "ppo/best.pt" and "invalid" not in agents["ppo"]
         assert agents["dellacherie"] == {"checkpoint": None}
-        leaderboard = {k for k, spec in AGENTS.items() if spec.leaderboard}
-        assert leaderboard <= set(agents), leaderboard - set(agents)
+        # Explicit list: other tests register fake agents in AGENTS.
+        evaluated = {"dellacherie", "ga", "cem", "dqn", "ppo", "ppo_raw"}
+        evaluated |= {"bc_pure", "bc_dagger", "bc_you", "neat"}
+        assert evaluated <= set(agents), evaluated - set(agents)
 
 
 def test_backfill_records_only_checkpoints_older_than_the_report(tmp_path, monkeypatch) -> None:
