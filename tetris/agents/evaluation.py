@@ -188,12 +188,15 @@ def _linear_task(args: tuple[tuple[float, ...], int, dict[str, Any]]) -> dict[st
     return stats.to_dict()
 
 
-def _agent_task(args: tuple[str, str | None, int, dict[str, Any]]) -> dict[str, Any]:
+def _agent_task(args: tuple) -> dict[str, Any]:
+    """``(key, checkpoint, seed, setting dict[, difficulty dict])``."""
+    from tetris.agents.difficulty import DifficultyParams
     from tetris.agents.registry import create_agent
 
-    key, checkpoint, seed, setting_d = args
+    key, checkpoint, seed, setting_d, *rest = args
     setting = EvalSetting.from_dict(setting_d)
-    agent = create_agent(key, checkpoint, seed=seed)
+    difficulty = DifficultyParams.from_dict(rest[0]) if rest and rest[0] else None
+    agent = create_agent(key, checkpoint, difficulty, seed=seed)
 
     def policy(game: Game) -> int | None:
         if not action_mask(game, setting.include_hold).any():
@@ -209,9 +212,15 @@ def evaluate_agent(
     setting: EvalSetting,
     workers: int | None = None,
     checkpoint: str | None = None,
+    difficulty: Any = None,
 ) -> list[GameStats]:
-    """Play a registry agent on every seed (in worker processes when ``workers`` > 0)."""
-    tasks = [(key, checkpoint, int(s), setting.to_dict()) for s in seeds]
+    """Play a registry agent on every seed (in worker processes when ``workers`` > 0).
+
+    ``difficulty`` (a :class:`~tetris.agents.difficulty.DifficultyParams`)
+    applies mistakes or a target return; speed settings do not affect headless games.
+    """
+    diff = difficulty.to_dict() if difficulty is not None else None
+    tasks = [(key, checkpoint, int(s), setting.to_dict(), diff) for s in seeds]
     workers = default_workers() if workers is None else workers
     if workers > 0:
         with mp.get_context("spawn").Pool(min(workers, len(tasks))) as pool:

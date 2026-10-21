@@ -27,12 +27,15 @@ class OpponentSlot:
     agent_key: str
     preset: str = "Medium"
     custom: DifficultyParams | None = None  # used when preset == CUSTOM
+    #: Decision Transformer target return (None = the agent's default).
+    target_return: float | None = None
 
     @property
     def difficulty(self) -> DifficultyParams:
-        if self.preset == CUSTOM:
-            return self.custom or PRESETS["Medium"]
-        return PRESETS[self.preset]
+        base = (self.custom or PRESETS["Medium"]) if self.preset == CUSTOM else PRESETS[self.preset]
+        if self.target_return is not None and AGENTS[self.agent_key].supports_target_return:
+            return replace(base, target_return=self.target_return)
+        return base
 
     def set_preset(self, preset: str) -> None:
         if preset == CUSTOM and self.custom is None:
@@ -40,7 +43,7 @@ class OpponentSlot:
         self.preset = preset
 
     def set_custom(self, **changes: Any) -> None:
-        self.custom = replace(self.difficulty, **changes)
+        self.custom = replace(self.difficulty, target_return=None, **changes)
         self.preset = CUSTOM
 
     def to_dict(self) -> dict[str, Any]:
@@ -48,6 +51,7 @@ class OpponentSlot:
             "agent": self.agent_key,
             "preset": self.preset,
             "custom": self.custom.to_dict() if self.custom else None,
+            "target_return": self.target_return,
         }
 
     @classmethod
@@ -56,7 +60,8 @@ class OpponentSlot:
         preset = d.get("preset", "Medium")
         if preset not in DIFFICULTY_CHOICES:
             preset = "Medium"
-        return cls(d["agent"], preset, custom)
+        target = d.get("target_return")
+        return cls(d["agent"], preset, custom, float(target) if target is not None else None)
 
 
 @dataclass

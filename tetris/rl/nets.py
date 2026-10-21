@@ -231,6 +231,10 @@ def build(kind: str, config: dict[str, Any]) -> nn.Module:
         return AfterstateActorCritic(**config)
     if kind == "ppo_raw":
         return ActorCritic(**config)
+    if kind == "dt":
+        from tetris.agents.decision_transformer.model import DecisionTransformer
+
+        return DecisionTransformer(**config)
     raise ValueError(kind)
 
 

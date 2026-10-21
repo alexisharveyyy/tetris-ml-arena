@@ -1,0 +1,44 @@
+# LLM agent (novelty opponent, off by default). See README.md.
+# Set enabled: true to offer it as an opponent in the app.
+enabled: false
+
+backend: ollama              # ollama | openai | anthropic
+prompt: features             # features (lines, holes, height per placement) | bare (rotation, column)
+timeout_seconds: 3.0         # per decision; on timeout the GA heuristic's move is played
+max_output_tokens: 24
+
+ollama:
+  host: http://localhost:11434
+  model: qwen3:8b            # 4-bit, 5.2 GB; thinking is turned off per request
+  keep_alive: 15m
+
+openai:
+  api_key_env: OPENAI_API_KEY
+  model: gpt-4.1-mini
+anthropic:
+  api_key_env: ANTHROPIC_API_KEY
+  model: claude-haiku-5-5
+
+# USD per million tokens, standard tier, short context. Checked against
+# developers.openai.com/api/docs/pricing and platform.claude.com/docs pricing.
+# Recheck before any API run: the evaluation script refuses to call an API
+# when prices_checked is more than 7 days old.
+prices_checked: 2026-10-21
+prices:
+  gpt-4.1-mini: {input: 0.40, output: 1.60}
+  gpt-4.1-nano: {input: 0.10, output: 0.40}
+  gpt-5-mini: {input: 0.25, output: 2.00}
+  gpt-5-nano: {input: 0.05, output: 0.40}
+  claude-haiku-5-5: {input: 0.10, output: 0.50}
+  claude-sonnet-5-5: {input: 2.00, output: 10.00}
+
+# Hard cap on API spending, summed over every API call this project makes
+# (all evaluation runs and any play). Before each call the worst-case cost is
+# reserved; a call that would cross the cap is not sent.
+spending:
+  cap_usd: 5.00
+  ledger: data/llm/spend.json
+
+play:
+  decision_timeout: 5.0      # worker deadline; the agent's own timeout is shorter
+  startup_timeout: 30.0

@@ -50,11 +50,18 @@ def log_episode(
     seed: int,
     setting: EvalSetting,
     path: Path,
+    difficulty: dict[str, Any] | None = None,
 ) -> GameStats:
-    """Play one game with a registry agent and write its log."""
+    """Play one game with a registry agent and write its log.
+
+    ``difficulty`` (a :class:`DifficultyParams` dict) adds the agent's
+    mistakes; speed settings have no effect on headless games.
+    """
+    from tetris.agents.difficulty import DifficultyParams
     from tetris.agents.registry import create_agent
 
-    agent = create_agent(agent_key, checkpoint, seed=seed)
+    params = DifficultyParams.from_dict(difficulty) if difficulty else None
+    agent = create_agent(agent_key, checkpoint, params, seed=seed)
     path.parent.mkdir(parents=True, exist_ok=True)
     tmp = path.with_suffix(".tmp")
     with gzip.open(tmp, "wt", encoding="utf-8") as f:
@@ -64,6 +71,7 @@ def log_episode(
             "seed": seed,
             "setting": setting.to_dict(),
             "checkpoint": checkpoint,
+            "difficulty": difficulty,
         }
         f.write(json.dumps(header) + "\n")
         step = 0
@@ -91,9 +99,13 @@ def log_episode(
     return stats
 
 
-def _task(args: tuple[str, str | None, int, dict[str, Any], str]) -> dict[str, Any]:
-    agent_key, checkpoint, seed, setting_d, path = args
-    stats = log_episode(agent_key, checkpoint, seed, EvalSetting.from_dict(setting_d), Path(path))
+def _task(args: tuple) -> dict[str, Any]:
+    """``(agent, checkpoint, seed, setting dict, path[, difficulty dict])``."""
+    agent_key, checkpoint, seed, setting_d, path, *rest = args
+    difficulty = rest[0] if rest else None
+    stats = log_episode(
+        agent_key, checkpoint, seed, EvalSetting.from_dict(setting_d), Path(path), difficulty
+    )
     return {"path": path, **stats.to_dict()}
 
 

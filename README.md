@@ -141,6 +141,8 @@ instead of the best one, so mistakes stay plausible. Measured results are in
 python -m tetris.agents.heuristic_ga.train     # GA heuristic, about 15 minutes on 12 cores
 python -m tetris.agents.cem.train              # cross-entropy method, about 15 minutes
 python scripts/log_games.py --agent ga         # logs games for imitation learning
+python scripts/run_phase6.py                   # Decision Transformer: collect, train, calibrate
+python scripts/eval_llm.py --dry-run           # LLM agent evaluation plan (needs Ollama or an API key)
 tensorboard --logdir runs
 ```
 

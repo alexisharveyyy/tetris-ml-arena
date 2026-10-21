@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import pygame
 
+from tetris.agents.decision_transformer.knob import default_label, target_stops
 from tetris.agents.difficulty import nudge_pps
 from tetris.agents.registry import AGENTS, playable_agents
 from tetris.match.history import MarathonHistory
@@ -19,6 +20,8 @@ from tetris.ui.pygame.render import ACCENT, BG, MUTED, TEXT, WARNING, draw_text
 from tetris.ui.pygame.screens.base import Screen
 
 LINE_TARGETS = (10, 20, 40, 100, 150)
+#: Rows that belong to an opponent slot.
+SLOT_ROWS = ("agent", "difficulty", "target", "pps", "reaction", "noise")
 MINUTE_LIMITS = (1, 2, 3, 5, 10)
 
 
@@ -50,6 +53,8 @@ class OpponentSelectScreen(Screen):
             rows.append(("agent", i))
             if slot is not None:
                 rows.append(("difficulty", i))
+                if AGENTS[slot.agent_key].supports_target_return:
+                    rows.append(("target", i))
                 if slot.preset == CUSTOM:
                     rows += [("pps", i), ("reaction", i), ("noise", i)]
         if self.mode == "race":
@@ -61,9 +66,7 @@ class OpponentSelectScreen(Screen):
 
     def _row_text(self, kind: str, i: int) -> tuple[str, str]:
         lobby = self.lobby
-        slot = (
-            lobby.slots[i] if kind in ("agent", "difficulty", "pps", "reaction", "noise") else None
-        )
+        slot = lobby.slots[i] if kind in SLOT_ROWS else None
         if kind == "agent":
             return f"Opponent {i + 1}", AGENTS[slot.agent_key].name if slot else "(empty)"
         if kind == "difficulty":
@@ -71,6 +74,11 @@ class OpponentSelectScreen(Screen):
                 record = self.history.describe(slot.agent_key, slot.preset)
                 return "    Difficulty", f"{slot.preset}   (your record: {record})"
             return "    Difficulty", slot.preset
+        if kind == "target":
+            if slot.target_return is None:
+                return "    Target return", default_label()
+            stop = min(target_stops(), key=lambda s: abs(s.target - slot.target_return))
+            return "    Target return", stop.label
         if kind == "pps":
             pps = slot.difficulty.pps
             return "      Speed cap", "unlimited" if pps is None else f"{pps:g} pieces/s"
@@ -109,6 +117,9 @@ class OpponentSelectScreen(Screen):
                 slot.agent_key = new
         elif kind == "difficulty" and slot:
             slot.set_preset(_cycle(list(DIFFICULTY_CHOICES), slot.preset, step))
+        elif kind == "target" and slot:
+            choices = [None, *(s.target for s in target_stops())]
+            slot.target_return = _cycle(choices, slot.target_return, step)
         elif kind == "pps" and slot:
             pps = nudge_pps(slot.difficulty.pps, step)
             slot.set_custom(**slot.difficulty.with_pps(pps).to_dict())
@@ -183,11 +194,7 @@ class OpponentSelectScreen(Screen):
             )
             draw_text(surface, shown, (w // 2 + 30, y), 30, color if value != "(empty)" else MUTED)
         kind, i = rows[min(self.selected, len(rows) - 1)]
-        slot = (
-            self.lobby.slots[i]
-            if kind in ("agent", "difficulty", "pps", "reaction", "noise")
-            else None
-        )
+        slot = self.lobby.slots[i] if kind in SLOT_ROWS else None
         if slot is not None:
             draw_text(
                 surface, AGENTS[slot.agent_key].description, (w // 2, h - 95), 26, MUTED, "center"

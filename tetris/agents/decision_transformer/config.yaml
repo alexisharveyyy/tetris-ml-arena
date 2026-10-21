@@ -1,0 +1,57 @@
+# Decision Transformer: offline RL as sequence modeling (see README.md).
+# Trained on trajectories of the other agents, conditioned on a target return.
+seed: 0
+device: mps                  # with the MPS pre-flight check and the progress watchdog
+torch_threads: 2
+
+# Trajectory collection (CPU): every source plays garbage-setting games on its
+# own seed block, at several mistake rates so the data spans low, medium and
+# high returns. Mistakes are the difficulty system's ranked mistakes.
+collect:
+  seed_base: 700000          # 1000 seeds per source; distinct from all other seed ranges
+  out_dir: data/logs/dt
+  games_per_source: 45
+  noise_levels: [0.0, 0.1, 0.3]
+  agents: [dellacherie, ga, cem, dqn, ppo, bc_pure, neat]
+  extra_sources:             # sources played at one mistake rate only
+    - {agent: ppo_raw, noise: 0.0, games: 50}
+cache_dir: data/dt
+
+# Return: each piece earns (1 + 0.25 * points / 1000) / cap with cap = 500,
+# so a game's return equals its leaderboard fitness when it reaches the cap.
+return_cap: 500
+
+model:
+  d_model: 128
+  n_layers: 4
+  n_heads: 4
+  context: 20                # pieces of history (60 tokens)
+  max_timestep: 512          # pieces since the start of the current 500-piece segment
+  board_dim: 128
+  extra_dim: 64
+  dropout: 0.1
+
+# Learning
+budget_minutes: 120
+batch_windows: 32            # 32 windows x 20 pieces, about 44k afterstates per batch
+lr: 3.0e-4                   # linear warmup, then cosine decay to lr_final
+lr_final: 3.0e-5
+warmup_steps: 500
+weight_decay: 1.0e-4
+grad_clip: 1.0
+val_fraction: 0.05           # held-out episodes for the action-agreement log
+
+# Checkpoint selection on the 30 selection seeds (garbage setting), playing at
+# selection_target. "auto" = the 90th percentile of episode returns in the data.
+selection_target: auto
+first_eval_minutes: 10
+eval_every_minutes: 10
+eval_workers: 3
+
+# Calibration of the target-return knob, after training (selection seeds).
+calibration_targets: [0.2, 0.4, 0.6, 0.8, 1.0, 1.2, 1.4]
+calibration_games: 30
+
+play:
+  decision_timeout: 2.0
+  startup_timeout: 60.0

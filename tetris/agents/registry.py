@@ -36,16 +36,23 @@ class AgentSpec:
     playable: bool = True
     #: Listed on the leaderboard (False for an alias of another entry's checkpoint).
     leaderboard: bool = True
+    #: Off unless its config sets ``enabled: true`` (the LLM agent).
+    opt_in: bool = False
 
     @property
-    def play_config(self) -> dict:
-        """The ``play`` section of the agent's YAML (decision and startup timeouts)."""
+    def agent_config(self) -> dict:
+        """The agent's YAML config, or {}."""
         if self.config is None:
             return {}
         path = ROOT / self.config
         if not path.exists():
             return {}
-        return (yaml.safe_load(path.read_text()) or {}).get("play") or {}
+        return yaml.safe_load(path.read_text()) or {}
+
+    @property
+    def play_config(self) -> dict:
+        """The ``play`` section of the agent's YAML (decision and startup timeouts)."""
+        return self.agent_config.get("play") or {}
 
     @property
     def decision_timeout(self) -> float:
@@ -62,6 +69,8 @@ class AgentSpec:
 
     @property
     def available(self) -> bool:
+        if self.opt_in and not self.agent_config.get("enabled", False):
+            return False
         path = self.checkpoint_path
         return path is None or path.exists()
 
@@ -152,12 +161,33 @@ AGENTS: dict[str, AgentSpec] = {
             config="tetris/agents/imitation/config.yaml",
         ),
         AgentSpec(
+            "dt",
+            "Decision Transformer",
+            "Return-conditioned transformer trained on the other agents' games; "
+            "the target return sets its strength.",
+            "tetris.agents.decision_transformer.agent:DTAgent",
+            "best.pt",
+            supports_target_return=True,
+            config="tetris/agents/decision_transformer/config.yaml",
+        ),
+        AgentSpec(
             "neat",
             "NEAT",
             "Evolved network scoring each afterstate from the same 13 features as GA and CEM.",
             "tetris.agents.neuroevolution.agent:NEATAgent",
             "best.json",
             config="tetris/agents/neuroevolution/config.yaml",
+        ),
+        AgentSpec(
+            "llm",
+            "LLM (novelty)",
+            "Novelty opponent: a language model picks each placement from a text board. "
+            "Falls back to the GA heuristic on timeouts and bad answers.",
+            "tetris.agents.llm.agent:LLMAgent",
+            None,
+            config="tetris/agents/llm/config.yaml",
+            leaderboard=False,
+            opt_in=True,
         ),
     )
 }
