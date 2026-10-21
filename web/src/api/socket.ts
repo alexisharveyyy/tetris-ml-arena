@@ -20,7 +20,7 @@ export class MatchSocket {
   private closed = false;
   private retry = 0;
   private snapListeners = new Set<(s: Snapshot) => void>();
-  private eventListeners = new Set<(e: FeedEvent) => void>();
+  private eventListeners = new Set<(e: FeedEvent, snap: Snapshot) => void>();
   private statusListeners = new Set<(s: SocketStatus) => void>();
 
   constructor(private readonly matchId: string, private readonly url = defaultUrl(matchId)) {
@@ -32,7 +32,8 @@ export class MatchSocket {
     return () => this.snapListeners.delete(fn);
   }
 
-  onEvent(fn: (e: FeedEvent) => void): () => void {
+  /** Feed events, each with the snapshot that carried it (for player names). */
+  onEvent(fn: (e: FeedEvent, snap: Snapshot) => void): () => void {
     this.eventListeners.add(fn);
     return () => this.eventListeners.delete(fn);
   }
@@ -98,7 +99,7 @@ export class MatchSocket {
         }
         if (this.stats.latencies.length > 2000) this.stats.latencies.splice(0, 1000);
       }
-      for (const ev of snap.ev) this.eventListeners.forEach((fn) => fn(ev));
+      for (const ev of snap.ev) this.eventListeners.forEach((fn) => fn(ev, snap));
       this.snapListeners.forEach((fn) => fn(snap));
     };
     ws.onclose = (e) => {

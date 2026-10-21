@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { api } from "../api/client";
-import type { FeedEvent, PlayerSnap } from "../api/types";
+import type { FeedEvent, PlayerSnap, Snapshot } from "../api/types";
 import { ConnectionBanner } from "../components/Overlays";
 import { tickerLine } from "../lib/copy";
 import { clock } from "../lib/format";
@@ -16,10 +16,10 @@ const TICKER_LINES = 6;
 export function MatchScreen({ matchId }: { matchId: string }) {
   const app = useApp();
   const [ticker, setTicker] = useState<string[]>([]);
-  const playersRef = useRef(new Map<string, PlayerSnap>());
-  const humanRef = useRef<string | null>(null);
-  const onEvent = useCallback((ev: FeedEvent) => {
-    const line = tickerLine(ev, playersRef.current, humanRef.current);
+  const onEvent = useCallback((ev: FeedEvent, s: Snapshot) => {
+    const players = new Map<string, PlayerSnap>(s.players.map((p) => [p.id, p]));
+    const human = s.players.find((p) => p.kind === "human")?.id ?? null;
+    const line = tickerLine(ev, players, human);
     if (line) setTicker((t) => [...t, line].slice(-TICKER_LINES));
   }, []);
   const { socket, snap, status } = useMatchSession(matchId, onEvent);
@@ -43,9 +43,7 @@ export function MatchScreen({ matchId }: { matchId: string }) {
 
   const model: MatchModel | null = useMemo(() => {
     if (!snap) return null;
-    playersRef.current = new Map(snap.players.map((p) => [p.id, p]));
     const human = snap.players.find((p) => p.kind === "human") ?? null;
-    humanRef.current = human?.id ?? null;
     const byId = new Map(snap.players.map((p) => [p.id, p]));
     const timed = snap.race?.time_remaining;
     const modeLine =

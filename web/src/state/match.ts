@@ -11,7 +11,7 @@ export interface MatchSession {
   status: SocketStatus;
 }
 
-export function useMatchSession(matchId: string | null, onEvent?: (e: FeedEvent) => void): MatchSession {
+export function useMatchSession(matchId: string | null, onEvent?: (e: FeedEvent, snap: Snapshot) => void): MatchSession {
   const [socket, setSocket] = useState<MatchSocket | null>(null);
   const [snap, setSnap] = useState<Snapshot | null>(null);
   const [status, setStatus] = useState<SocketStatus>("connecting");
@@ -30,7 +30,7 @@ export function useMatchSession(matchId: string | null, onEvent?: (e: FeedEvent)
         setSnap(s.latest);
       });
     });
-    const offEvent = s.onEvent((e) => eventRef.current?.(e));
+    const offEvent = s.onEvent((e, snap) => eventRef.current?.(e, snap));
     const offStatus = s.onStatus(setStatus);
     return () => {
       offSnap();

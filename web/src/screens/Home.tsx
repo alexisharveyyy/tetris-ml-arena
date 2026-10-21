@@ -34,8 +34,11 @@ export function evalTickerLines(data: LeaderboardResponse | null, name: (key: st
   });
   const pending = rows.filter((r) => r.status === "pending_rerun").length;
   const waiting = rows.filter((r) => r.status === "not_evaluated").length;
-  if (pending) lines.push(`${pending} result${pending === 1 ? "" : "s"} pending a rerun`);
-  if (waiting) lines.push(`${waiting} agent${waiting === 1 ? "" : "s"} still to be evaluated`);
+  const rest = [
+    pending ? `${pending} pending a rerun` : "",
+    waiting ? `${waiting} still to be evaluated` : "",
+  ].filter(Boolean);
+  if (rest.length) lines.push(rest.join(", "));
   return lines;
 }
 
