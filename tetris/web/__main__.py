@@ -19,6 +19,7 @@ import time
 import webbrowser
 from pathlib import Path
 
+from tetris import state
 from tetris.agents.registry import CHECKPOINT_ENV
 from tetris.web import build
 
@@ -43,9 +44,9 @@ def _config(demo, state_dir: str | None):
     root.mkdir(parents=True, exist_ok=True)
     return WebConfig(
         demo=demo,
-        settings_path=root / "user_settings.yaml",
-        history_path=root / "user_history.json",
-        recordings_dir=root / "recordings",
+        settings_path=state.settings_path(root),
+        history_path=state.history_path(root),
+        recordings_dir=state.recordings_dir(root),
     )
 
 
@@ -89,7 +90,8 @@ def main() -> None:
     parser.add_argument(
         "--state-dir",
         default=None,
-        help="keep settings and match history here instead of configs/ (rehearsals, tests)",
+        help="keep settings, match history and recordings here instead of configs/ and "
+        f"data/ (rehearsals, tests; default ${state.STATE_ENV} when set)",
     )
     args = parser.parse_args()
     _check_build()

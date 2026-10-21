@@ -1,3 +1,4 @@
+import { SignificanceNote } from "../../../components/SignificanceNote";
 import { PeopleTable, pendingNotes } from "../../../components/PeopleTable";
 import { PieceIcon } from "../../../components/PieceIcon";
 import { Tabs } from "../../../components/Tabs";
@@ -127,9 +128,7 @@ export function TetrominoLeaderboard(m: LeaderboardModel) {
               </tbody>
             </table>
             <div className="leaderboard__note">
-              <p>
-                {s!.method} {s!.significance}
-              </p>
+              <SignificanceNote survival={s!} />
               {pendingNotes(m.data, m.agent).map((t) => (
                 <p key={t}>{t}</p>
               ))}

@@ -6,8 +6,9 @@ returned as not evaluated. Every result is checked against the checkpoint that
 produced it (:mod:`tetris.agents.provenance`); a result from a buggy, changed
 or unrecorded checkpoint is returned as ``pending_rerun`` with no numbers.
 Top-out intervals are 95% Wilson score intervals computed from each report's
-rate and game count. The significance note is generated from the paired
-bootstrap table (``leaderboard_bootstrap.csv``, or the table in
+rate and game count. The significance note (tied groups, significant gaps,
+comparisons with the baseline) and the full comparison table come from the
+paired bootstrap (``leaderboard_bootstrap.csv``, or the table in
 ``leaderboard.md`` for reports written before that file existed).
 """
 
@@ -49,25 +50,35 @@ def _setting(md: str) -> dict[str, int]:
     return {"garbage_rows": int(m[1]), "garbage_every": int(m[2]), "max_pieces": int(m[3])}
 
 
-def bootstrap_pairs(reports: Path, name_to_key: dict[str, str]) -> dict[tuple[str, str], tuple]:
-    """Top-out rate differences (a minus b): ``{(a, b): (mean, lo, hi)}``."""
-    pairs: dict[tuple[str, str], tuple] = {}
+METRICS = ("fitness", "top_out_rate")
+_INTERVAL = r"([+-][\d.]+) \[([+-][\d.]+), ([+-][\d.]+)\]\*?"
+
+
+def bootstrap_table(reports: Path, name_to_key: dict[str, str]) -> dict[tuple[str, str], dict]:
+    """Paired bootstrap differences (a minus b): ``{(a, b): {metric: (mean, lo, hi)}}``."""
+    table: dict[tuple[str, str], dict] = {}
     for r in _read_csv(reports / "leaderboard_bootstrap.csv"):
-        if r["metric"] == "top_out_rate":
-            pairs[(r["a"], r["b"])] = (float(r["mean"]), float(r["lo"]), float(r["hi"]))
-    if pairs:
-        return pairs
+        if r["metric"] in METRICS:
+            table.setdefault((r["a"], r["b"]), {})[r["metric"]] = (
+                float(r["mean"]),
+                float(r["lo"]),
+                float(r["hi"]),
+            )
+    if table:
+        return table
     md = reports / "leaderboard.md"
     if not md.exists():
-        return pairs
-    row = re.compile(
-        r"^\| (.+?) minus (.+?) \| [^|]+ \| ([+-][\d.]+) \[([+-][\d.]+), ([+-][\d.]+)\]\*? \|$"
-    )
+        return table
+    row = re.compile(rf"^\| (.+?) minus (.+?) \| {_INTERVAL} \| {_INTERVAL} \|$")
     for line in md.read_text().splitlines():
         m = row.match(line)
         if m and m[1] in name_to_key and m[2] in name_to_key:
-            pairs[(name_to_key[m[1]], name_to_key[m[2]])] = (float(m[3]), float(m[4]), float(m[5]))
-    return pairs
+            values = [float(v) for v in m.groups()[2:]]
+            table[(name_to_key[m[1]], name_to_key[m[2]])] = {
+                "fitness": tuple(values[:3]),
+                "top_out_rate": tuple(values[3:]),
+            }
+    return table
 
 
 def _diff(pairs: dict, a: str, b: str) -> tuple[float, float, float] | None:
@@ -79,49 +90,100 @@ def _diff(pairs: dict, a: str, b: str) -> tuple[float, float, float] | None:
     return None
 
 
+def _tied(pairs: dict, a: str, b: str) -> bool:
+    d = _diff(pairs, a, b)
+    return d is not None and d[1] <= 0 <= d[2]
+
+
 def _join(names: list[str]) -> str:
     if len(names) <= 2:
         return " and ".join(names)
     return ", ".join(names[:-1]) + ", and " + names[-1]
 
 
-def significance_note(order: list[str], pairs: dict) -> str:
-    """Plain sentences from the bootstrap: each agent against the baseline, then
-    neighbors in the ranking that are not significantly different."""
+def tie_groups(order: list[str], pairs: dict) -> list[list[str]]:
+    """Runs of neighbors in the ranking in which every pair is tied (the top-out
+    rate interval includes 0). A pair missing from the bootstrap ends a run."""
+    groups: list[list[str]] = []
+    for k in order:
+        if groups and all(_tied(pairs, k, g) for g in groups[-1]):
+            groups[-1].append(k)
+        else:
+            groups.append([k])
+    return groups
+
+
+def significance_note(order: list[str], pairs: dict) -> list[dict[str, str]]:
+    """The bootstrap in three labelled lines: groups that are statistically tied,
+    each significant gap between neighbors in the ranking, and each agent
+    against the baseline. Lines with nothing to say are left out."""
     name = {k: identity(k).name for k in order}
-    better, worse, same = [], [], []
+    lines = []
+    groups = tie_groups(order, pairs)
+    tied = [g for g in groups if len(g) > 1]
+    if tied:
+        text = "; ".join(_join([name[k] for k in g]) for g in tied) + "."
+        # A run ends when the next agent differs from someone in it, not
+        # necessarily from its neighbor, so say where groups still overlap.
+        for left, right in zip(groups, groups[1:], strict=False):
+            if _tied(pairs, left[-1], right[0]):
+                text += f" {name[left[-1]]} is also tied with {name[right[0]]}."
+        lines.append({"label": "Statistically tied", "text": text})
+    gaps = []
+    for a, b in zip(order, order[1:], strict=False):
+        d = _diff(pairs, a, b)
+        if d is None or _tied(pairs, a, b):
+            continue
+        how = "less" if d[0] < 0 else "more"
+        gaps.append(f"{name[a]} tops out {how} often than {name[b]}")
+    if gaps:
+        lines.append({"label": "Significant gaps", "text": "; ".join(gaps) + "."})
     if BASELINE in order:
+        better, worse, same = [], [], []
         for k in order:
-            if k == BASELINE:
-                continue
-            d = _diff(pairs, k, BASELINE)
+            d = None if k == BASELINE else _diff(pairs, k, BASELINE)
             if d is None:
                 continue
-            _, lo, hi = d
-            (better if hi < 0 else worse if lo > 0 else same).append(name[k])
-    parts = []
-    if better or worse:
+            (better if d[2] < 0 else worse if d[1] > 0 else same).append(name[k])
         clauses = []
         if better:
-            clauses.append(f"{_join(better)} better than the baseline")
+            clauses.append(f"{_join(better)} better")
         if worse:
             clauses.append(f"{_join(worse)} worse")
-        parts.append("A paired bootstrap on the same seeds finds " + ", and ".join(clauses) + ".")
-    if same:
-        verb = "is" if len(same) == 1 else "are"
-        parts.append(f"{_join(same)} {verb} not significantly different from the baseline.")
-    ties = []
-    for a, b in zip(order, order[1:], strict=False):
-        if BASELINE in (a, b):
-            continue
-        d = _diff(pairs, a, b)
-        if d is not None and d[1] <= 0 <= d[2]:
-            ties.append(f"{name[a]} and {name[b]}")
-    if ties:
-        text = f"{ties[0]} are not significantly different from each other"
-        text += "".join(f", nor are {t}" for t in ties[1:])
-        parts.append(text + ".")
-    return " ".join(parts)
+        if same:
+            clauses.append(f"{_join(same)} not significantly different")
+        if clauses:
+            lines.append(
+                {
+                    "label": f"Against the baseline ({name[BASELINE]})",
+                    "text": "; ".join(clauses) + ".",
+                }
+            )
+    return lines
+
+
+def comparisons(order: list[str], table: dict) -> list[dict[str, Any]]:
+    """Every pair of ranked agents, in ranking order, for the full table."""
+    by_metric = {m: {pair: v[m] for pair, v in table.items() if m in v} for m in METRICS}
+    rows = []
+    for i, a in enumerate(order):
+        for b in order[i + 1 :]:
+            entry: dict[str, Any] = {"a": a, "b": b}
+            for metric, pairs in by_metric.items():
+                d = _diff(pairs, a, b)
+                entry[metric] = (
+                    None
+                    if d is None
+                    else {
+                        "mean": d[0],
+                        "lo": d[1],
+                        "hi": d[2],
+                        "significant": not _tied(pairs, a, b),
+                    }
+                )
+            if any(entry[m] for m in METRICS):
+                rows.append(entry)
+    return rows
 
 
 def survival(reports: Path, keys: list[str], name_to_key: dict[str, str]) -> dict[str, Any]:
@@ -185,12 +247,16 @@ def survival(reports: Path, keys: list[str], name_to_key: dict[str, str]) -> dic
         setting_text = ""
     games_text = f"{games[0]:,} games each" if len(games) == 1 else "the games listed per agent"
     method = f"Intervals are 95% Wilson score intervals from {games_text}.{setting_text}"
-    note = significance_note(order, bootstrap_pairs(reports, name_to_key)) if order else ""
+    table = bootstrap_table(reports, name_to_key) if order else {}
+    pairs = {k: v["top_out_rate"] for k, v in table.items() if "top_out_rate" in v}
+    if pairs:
+        method += " Ties and gaps come from a paired bootstrap on the same seeds."
     return {
         "scale_max": SCALE_MAX,
         "setting": setting,
         "method": method,
-        "significance": note,
+        "significance": significance_note(order, pairs),
+        "comparisons": comparisons(order, table),
         "rows": rows,
     }
 

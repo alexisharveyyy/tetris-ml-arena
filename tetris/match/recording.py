@@ -22,13 +22,15 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
+from tetris import state
 from tetris.agents.evaluation import GARBAGE_SETTING, PLAIN_SETTING, EvalSetting
 from tetris.agents.game_log import mask_to_str
 from tetris.engine.board import piece_cells
 from tetris.engine.game import Game
 from tetris.env.afterstates import action_mask, enumerate_afterstates
 
-RECORDINGS_DIR = Path(__file__).resolve().parent.parent.parent / "data" / "recordings"
+#: data/recordings, or under TETRIS_STATE_DIR (:mod:`tetris.state`).
+RECORDINGS_DIR = state.recordings_dir()
 #: Recording settings: plain (level gravity, no garbage) or the garbage training setting.
 RECORD_SETTINGS: dict[str, EvalSetting] = {"plain": PLAIN_SETTING, "garbage": GARBAGE_SETTING}
 

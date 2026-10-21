@@ -1,14 +1,14 @@
 // Keyboard-only run through Home, Choose opponents, Match and Results, against
 // a running server (no mocks), in every look. Every focused control must show
 // a visible focus ring.
-//   LIVE_URL=http://127.0.0.1:8799 npx playwright test keyboard
+//   LIVE=1 TETRIS_CHECKPOINT_DIR=~/tetris-ml-arena/checkpoints npx playwright test keyboard
 import { expect, test, type Page } from "@playwright/test";
 import { LOOK_IDS } from "./mock";
 
 const LIVE = process.env.LIVE_URL;
 const LOOKS = (process.env.LOOKS ?? LOOK_IDS.join(",")).split(",");
 
-test.skip(!LIVE, "set LIVE_URL to run against a real server");
+test.skip(!LIVE, "set LIVE=1 to start a server with temporary state, or LIVE_URL");
 test.setTimeout(90_000);
 
 /** Visible focus ring: an outline or box-shadow of at least 2px. */
@@ -28,7 +28,7 @@ async function tabTo(page: Page, name: RegExp, problems: string[], max = 60): Pr
   for (let i = 0; i < max; i++) {
     await page.keyboard.press("Tab");
     const ring = await focusRing(page);
-    if (ring) problems.push(ring);
+    if (ring) problems.push(`${ring} (Tab ${i + 1} toward ${name}, at ${new URL(page.url()).hash})`);
     const text = await page.evaluate(() => {
       const el = document.activeElement as HTMLElement | null;
       return el ? `${el.getAttribute("aria-label") ?? ""} ${el.textContent ?? ""}`.trim() : "";
@@ -52,6 +52,9 @@ for (const look of LOOKS) {
     await page.keyboard.press("Enter");
     await expect(page).toHaveURL(/#\/play\/marathon/);
     await expect(page.locator("section[aria-label=Agents]")).toBeVisible();
+    // The demo opponents fill the slots once /api/demo answers; until then
+    // Start is disabled and Tab skips it.
+    await expect(page.getByRole("button", { name: /^start marathon/i })).toBeEnabled();
 
     await tabTo(page, /^start marathon/i, problems);
     await page.keyboard.press("Enter");
@@ -78,7 +81,9 @@ for (const look of LOOKS) {
     await tabTo(page, /end the match/i, problems, 3);
     await page.keyboard.press("Enter");
     await expect(page).toHaveURL(/#\/results\//, { timeout: 10_000 });
-    await expect(page.locator("h1").first()).toBeVisible();
+    // Results shows its heading before the match record loads; tab once the
+    // actions are there, or a press can land on the browser bar.
+    await expect(page.getByRole("button", { name: /rematch/i })).toBeVisible();
     await tabTo(page, /rematch/i, problems, 30);
 
     expect(problems, problems.join("; ")).toEqual([]);

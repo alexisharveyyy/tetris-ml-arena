@@ -12,7 +12,7 @@ const LETTER: Record<string, string> = { tetromino: "A", terminal: "B", broadcas
 const WIDTH = Number(process.env.WIDTH ?? 1440);
 const HEIGHT = Number(process.env.HEIGHT ?? 900);
 const LOOKS = (process.env.LOOKS ?? "tetromino,terminal,broadcast,poster").split(",");
-const SCREENS = (process.env.SCREENS ?? "home,opponents,match,results,leaderboard,people,watch,solo,record,settings").split(",");
+const SCREENS = (process.env.SCREENS ?? "home,opponents,match,results,leaderboard,people,comparisons,watch,solo,record,settings").split(",");
 
 mkdirSync(OUT, { recursive: true });
 

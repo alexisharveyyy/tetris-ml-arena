@@ -1,5 +1,5 @@
 // Plain-word sentences built from match data. Every number comes from the server.
-import type { FeedEvent, PlayerSnap, StandingRow } from "../api/types";
+import type { Agent, FeedEvent, PlayerSnap, StandingRow } from "../api/types";
 import { clock, fmtInt, numberWord, ordinal, ordinalWord } from "./format";
 
 export type Metric = "score" | "lines";
@@ -109,4 +109,14 @@ export function aOrAn(word: string): string {
 /** Ticker lines, newest first: the new line goes in front and the oldest drops off. */
 export function pushTicker(lines: string[], line: string, max: number): string[] {
   return [line, ...lines].slice(0, max);
+}
+
+/** The server is still running this agent's startup load check. */
+export function isChecking(a: Agent | null | undefined): boolean {
+  return a?.status?.state === "checking";
+}
+
+/** What an agent that cannot be picked shows instead of its controls. */
+export function unavailableText(a: Agent | null | undefined): string {
+  return isChecking(a) ? "Checking..." : "Not available yet";
 }

@@ -1,3 +1,4 @@
+import { unavailableText } from "../../../lib/copy";
 import { Button } from "../../../components/Button";
 import { PieceIcon } from "../../../components/PieceIcon";
 import { Segmented } from "../../../components/Segmented";
@@ -56,7 +57,7 @@ export function TetrominoOpponents(m: OpponentsModel) {
                           {r.inSlots ? "Added" : "Add"}
                         </Button>
                       ) : (
-                        <span className="agent-row__na">Not available yet</span>
+                        <span className="agent-row__na">{unavailableText(r.agent)}</span>
                       )}
                     </div>
                   </li>

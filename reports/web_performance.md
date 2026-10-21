@@ -10,7 +10,9 @@ rotations; gravity drops the pieces, so you never top out during the window).
 The agents placed about 57 pieces per second each.
 
 Raw numbers: `reports/ui/perf.json`. To rerun:
-`LIVE_URL=http://127.0.0.1:8765 npx playwright test perf` in `web/`.
+`LIVE=1 TETRIS_CHECKPOINT_DIR=~/tetris-ml-arena/checkpoints npx playwright test perf`
+in `web/` (it starts its own server, with settings and history in a temporary
+directory), or `LIVE_URL=<url> npx playwright test perf` for a server you started.
 
 ## Browser
 

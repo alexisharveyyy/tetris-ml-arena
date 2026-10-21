@@ -1,3 +1,4 @@
+import { isChecking } from "../../../lib/copy";
 import { useRef, useState } from "react";
 import { LookSwitcher } from "../../../components/LookSwitcher";
 import { keyLabel } from "../../../lib/keys";
@@ -102,7 +103,7 @@ export function TerminalHome(m: HomeModel) {
                   <td>{a.looks.terminal.letter}</td>
                   <td>{a.name}</td>
                   <td>{a.family}</td>
-                  <td>{a.available ? "OK" : <abbr title="Not available yet">N/A</abbr>}</td>
+                  <td>{a.available ? "OK" : isChecking(a) ? <abbr title="Checking...">...</abbr> : <abbr title="Not available yet">N/A</abbr>}</td>
                 </tr>
               ))}
             </tbody>

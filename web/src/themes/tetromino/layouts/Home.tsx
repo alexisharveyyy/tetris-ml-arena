@@ -1,3 +1,4 @@
+import { unavailableText } from "../../../lib/copy";
 import { Button } from "../../../components/Button";
 import { KeyCap } from "../../../components/KeyCap";
 import { LookSwitcher } from "../../../components/LookSwitcher";
@@ -65,7 +66,7 @@ export function TetrominoHome(m: HomeModel) {
                 <PieceIcon agent={a} cell={20} />
                 <span className="lineup-card__name">{a.name}</span>
                 <span className="lineup-card__family">{a.family}</span>
-                {a.available ? null : <span className="lineup-card__status">Not available yet</span>}
+                {a.available ? null : <span className="lineup-card__status">{unavailableText(a)}</span>}
               </li>
             ))}
           </ul>

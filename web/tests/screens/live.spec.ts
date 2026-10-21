@@ -1,11 +1,11 @@
 // Live check against a running server (no mocks): Solo practice end to end.
-// Runs only with LIVE_URL set, for example
-//   LIVE_URL=http://127.0.0.1:8799 npx playwright test live
+// Runs only with LIVE=1 or LIVE_URL set (see playwright.config.ts), for example
+//   LIVE=1 TETRIS_CHECKPOINT_DIR=~/tetris-ml-arena/checkpoints npx playwright test live
 import { expect, test } from "@playwright/test";
 
 const LIVE = process.env.LIVE_URL;
 
-test.skip(!LIVE, "set LIVE_URL to run against a real server");
+test.skip(!LIVE, "set LIVE=1 to start a server with temporary state, or LIVE_URL");
 
 test("solo practice plays over the real WebSocket", async ({ page }) => {
   await page.goto(`${LIVE}/#/solo`);

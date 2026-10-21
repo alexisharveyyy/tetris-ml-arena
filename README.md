@@ -161,7 +161,14 @@ setting (one garbage row every 3 pieces, 500-piece cap). The plain setting
 ```bash
 pytest
 ruff check tetris tests && ruff format --check tetris tests
+cd web && npm test && npx playwright test     # web UI: unit, screenshots, audit
+LIVE=1 TETRIS_CHECKPOINT_DIR=~/tetris-ml-arena/checkpoints npx playwright test keyboard live
 ```
+
+Tests never touch your settings, Marathon history or recordings. pytest and
+the Playwright servers keep them in a temporary directory (`TETRIS_STATE_DIR`,
+see `tetris/state.py`), and both runs fail if the real files change while they
+run. Use `python -m tetris.web --state-dir DIR` for a rehearsal server.
 
 ## Layout
 

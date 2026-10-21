@@ -1,3 +1,4 @@
+import { unavailableText } from "../../../lib/copy";
 import { LookSwitcher } from "../../../components/LookSwitcher";
 import { PieceIcon } from "../../../components/PieceIcon";
 import type { HomeModel } from "../../../screens/models";
@@ -62,7 +63,7 @@ export function BroadcastHome(m: HomeModel) {
                   <Plate className={`plate--deep bc-lineup__row${a.available ? "" : " is-off"}`}>
                     <PieceIcon agent={a} cell={10} />
                     <span className="bc-lineup__name">{a.name}</span>
-                    <span className="bc-lineup__family">{a.available ? a.family : "Not available yet"}</span>
+                    <span className="bc-lineup__family">{a.available ? a.family : unavailableText(a)}</span>
                   </Plate>
                 </li>
               ))}

@@ -1,3 +1,4 @@
+import { SignificanceNote } from "../../../components/SignificanceNote";
 import { PeopleTable, pendingNotes } from "../../../components/PeopleTable";
 import { pct } from "../../../lib/format";
 import { go } from "../../../router";
@@ -93,9 +94,7 @@ export function TerminalLeaderboard(m: LeaderboardModel) {
                 })}
               </tbody>
             </table>
-            <p className="term-dim term-note">
-              {s!.method} {s!.significance}
-            </p>
+            <SignificanceNote survival={s!} className="term-dim term-note" />
             {pendingNotes(m.data, m.agent).map((t) => (
               <p key={t} className="term-dim term-note">
                 {t}

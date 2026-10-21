@@ -1,3 +1,4 @@
+import { unavailableText } from "../../../lib/copy";
 import { PieceIcon } from "../../../components/PieceIcon";
 import type { OpponentsModel } from "../../../screens/models";
 
@@ -51,7 +52,7 @@ export function PosterOpponents(m: OpponentsModel) {
                           {m.nextSlot === null ? "Slots full" : `Add to slot ${m.nextSlot}`}
                         </button>
                       ) : (
-                        <p className="po-tile__na">Not available yet</p>
+                        <p className="po-tile__na">{unavailableText(r.agent)}</p>
                       )}
                     </li>
                   );

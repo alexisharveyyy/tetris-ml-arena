@@ -25,9 +25,10 @@ import uuid
 from pathlib import Path
 from typing import Any
 
-DEFAULT_HISTORY_PATH = (
-    Path(__file__).resolve().parent.parent.parent / "configs" / "user_history.json"
-)
+from tetris import state
+
+#: configs/user_history.json, or under TETRIS_STATE_DIR (:mod:`tetris.state`).
+DEFAULT_HISTORY_PATH = state.history_path()
 VERSION = 2
 
 #: Standings fields kept for each player in a match record.

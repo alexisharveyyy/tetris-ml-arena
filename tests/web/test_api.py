@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 
 from tetris.agents.registry import AGENTS, ROOT, AgentSpec, register_agent
-from tetris.web.leaderboard import significance_note
+from tetris.web.leaderboard import bootstrap_table, comparisons, significance_note, tie_groups
 
 from .conftest import start
 
@@ -166,9 +166,11 @@ def test_leaderboard_from_reports(client) -> None:
     neat_here = (ROOT / "checkpoints" / "neat" / "best.json").exists()
     assert order == ["cem", "ga"] + (["neat"] if neat_here else []) + ["dellacherie"]
     assert "Wilson" in data["survival"]["method"]
-    note = data["survival"]["significance"]
-    assert "better than the baseline" in note and "CEM" in note and "GA heuristic" in note
+    note = " ".join(f"{line['label']}: {line['text']}" for line in data["survival"]["significance"])
+    assert "Against the baseline (Dellacherie): CEM" in note and "GA heuristic" in note
     assert "PPO" not in note  # pending results never appear in the note
+    pairs = {(c["a"], c["b"]) for c in data["survival"]["comparisons"]}
+    assert ("cem", "ga") in pairs and not any("ppo" in p for p in pairs)
     marathon = {r["key"]: r for r in data["marathon"]["rows"]}
     medium = marathon["cem"]["presets"]["Medium"]
     assert medium["score"]["3"] is not None and medium["time_is_lower_bound"]
@@ -184,14 +186,45 @@ def test_significance_note_wording() -> None:
     pairs = {
         ("a", "dellacherie"): (-0.2, -0.25, -0.15),
         ("b", "dellacherie"): (-0.1, -0.15, -0.05),
+        ("e", "dellacherie"): (-0.1, -0.15, -0.05),
         ("a", "b"): (-0.02, -0.06, 0.02),
+        ("a", "e"): (-0.05, -0.09, -0.01),
+        ("b", "e"): (-0.01, -0.04, 0.02),
+        ("e", "c"): (-0.4, -0.5, -0.3),
         ("c", "dellacherie"): (0.5, 0.4, 0.6),
     }
-    note = significance_note(["a", "b", "dellacherie", "c"], pairs)
-    assert note == (
-        "A paired bootstrap on the same seeds finds a and b better than the baseline, "
-        "and c worse. a and b are not significantly different from each other."
+    note = significance_note(["a", "b", "e", "dellacherie", "c"], pairs)
+    assert note == [
+        {"label": "Statistically tied", "text": "a and b. b is also tied with e."},
+        {
+            "label": "Significant gaps",
+            "text": "e tops out less often than Dellacherie; Dellacherie tops out less "
+            "often than c.",
+        },
+        {"label": "Against the baseline (Dellacherie)", "text": "a, b, and e better; c worse."},
+    ]
+    assert tie_groups(["a", "b", "e", "dellacherie", "c"], pairs) == [
+        ["a", "b"],
+        ["e"],
+        ["dellacherie"],
+        ["c"],
+    ]
+
+
+def test_comparison_table_covers_every_ranked_pair(tmp_path) -> None:
+    (tmp_path / "leaderboard_bootstrap.csv").write_text(
+        "a,b,metric,mean,lo,hi\nx,y,fitness,0.1,0.05,0.15\nx,y,top_out_rate,-0.02,-0.05,0.01\n"
     )
+    table = bootstrap_table(tmp_path, {})
+    rows = comparisons(["y", "x", "z"], table)
+    assert rows == [
+        {
+            "a": "y",
+            "b": "x",
+            "fitness": {"mean": -0.1, "lo": -0.15, "hi": -0.05, "significant": True},
+            "top_out_rate": {"mean": 0.02, "lo": -0.01, "hi": 0.05, "significant": False},
+        }
+    ]
 
 
 def test_record_mode_saves_a_recording(client, web_config, tmp_path) -> None:

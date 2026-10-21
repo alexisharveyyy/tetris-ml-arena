@@ -9,7 +9,7 @@ import { ConnectionBanner } from "../components/Overlays";
 import { agentStats, StatRow } from "../components/Panels";
 import { PieceIcon } from "../components/PieceIcon";
 import { Segmented } from "../components/Segmented";
-import { agentStatusLine } from "../lib/copy";
+import { agentStatusLine, unavailableText } from "../lib/copy";
 import { pct } from "../lib/format";
 import { go } from "../router";
 import { useApp } from "../state/app";
@@ -49,7 +49,7 @@ function WatchSetup() {
                 <input type="radio" name="agent" value={a.key} checked={chosen === a.key} disabled={!on} onChange={() => setKey(a.key)} />
                 <PieceIcon agent={a} cell={12} />
                 <span className="choice__name">{a.name}</span>
-                <span className="choice__meta">{on ? a.family : "Not available yet"}</span>
+                <span className="choice__meta">{on ? a.family : unavailableText(a)}</span>
               </label>
             );
           })}

@@ -2,7 +2,7 @@
 // agents on Unlimited, with key presses throughout. Records browser frame
 // times, input-to-render latency, long tasks and message size from the ?perf
 // probe (src/lib/perf.ts) into reports/ui/perf.json.
-//   LIVE_URL=http://127.0.0.1:8799 npx playwright test perf
+//   LIVE=1 TETRIS_CHECKPOINT_DIR=~/tetris-ml-arena/checkpoints npx playwright test perf
 //   (AGENTS=bc_you,cem,ppo SECONDS=45 RUNS=tetromino@1920x1080,...)
 import { expect, test } from "@playwright/test";
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
@@ -19,7 +19,7 @@ const RUNS = (
   "tetromino@1920x1080,terminal@1920x1080,broadcast@1920x1080,poster@1920x1080,tetromino@1280x720"
 ).split(",");
 
-test.skip(!LIVE, "set LIVE_URL to run against a real server");
+test.skip(!LIVE, "set LIVE=1 to start a server with temporary state, or LIVE_URL");
 test.setTimeout((SECONDS + 60) * 1000);
 
 const pct = (v: number[], q: number) => {

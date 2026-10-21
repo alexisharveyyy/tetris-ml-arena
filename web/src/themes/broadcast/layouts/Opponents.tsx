@@ -1,3 +1,4 @@
+import { unavailableText } from "../../../lib/copy";
 import { PieceIcon } from "../../../components/PieceIcon";
 import type { OpponentsModel } from "../../../screens/models";
 import { Plate } from "./parts";
@@ -48,7 +49,7 @@ export function BroadcastOpponents(m: OpponentsModel) {
                           {r.inSlots ? "Added" : "Add"}
                         </button>
                       ) : (
-                        <span className="bc-agent__na">Not available yet</span>
+                        <span className="bc-agent__na">{unavailableText(r.agent)}</span>
                       )}
                     </Plate>
                   </li>

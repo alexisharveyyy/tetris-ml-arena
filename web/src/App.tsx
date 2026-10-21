@@ -1,3 +1,4 @@
+import { ComparisonsScreen } from "./screens/Comparisons";
 import { HomeScreen } from "./screens/Home";
 import { LeaderboardScreen } from "./screens/Leaderboard";
 import { MatchScreen } from "./screens/Match";
@@ -45,6 +46,7 @@ export function App() {
     case "results":
       return <ResultsScreen key={a} matchId={a} />;
     case "leaderboard":
+      if (a === "comparisons") return <ComparisonsScreen />;
       return <LeaderboardScreen tab={a === "people" ? "people" : "survival"} />;
     case "watch":
       return a ? (

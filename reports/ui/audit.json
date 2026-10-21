@@ -638,5 +638,69 @@
   "boards": 0,
   "badBoards": [],
   "fit": []
+ },
+ "tetromino comparisons 1280x720": {
+  "violations": [],
+  "small": [],
+  "lowContrast": [],
+  "boards": 0,
+  "badBoards": [],
+  "fit": []
+ },
+ "terminal comparisons 1280x720": {
+  "violations": [],
+  "small": [],
+  "lowContrast": [],
+  "boards": 0,
+  "badBoards": [],
+  "fit": []
+ },
+ "broadcast comparisons 1280x720": {
+  "violations": [],
+  "small": [],
+  "lowContrast": [],
+  "boards": 0,
+  "badBoards": [],
+  "fit": []
+ },
+ "poster comparisons 1280x720": {
+  "violations": [],
+  "small": [],
+  "lowContrast": [],
+  "boards": 0,
+  "badBoards": [],
+  "fit": []
+ },
+ "tetromino comparisons 1920x1080": {
+  "violations": [],
+  "small": [],
+  "lowContrast": [],
+  "boards": 0,
+  "badBoards": [],
+  "fit": []
+ },
+ "terminal comparisons 1920x1080": {
+  "violations": [],
+  "small": [],
+  "lowContrast": [],
+  "boards": 0,
+  "badBoards": [],
+  "fit": []
+ },
+ "broadcast comparisons 1920x1080": {
+  "violations": [],
+  "small": [],
+  "lowContrast": [],
+  "boards": 0,
+  "badBoards": [],
+  "fit": []
+ },
+ "poster comparisons 1920x1080": {
+  "violations": [],
+  "small": [],
+  "lowContrast": [],
+  "boards": 0,
+  "badBoards": [],
+  "fit": []
  }
 }

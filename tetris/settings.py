@@ -12,9 +12,11 @@ from typing import Any
 
 import yaml
 
+from tetris import state
 from tetris.match.das import RepeatSettings
 
-DEFAULT_SETTINGS_PATH = Path(__file__).resolve().parent.parent / "configs" / "user_settings.yaml"
+#: configs/user_settings.yaml, or under TETRIS_STATE_DIR (:mod:`tetris.state`).
+DEFAULT_SETTINGS_PATH = state.settings_path()
 
 #: Actions that can be bound, in display order.
 ACTIONS: tuple[str, ...] = ("left", "right", "soft", "hard", "cw", "ccw", "hold", "pause")

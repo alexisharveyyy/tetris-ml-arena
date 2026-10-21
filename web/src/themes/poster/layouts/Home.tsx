@@ -1,3 +1,4 @@
+import { unavailableText } from "../../../lib/copy";
 import { LookSwitcher } from "../../../components/LookSwitcher";
 import { PieceIcon } from "../../../components/PieceIcon";
 import type { HomeModel } from "../../../screens/models";
@@ -48,7 +49,7 @@ export function PosterHome(m: HomeModel) {
               <span className="po-stripe__name">{a.name}</span>
               <span className="po-stripe__foot">
                 <PieceIcon agent={a} cell={11} color={a.looks.poster.text} />
-                <span className="po-stripe__family">{a.available ? a.family : "Not available yet"}</span>
+                <span className="po-stripe__family">{a.available ? a.family : unavailableText(a)}</span>
               </span>
             </li>
           ))}

@@ -109,12 +109,33 @@ export interface MarathonRow {
   presets: Record<Preset, MarathonPreset | null>;
 }
 
+export interface SignificanceLine {
+  label: string;
+  text: string;
+}
+
+export interface Interval {
+  mean: number;
+  lo: number;
+  hi: number;
+  significant: boolean;
+}
+
+/** One pair from the paired bootstrap: a minus b. */
+export interface Comparison {
+  a: string;
+  b: string;
+  fitness: Interval | null;
+  top_out_rate: Interval | null;
+}
+
 export interface LeaderboardResponse {
   survival: {
     scale_max: number;
     setting: { garbage_rows?: number; garbage_every?: number; max_pieces?: number };
     method: string;
-    significance: string;
+    significance: SignificanceLine[];
+    comparisons: Comparison[];
     rows: SurvivalRow[];
   };
   marathon: { minutes: number[]; presets: Preset[]; rows: MarathonRow[] };

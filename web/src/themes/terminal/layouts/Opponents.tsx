@@ -1,3 +1,4 @@
+import { unavailableText } from "../../../lib/copy";
 import { go } from "../../../router";
 import type { OpponentsModel } from "../../../screens/models";
 import { useShortcuts } from "../../../state/match";
@@ -47,7 +48,7 @@ export function TerminalOpponents(m: OpponentsModel) {
                         [ Add ]
                       </button>
                     ) : (
-                      <span className="term-agent__na">Not available yet</span>
+                      <span className="term-agent__na">{unavailableText(r.agent)}</span>
                     )}
                     <span className="term-agent__record term-dim">Record: {r.record}</span>
                   </li>

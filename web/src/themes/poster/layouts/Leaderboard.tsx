@@ -1,3 +1,4 @@
+import { SignificanceNote } from "../../../components/SignificanceNote";
 import { PeopleTable, pendingNotes } from "../../../components/PeopleTable";
 import { pct } from "../../../lib/format";
 import type { LeaderboardModel } from "../../../screens/models";
@@ -80,9 +81,7 @@ export function PosterLeaderboard(m: LeaderboardModel) {
               })}
             </ul>
             <div className="po-pad po-note">
-              <p>
-                {s!.method} {s!.significance}
-              </p>
+              <SignificanceNote survival={s!} />
               {pendingNotes(m.data, m.agent).map((t) => (
                 <p key={t}>{t}</p>
               ))}

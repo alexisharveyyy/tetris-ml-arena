@@ -1,3 +1,4 @@
+import { SignificanceNote } from "../../../components/SignificanceNote";
 import { PeopleTable, pendingNotes } from "../../../components/PeopleTable";
 import { PieceIcon } from "../../../components/PieceIcon";
 import { pct } from "../../../lib/format";
@@ -83,9 +84,7 @@ export function BroadcastLeaderboard(m: LeaderboardModel) {
                 );
               })}
             </div>
-            <p className="bc-note">
-              {s!.method} {s!.significance}
-            </p>
+            <SignificanceNote survival={s!} className="bc-note" />
             {pendingNotes(m.data, m.agent).map((t) => (
               <p key={t} className="bc-note">
                 {t}
