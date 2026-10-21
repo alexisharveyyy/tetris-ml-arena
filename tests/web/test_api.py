@@ -1,11 +1,27 @@
 from __future__ import annotations
 
 import json
+import shutil
 
+from tetris.agents import registry
 from tetris.agents.registry import AGENTS, ROOT, AgentSpec, register_agent
 from tetris.web.leaderboard import bootstrap_table, comparisons, significance_note, tie_groups
 
 from .conftest import start
+
+#: Promoted checkpoints committed to git (the rest are local training outputs).
+COMMITTED_CHECKPOINTS = ("cem/best.json", "ga/best.json", "neat/best.json")
+
+
+def use_checkpoint_dir(monkeypatch, path, committed=()) -> None:
+    """Point the registry at ``path`` instead of the checkout's checkpoints, so a
+    test sees the same agents in every checkout. ``committed`` copies those
+    git-tracked files into it."""
+    path.mkdir()
+    for name in committed:
+        (path / name).parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy(ROOT / "checkpoints" / name, path / name)
+    monkeypatch.setattr(registry, "CHECKPOINT_DIR", path)
 
 
 def agents_by_key(client) -> dict:
@@ -99,7 +115,9 @@ def test_lobby_remembers_last_selection(client) -> None:
     assert race["race"]["time_limit"] == 120.0
 
 
-def test_match_validation(client) -> None:
+def test_match_validation(client, tmp_path, monkeypatch) -> None:
+    use_checkpoint_dir(monkeypatch, tmp_path / "checkpoints")
+
     def post(**body):
         return client.post("/api/matches", json=body).status_code
 
@@ -109,7 +127,7 @@ def test_match_validation(client) -> None:
     # 422 while dt is only planned; 409 once registered without a checkpoint.
     assert post(mode="marathon", opponents=[{"agent": "dt"}]) in (409, 422)
     assert post(mode="marathon", opponents=[{"agent": "bc_pure"}]) == 422  # leaderboard only
-    assert post(mode="marathon", opponents=[{"agent": "bc_you"}]) == 409  # no checkpoint here
+    assert post(mode="marathon", opponents=[{"agent": "bc_you"}]) == 409  # no checkpoint
     assert post(mode="solo", opponents=[{"agent": "ga"}]) == 422
     assert post(mode="watch", opponents=[{"agent": "ga"}, {"agent": "cem"}]) == 422
 
@@ -145,10 +163,11 @@ def test_new_match_replaces_the_old_one(client) -> None:
     assert client.get(f"/api/matches/{second}").json()["players"][0]["kind"] == "agent"
 
 
-def test_leaderboard_from_reports(client) -> None:
-    """The repo's reports (Phase 5), read without the checkpoint override: GA, CEM
-    and the baseline verify against this checkout; the other agents' checkpoints
-    are not in it, so their results show as pending."""
+def test_leaderboard_from_reports(client, tmp_path, monkeypatch) -> None:
+    """The repo's reports (Phase 5), read with only the committed checkpoints: GA,
+    CEM, NEAT and the baseline verify; the other agents' checkpoints are absent,
+    so their results show as pending."""
+    use_checkpoint_dir(monkeypatch, tmp_path / "checkpoints", COMMITTED_CHECKPOINTS)
     data = client.get("/api/leaderboard").json()
     rows = {r["key"]: r for r in data["survival"]["rows"]}
     cem = rows["cem"]
@@ -163,8 +182,7 @@ def test_leaderboard_from_reports(client) -> None:
     assert not rows["dt"]["evaluated"]
     assert "bc" not in rows  # alias of bc_pure or bc_dagger
     order = [r["key"] for r in data["survival"]["rows"] if r["evaluated"]]
-    neat_here = (ROOT / "checkpoints" / "neat" / "best.json").exists()
-    assert order == ["cem", "ga"] + (["neat"] if neat_here else []) + ["dellacherie"]
+    assert order == ["cem", "ga", "neat", "dellacherie"]
     assert "Wilson" in data["survival"]["method"]
     note = " ".join(f"{line['label']}: {line['text']}" for line in data["survival"]["significance"])
     assert "Against the baseline (Dellacherie): CEM" in note and "GA heuristic" in note
@@ -177,8 +195,7 @@ def test_leaderboard_from_reports(client) -> None:
     assert marathon["cem"]["presets"]["Unlimited"] is None
     assert marathon["ppo"]["status"] == "pending_rerun"
     assert all(v is None for v in marathon["ppo"]["presets"].values())
-    # NEAT's best.json is committed on master, so it verifies there.
-    assert rows["neat"]["status"] == ("valid" if neat_here else "pending_rerun")
+    assert rows["neat"]["status"] == "valid"
     assert marathon["neat"]["status"] == rows["neat"]["status"]
 
 
