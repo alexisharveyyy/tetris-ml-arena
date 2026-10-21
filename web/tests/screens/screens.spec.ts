@@ -18,7 +18,7 @@ const SCREENS = (process.env.SCREENS ?? "home,opponents,match,results,leaderboar
 // Mocked screens: numbered like the mockups. Others: named.
 const SHOTS: { name: string; file: string; hash: string; ready: string }[] = [
   { name: "home", file: "1-home", hash: "#/", ready: ".home, .screen" },
-  { name: "opponents", file: "2-opponents", hash: "#/play/marathon", ready: ".slot" },
+  { name: "opponents", file: "2-opponents", hash: "#/play/marathon", ready: "section[aria-label=Agents]" },
   { name: "match", file: "3-match", hash: `#/match/${MATCH_ID}`, ready: "canvas.board" },
   { name: "results", file: "4-results", hash: `#/results/${MATCH_ID}`, ready: "h1" },
   { name: "leaderboard", file: "5-leaderboard", hash: "#/leaderboard", ready: "table" },
