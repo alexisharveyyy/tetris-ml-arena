@@ -7,7 +7,10 @@ Network failures raise :class:`BackendError`; running past the timeout raises
 
 API backends read their key from an environment variable and charge every
 call to the :class:`~tetris.agents.llm.spending.SpendingLedger` first, so a
-call that could cross the spending cap is never sent.
+call that could cross the spending cap is never sent. A call the API rejects
+with an HTTP error response is settled at $0 (rejected requests are not
+billed); the worst-case reservation is kept only when no reply arrives, or a
+reply arrives without readable token usage.
 """
 
 from __future__ import annotations
@@ -26,7 +29,15 @@ from tetris.agents.llm.spending import Price, SpendingLedger, estimate_tokens
 
 
 class BackendError(RuntimeError):
-    """The backend could not produce an answer (connection, HTTP or format error)."""
+    """The backend could not produce an answer (connection, HTTP or format error).
+
+    ``status`` is the HTTP status code when the server answered with an error
+    response (the request was rejected), else None.
+    """
+
+    def __init__(self, message: str, status: int | None = None) -> None:
+        super().__init__(message)
+        self.status = status
 
 
 class BackendTimeout(BackendError):
@@ -63,7 +74,7 @@ def _post(url: str, payload: dict[str, Any], headers: dict[str, str], timeout: f
         raise BackendTimeout(f"no reply within {timeout:.1f}s") from exc
     except urllib.error.HTTPError as exc:
         body = exc.read()[:300].decode(errors="replace")
-        raise BackendError(f"HTTP {exc.code}: {body}") from exc
+        raise BackendError(f"HTTP {exc.code}: {body}", status=exc.code) from exc
     except urllib.error.URLError as exc:
         if isinstance(exc.reason, TimeoutError | socket.timeout):
             raise BackendTimeout(f"no reply within {timeout:.1f}s") from exc
@@ -158,11 +169,17 @@ class _PaidBackend:
         self.ledger.reserve(reserve)  # raises BudgetExhausted; nothing sent
         t0 = time.perf_counter()
         tokens = (0, 0)
-        actual = reserve  # if the reply never arrives, assume the worst case was billed
+        # If no reply arrives (or a reply has no readable usage), assume the worst
+        # case was billed.
+        actual = reserve
         try:
             text, tin, tout = self._request(system, user, timeout)
             tokens = (tin, tout)
             actual = self.price.cost(tin, tout)
+        except BackendError as exc:
+            if exc.status is not None:  # rejected with an error response: not billed
+                actual = 0.0
+            raise
         finally:
             self.ledger.settle(reserve, actual, self.model, tokens)
         return Reply(text, tokens[0], tokens[1], time.perf_counter() - t0, actual)

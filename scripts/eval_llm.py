@@ -1,7 +1,9 @@
 """Evaluate the LLM agent: backends x prompt variants on the same garbage-setting seeds.
 
 Usage:
-    python scripts/eval_llm.py [--runs NAME,...] [--games 20] [--max-pieces 100] [--dry-run]
+    python scripts/eval_llm.py [--runs NAME,...] [--games 20] [--max-pieces 100]
+                               [--timeout SECONDS] [--dry-run]
+    python scripts/eval_llm.py --mark-pending NAME,... --reason TEXT
 
 Runs (defaults to all):
     qwen3-features     Ollama qwen3:8b, placements listed with lines, holes, height (default agent)
@@ -12,13 +14,18 @@ Runs (defaults to all):
 
 Every run plays the first ``--games`` held-out seeds, one game at a time,
 and the GA heuristic plays the same seeds with the same cap as the paired
-reference. Each finished game is appended to ``data/llm/eval/<run>.jsonl``,
-so an interrupted evaluation resumes where it stopped.
+reference. The per-decision timeout is ``eval_timeout_seconds`` from the LLM
+config (15 s; live play keeps ``timeout_seconds``, 3 s), so the evaluation
+measures the model rather than the fallback. Each finished game is appended
+to ``data/llm/eval/<run>_cap<pieces>_t<timeout>.jsonl``, so an interrupted
+evaluation resumes where it stopped.
 
-API runs need prices checked within the last 7 days (``prices_checked`` in
-``tetris/agents/llm/config.yaml``) and stop cleanly when the spending cap
-would be crossed: the game in progress is discarded and the report marks the
-run as stopped by the budget.
+A run stops after 5 backend errors in a row (the game in progress is
+discarded). API runs need prices checked within the last 7 days
+(``prices_checked`` in ``tetris/agents/llm/config.yaml``), make one test call
+first and are skipped if it fails, and stop cleanly when the spending cap
+would be crossed. Runs without results appear in the report as pending, with
+the reason from ``data/llm/eval/status.json`` (``--mark-pending`` sets one).
 
 Writes ``reports/llm_agent.md`` and ``reports/llm_agent.json``.
 """
@@ -45,13 +52,18 @@ from tetris.agents.evaluation import (
     play_game,
 )
 from tetris.agents.llm.agent import LLMAgent, load_llm_config
-from tetris.agents.llm.backends import make_backend
+from tetris.agents.llm.backends import BackendError, make_backend
 from tetris.agents.llm.spending import BudgetExhausted, SpendingLedger
 from tetris.agents.registry import ROOT
 from tetris.env.afterstates import action_mask
 
 OUT_DIR = ROOT / "data" / "llm" / "eval"
+STATUS_PATH = OUT_DIR / "status.json"
 PRICE_MAX_AGE_DAYS = 7
+#: A run stops after this many backend errors in a row.
+ERROR_STREAK_LIMIT = 5
+#: Timeout of the one test call made before an API run.
+TEST_CALL_TIMEOUT = 30.0
 #: name -> (backend, model override or None, prompt variant)
 RUNS: dict[str, tuple[str, str | None, str]] = {
     "qwen3-features": ("ollama", "qwen3:8b", "features"),
@@ -110,13 +122,42 @@ def load_done(path: Path) -> list[dict[str, Any]]:
     return [json.loads(line) for line in path.read_text().splitlines() if line.strip()]
 
 
+class RunStopped(RuntimeError):
+    """The run cannot continue (repeated backend errors, failed API test call)."""
+
+
+def results_path(name: str, max_pieces: int, timeout: float) -> Path:
+    return OUT_DIR / f"{name}_cap{max_pieces}_t{timeout:g}.jsonl"
+
+
+def load_status() -> dict[str, str]:
+    """Run name -> why it has no results yet."""
+    return json.loads(STATUS_PATH.read_text()) if STATUS_PATH.exists() else {}
+
+
+def set_status(name: str, reason: str | None) -> None:
+    status = load_status()
+    if reason is None:
+        status.pop(name, None)
+    else:
+        status[name] = reason
+    STATUS_PATH.parent.mkdir(parents=True, exist_ok=True)
+    STATUS_PATH.write_text(json.dumps(status, indent=2) + "\n")
+
+
 def play_llm_game(agent: LLMAgent, seed: int, setting: EvalSetting) -> dict[str, Any]:
     before = agent.stats.to_dict()
 
     def policy(game):
         if not action_mask(game, setting.include_hold).any():
             return None
-        return agent.select_placement(game).index
+        index = agent.select_placement(game).index
+        if agent.stats.error_streak >= ERROR_STREAK_LIMIT:
+            raise RunStopped(
+                f"stopped after {ERROR_STREAK_LIMIT} backend errors in a row "
+                f"(last: {agent.stats.last_error[:200]})"
+            )
+        return index
 
     t0 = time.perf_counter()
     stats = play_game(policy, seed, setting)
@@ -124,6 +165,7 @@ def play_llm_game(agent: LLMAgent, seed: int, setting: EvalSetting) -> dict[str,
     diff = {k: after["outcomes"][k] - before["outcomes"][k] for k in after["outcomes"]}
     return {
         **stats.to_dict(),
+        "timeout_seconds": agent.timeout,
         "seconds": time.perf_counter() - t0,
         "outcomes": diff,
         "llm_seconds": after["seconds_per_decision"] * after["decisions"]
@@ -142,24 +184,49 @@ def warm_up(agent: LLMAgent) -> None:
         print(f"  loaded {agent.backend.model} in {time.perf_counter() - t0:.1f}s", flush=True)
 
 
+def api_test_call(agent: LLMAgent) -> None:
+    """One minimal request before an API run; raises RunStopped if it fails."""
+    try:
+        agent.backend.complete(
+            'Reply with the JSON {"choice": 1}.', "Choose placement 1.", TEST_CALL_TIMEOUT
+        )
+    except BudgetExhausted as exc:
+        raise RunStopped(f"spending cap reached ({exc})") from exc
+    except BackendError as exc:
+        if exc.status in (401, 403) or "is not set" in str(exc):
+            raise RunStopped("no valid API key") from exc
+        raise RunStopped(f"API test call failed: {str(exc)[:200]}") from exc
+
+
 def evaluate_run(
-    cfg: dict[str, Any], name: str, seeds: list[int], setting: EvalSetting
+    cfg: dict[str, Any], name: str, seeds: list[int], setting: EvalSetting, timeout: float
 ) -> dict[str, Any]:
     run_cfg, label = run_config(cfg, name)
-    path = OUT_DIR / f"{name}_cap{setting.max_pieces}.jsonl"
+    path = results_path(name, setting.max_pieces, timeout)
     path.parent.mkdir(parents=True, exist_ok=True)
     done = load_done(path)
     agent = LLMAgent(seed=0, config=run_cfg)
-    agent.configure(backend=make_backend(run_cfg), stop_on_budget=True)
+    agent.configure(backend=make_backend(run_cfg), timeout=timeout, stop_on_budget=True)
     stopped = None
     todo = [s for s in seeds if s not in {g["seed"] for g in done}]
-    print(f"{name} ({label}): {len(done)} games done, {len(todo)} to play", flush=True)
+    print(
+        f"{name} ({label}, timeout {timeout:g} s): {len(done)} games done, {len(todo)} to play",
+        flush=True,
+    )
+    if todo and RUNS[name][0] == "api":
+        try:
+            api_test_call(agent)
+        except RunStopped as exc:
+            print(f"  skipped: {exc}", flush=True)
+            if not done:
+                set_status(name, str(exc))
+            return {"name": name, "label": label, "games": done, "stopped": str(exc)}
     if todo:
         warm_up(agent)
     for seed in todo:
         try:
             game = play_llm_game(agent, seed, setting)
-        except BudgetExhausted as exc:
+        except (BudgetExhausted, RunStopped) as exc:
             stopped = str(exc)
             print(f"  stopped: {exc}", flush=True)
             break
@@ -173,7 +240,21 @@ def evaluate_run(
             f"{game['seconds'] / max(game['pieces'], 1):.2f} s/piece, ${game['cost_usd']:.4f}",
             flush=True,
         )
+    if done:
+        set_status(name, None)
+    elif stopped:
+        set_status(name, stopped)
     return {"name": name, "label": label, "games": done, "stopped": stopped}
+
+
+def stored_run(cfg: dict[str, Any], name: str, max_pieces: int, timeout: float) -> dict[str, Any]:
+    """Results saved by an earlier invocation: the file for ``timeout`` if it has
+    games, else the file with the most games."""
+    _, label = run_config(cfg, name)
+    preferred = load_done(results_path(name, max_pieces, timeout))
+    others = [load_done(f) for f in sorted(OUT_DIR.glob(f"{name}_cap{max_pieces}_t*.jsonl"))]
+    games = preferred or max(others, key=len, default=[])
+    return {"name": name, "label": label, "games": games, "stopped": None}
 
 
 def _stats(game: dict[str, Any]) -> GameStats:
@@ -223,11 +304,20 @@ def paired_metrics(
     return out
 
 
-def summarize_run(run: dict[str, Any], ga: dict[int, GameStats]) -> dict[str, Any]:
+def summarize_run(
+    run: dict[str, Any], ga: dict[int, GameStats], pending: str | None = None
+) -> dict[str, Any]:
     games = run["games"]
     if not games:
-        return {"name": run["name"], "label": run["label"], "games": 0, "stopped": run["stopped"]}
+        return {
+            "name": run["name"],
+            "label": run["label"],
+            "games": 0,
+            "stopped": run["stopped"],
+            "pending": pending or run["stopped"] or "not run",
+        }
     stats = [_stats(g) for g in games]
+    timeouts = sorted({float(g["timeout_seconds"]) for g in games})
     outcomes = {k: sum(g["outcomes"][k] for g in games) for k in games[0]["outcomes"]}
     decisions = sum(outcomes.values())
     pieces = sum(g["pieces"] for g in games)
@@ -236,6 +326,7 @@ def summarize_run(run: dict[str, Any], ga: dict[int, GameStats]) -> dict[str, An
         "label": run["label"],
         "games": len(games),
         "stopped": run["stopped"],
+        "timeout_seconds": timeouts[0] if len(timeouts) == 1 else timeouts,
         "metrics": metric_summary(stats),
         "fallback_rate": (decisions - outcomes["llm"]) / max(decisions, 1),
         "fallbacks": {k: v for k, v in outcomes.items() if k != "llm"},
@@ -258,6 +349,12 @@ def compare(a: dict[str, Any], b: dict[str, Any]) -> dict[str, Any] | None:
         return None
     diff = paired_metrics([sa[s] for s in common], [sb[s] for s in common])
     return {"a": a["name"], "b": b["name"], "games": len(common), "difference": diff}
+
+
+def _timeout_label(value: Any) -> str:
+    if isinstance(value, list):
+        return " / ".join(f"{v:g} s" for v in value)
+    return f"{value:g} s"
 
 
 def _fmt(key: str, value: float, signed: bool = False) -> str:
@@ -320,11 +417,13 @@ def write_report(
         "Every decision falls back to the GA heuristic's move on a timeout, an unparseable "
         "or unlisted answer, or a backend error, so a run with many fallbacks partly "
         f"measures the GA. {api_note}The local models are 8-billion-parameter models "
-        "quantized to 4 bits.",
+        "quantized to 4 bits. The timeout column is the per-decision limit the run used; "
+        "live play in the app uses 3 s.",
         "",
-        f"| Run | Games | {' | '.join(f'{x} [95% interval]' for x in names)} | Fallback rate "
-        "| Timeouts / invalid / errors | Seconds per piece | Tokens per game | Cost |",
-        "|---|---|---|---|---|---|---|---|---|---|",
+        f"| Run | Games | Timeout | {' | '.join(f'{x} [95% interval]' for x in names)} "
+        "| Fallback rate | Timeouts / invalid / errors | Seconds per piece | Tokens per game "
+        "| Cost |",
+        "|---|---|---|---|---|---|---|---|---|---|---|",
     ]
 
     def metric_cells(m: dict[str, dict[str, Any]]) -> str:
@@ -333,14 +432,16 @@ def write_report(
             for k in METRICS
         )
 
-    lines.append(f"| GA heuristic (reference) | {n} | {metric_cells(ga)} | | | | | |")
+    lines.append(f"| GA heuristic (reference) | {n} | | {metric_cells(ga)} | | | | | |")
     for s in summaries:
         if not s["games"]:
-            lines.append(f"| {s['label']} | 0 | | | | | | | | |")
+            pending = f"Pending ({s['pending']})"
+            lines.append(f"| {s['label']} | 0 | | {pending} | | | | | | | |")
             continue
         f = s["fallbacks"]
         lines.append(
-            f"| {s['label']} | {s['games']} | {metric_cells(s['metrics'])} "
+            f"| {s['label']} | {s['games']} | {_timeout_label(s['timeout_seconds'])} "
+            f"| {metric_cells(s['metrics'])} "
             f"| {s['fallback_rate']:.1%} "
             f"| {f.get('timeout', 0)} / {f.get('invalid', 0)} / {f.get('error', 0)} "
             f"| {s['seconds_per_piece']:.2f} | {s['tokens_per_game']:,.0f} "
@@ -357,14 +458,27 @@ def write_report(
     for s in summaries:
         if s["games"]:
             lines.append(f"| {s['label']} minus GA | {s['games']} | {_diff_cells(s['minus_ga'])} |")
+    mixed = False
     for c in comparisons:
+        ta, tb = by_name[c["a"]]["timeout_seconds"], by_name[c["b"]]["timeout_seconds"]
+        mark = ""
+        if ta != tb:
+            mixed = True
+            mark = f" (timeouts {_timeout_label(ta)} vs {_timeout_label(tb)})"
         lines.append(
-            f"| {by_name[c['a']]['label']} minus {by_name[c['b']]['label']} | {c['games']} "
+            f"| {by_name[c['a']]['label']} minus {by_name[c['b']]['label']}{mark} | {c['games']} "
             f"| {_diff_cells(c['difference'])} |"
         )
-    stopped = [s for s in summaries if s.get("stopped")]
+    if mixed:
+        lines += [
+            "",
+            "Comparisons marked with two timeouts pair runs made with different per-decision "
+            "limits; part of the difference can come from the timeout (a shorter limit means "
+            "more fallbacks to the GA).",
+        ]
+    stopped = [s for s in summaries if s.get("stopped") and s["games"]]
     if stopped:
-        lines += ["", "Runs stopped by the API spending cap:"]
+        lines += ["", "Runs stopped early (results cover the games finished before the stop):"]
         lines += [f"- {s['label']}: {s['stopped']}" for s in stopped]
     lines += [
         "",
@@ -375,6 +489,14 @@ def write_report(
     (reports / "llm_agent.md").write_text("\n".join(lines))
 
 
+def _run_names(text: str) -> list[str]:
+    names = [n.strip() for n in text.split(",") if n.strip()]
+    unknown = [n for n in names if n not in RUNS]
+    if unknown:
+        sys.exit(f"unknown runs: {unknown}; choose from {list(RUNS)}")
+    return names
+
+
 def main(argv: list[str] | None = None) -> None:
     parser = argparse.ArgumentParser(
         description=__doc__, formatter_class=argparse.RawTextHelpFormatter
@@ -382,20 +504,29 @@ def main(argv: list[str] | None = None) -> None:
     parser.add_argument("--runs", default=",".join(RUNS))
     parser.add_argument("--games", type=int, default=20)
     parser.add_argument("--max-pieces", type=int, default=100)
+    parser.add_argument("--timeout", type=float, help="per decision (default eval_timeout_seconds)")
     parser.add_argument("--dry-run", action="store_true")
+    parser.add_argument("--mark-pending", help="record runs as pending, with --reason, and exit")
+    parser.add_argument("--reason", help="why the --mark-pending runs have no results")
     args = parser.parse_args(argv)
     cfg = load_llm_config()
-    names = [n.strip() for n in args.runs.split(",") if n.strip()]
-    unknown = [n for n in names if n not in RUNS]
-    if unknown:
-        sys.exit(f"unknown runs: {unknown}; choose from {list(RUNS)}")
+    if args.mark_pending:
+        if not args.reason:
+            sys.exit("--mark-pending needs --reason")
+        for name in _run_names(args.mark_pending):
+            set_status(name, args.reason)
+        print(f"marked pending: {args.mark_pending} ({args.reason})")
+        return
+    names = _run_names(args.runs)
+    timeout = float(args.timeout or cfg.get("eval_timeout_seconds", cfg["timeout_seconds"]))
     if any(RUNS[n][0] == "api" for n in names):
         check_prices(cfg)
     setting = EvalSetting(**{**GARBAGE_SETTING.to_dict(), "max_pieces": args.max_pieces})
     seeds = list(HELD_OUT_SEEDS[: args.games])
     ledger = SpendingLedger(ROOT / cfg["spending"]["ledger"], float(cfg["spending"]["cap_usd"]))
     print(
-        f"runs {names}: {args.games} games each, cap {args.max_pieces} pieces; "
+        f"runs {names}: {args.games} games each, cap {args.max_pieces} pieces, "
+        f"timeout {timeout:g} s; "
         f"API spent so far ${ledger.spent:.2f} of ${ledger.cap_usd:.2f}",
         flush=True,
     )
@@ -403,14 +534,20 @@ def main(argv: list[str] | None = None) -> None:
         return
     ga_stats = evaluate_agent("ga", seeds, setting, workers=0)
     ga = {s.seed: s for s in ga_stats}
-    runs = [evaluate_run(cfg, n, seeds, setting) for n in names]
-    summaries = [summarize_run(r, ga) for r in runs]
-    by_name = {r["name"]: r for r in runs}
+    played = {n: evaluate_run(cfg, n, seeds, setting, timeout) for n in names}
+    # The report covers every run: earlier results for runs not played now.
+    runs = [played.get(n) or stored_run(cfg, n, args.max_pieces, timeout) for n in RUNS]
+    for r in runs:
+        r["games"] = [g for g in r["games"] if g["seed"] in ga]
+    status = load_status()
+    summaries = [summarize_run(r, ga, status.get(r["name"])) for r in runs]
+    by_name = {s["name"]: s for s in summaries}
+    runs_by_name = {r["name"]: r for r in runs}
     comparisons = [
         c
         for a, b in COMPARISONS
-        if a in by_name and b in by_name
-        for c in [compare(by_name[a], by_name[b])]
+        if by_name[a]["games"] and by_name[b]["games"]
+        for c in [compare(runs_by_name[a], runs_by_name[b])]
         if c is not None
     ]
     write_report(summaries, comparisons, ga_stats, setting, ledger.snapshot(), api_note(cfg))

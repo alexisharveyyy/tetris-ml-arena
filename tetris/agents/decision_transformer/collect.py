@@ -10,6 +10,10 @@ Mistakes come from the difficulty system (``noise``: a plausible next-best
 placement instead of the best), so weaker trajectories look like an agent
 playing badly rather than at random. The spread of returns is what makes the
 target-return knob work: the model can only reproduce returns it has seen.
+
+A source can also name a ``checkpoint`` (relative to the repo root) and a
+``label``: an agent at an earlier stage of its training, so skill varies in
+ways the board shows rather than through injected mistakes (``config_v2.yaml``).
 """
 
 from __future__ import annotations
@@ -35,10 +39,12 @@ class Source:
     agent: str
     noise: float
     games: int
+    checkpoint: str | None = None  # relative to the repo root; None = the promoted one
+    label: str | None = None
 
     @property
     def name(self) -> str:
-        return f"{self.agent}_noise{self.noise:g}"
+        return self.label or f"{self.agent}_noise{self.noise:g}"
 
 
 def sources(cfg: dict[str, Any]) -> list[Source]:
@@ -46,10 +52,22 @@ def sources(cfg: dict[str, Any]) -> list[Source]:
     c = cfg["collect"]
     out = [
         Source(agent, float(noise), int(c["games_per_source"]))
-        for agent in c["agents"]
-        for noise in c["noise_levels"]
+        for agent in c.get("agents", [])
+        for noise in c.get("noise_levels", [])
     ]
-    out += [Source(s["agent"], float(s["noise"]), int(s["games"])) for s in c["extra_sources"]]
+    out += [
+        Source(
+            s["agent"],
+            float(s.get("noise", 0.0)),
+            int(s["games"]),
+            s.get("checkpoint"),
+            s.get("label"),
+        )
+        for s in c.get("extra_sources", [])
+    ]
+    names = [src.name for src in out]
+    if len(set(names)) != len(names):
+        raise ValueError(f"duplicate source names: {names}")
     return out
 
 
@@ -66,10 +84,11 @@ def collection_tasks(cfg: dict[str, Any], root: Path) -> list[tuple]:
     tasks = []
     for k, src in enumerate(sources(cfg)):
         difficulty = {"noise": src.noise} if src.noise > 0 else None
+        checkpoint = str(ROOT / src.checkpoint) if src.checkpoint else None
         for i in range(src.games):
             seed = int(c["seed_base"]) + 1000 * k + i
             path = episode_path(root, src.name, setting.name, seed)
-            tasks.append((src.agent, None, seed, setting.to_dict(), str(path), difficulty))
+            tasks.append((src.agent, checkpoint, seed, setting.to_dict(), str(path), difficulty))
     return tasks
 
 

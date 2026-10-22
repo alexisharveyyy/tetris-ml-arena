@@ -1,0 +1,74 @@
+# Decision Transformer v2: the v1 model and training, on different data (see README.md).
+seed: 0
+device: mps                  # with the MPS pre-flight check and the progress watchdog
+torch_threads: 2
+
+# DT v2: tests whether skill that the board shows makes the target return
+# work as a difficulty knob. v1 varied skill with injected mistakes, which the
+# state does not predict, and its target return barely changed its play
+# (reports/dt_calibration.md). v2 has no injected mistakes; instead each
+# trained agent plays at three stages of its training, picked by one rule:
+#   first: the first checkpoint its selection evaluated
+#   best:  the selected (promoted) checkpoint
+#   mid:   the checkpoint whose selection fitness is closest to halfway
+#          between first and best (any point in the run)
+# plus BC (you) and raw-action PPO. Selection fitness (30 selection seeds) in
+# the comments. Seeds: a block of 1000 per source from 720000, apart from v1.
+collect:
+  seed_base: 720000
+  out_dir: data/logs/dt_v2
+  extra_sources:
+    - {label: dqn_first, agent: dqn, checkpoint: checkpoints/dqn/seed0/eval_0005min_259968.pt, games: 70}     # 0.169, 5 min
+    - {label: dqn_mid, agent: dqn, checkpoint: checkpoints/dqn/seed0/eval_0065min_3564608.pt, games: 70}      # 0.747, 65 min
+    - {label: dqn_best, agent: dqn, checkpoint: checkpoints/dqn/seed0/eval_0025min_1418880.pt, games: 70}     # 1.340, 25 min
+    - {label: ppo_first, agent: ppo, checkpoint: checkpoints/ppo/seed0/eval_0005min_114688.pt, games: 70}     # 0.095, 5 min
+    - {label: ppo_mid, agent: ppo, checkpoint: checkpoints/ppo/seed0/eval_0056min_1073152.pt, games: 70}      # 0.841, 56 min
+    - {label: ppo_best, agent: ppo, checkpoint: checkpoints/ppo/seed0/eval_0147min_2744320.pt, games: 70}     # 1.392, 147 min
+    - {label: bc_first, agent: bc_pure, checkpoint: checkpoints/bc_pure/seed0/eval_0003min_998.pt, games: 70}   # 0.945, 3 min
+    - {label: bc_mid, agent: bc_pure, checkpoint: checkpoints/bc_pure/seed0/eval_0006min_2030.pt, games: 70}    # 1.128, 6 min
+    - {label: bc_best, agent: bc_pure, checkpoint: checkpoints/bc_pure/seed0/eval_0021min_7252.pt, games: 70}   # 1.358, 21 min
+    - {label: neat_first, agent: neat, checkpoint: checkpoints/neat/seed0/gen_0000.json, games: 70}          # 0.571, generation 0
+    - {label: neat_mid, agent: neat, checkpoint: checkpoints/neat/seed0/gen_0200.json, games: 70}            # 1.070, generation 200
+    - {label: neat_best, agent: neat, checkpoint: checkpoints/neat/seed0/gen_0060.json, games: 70}           # 1.395, generation 60
+    - {label: bc_you, agent: bc_you, games: 70}                                                                # held-out 0.147
+    - {label: ppo_raw, agent: ppo_raw, games: 70}                                                              # held-out 0.103
+cache_dir: data/dt
+
+# Return: each piece earns (1 + 0.25 * points / 1000) / cap with cap = 500,
+# so a game's return equals its leaderboard fitness when it reaches the cap.
+return_cap: 500
+
+model:
+  d_model: 128
+  n_layers: 4
+  n_heads: 4
+  context: 20                # pieces of history (60 tokens)
+  max_timestep: 512          # pieces since the start of the current 500-piece segment
+  board_dim: 128
+  extra_dim: 64
+  dropout: 0.1
+
+# Learning
+budget_minutes: 120
+batch_windows: 32            # 32 windows x 20 pieces, about 44k afterstates per batch
+lr: 3.0e-4                   # linear warmup, then cosine decay to lr_final
+lr_final: 3.0e-5
+warmup_steps: 500
+weight_decay: 1.0e-4
+grad_clip: 1.0
+val_fraction: 0.05           # held-out episodes for the action-agreement log
+
+# Checkpoint selection on the 30 selection seeds (garbage setting), playing at
+# selection_target. "auto" = the 90th percentile of episode returns in the data.
+selection_target: auto
+first_eval_minutes: 10
+eval_every_minutes: 10
+eval_workers: 3
+
+# Calibration of the target-return knob, after training (selection seeds).
+calibration_targets: [0.2, 0.4, 0.6, 0.8, 1.0, 1.2, 1.4]
+calibration_games: 30
+
+play:
+  decision_timeout: 2.0
+  startup_timeout: 60.0

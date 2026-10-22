@@ -170,6 +170,52 @@ def test_dt_collection_is_deterministic(tmp_path) -> None:
     assert header["difficulty"] == {"noise": 0.3}
 
 
+def test_dt_sources_can_name_a_training_stage(tmp_path) -> None:
+    cfg = {
+        "collect": {
+            "seed_base": 720000,
+            "out_dir": "unused",
+            "max_pieces": 10,
+            "extra_sources": [
+                {
+                    "label": "ga_best",
+                    "agent": "ga",
+                    "checkpoint": "checkpoints/ga/best.json",
+                    "games": 1,
+                },
+                {"label": "ga_promoted", "agent": "ga", "games": 1},
+            ],
+        }
+    }
+    srcs = dt_collect.sources(cfg)
+    assert [s.name for s in srcs] == ["ga_best", "ga_promoted"] and srcs[0].noise == 0.0
+    tasks = dt_collect.collection_tasks(cfg, tmp_path)
+    assert tasks[0][1] == str(dt_collect.ROOT / "checkpoints" / "ga" / "best.json")
+    assert tasks[1][1] is None and [t[2] for t in tasks] == [720000, 721000]
+    dt_collect.collect(cfg, workers=0, root=tmp_path)
+    log = next((tmp_path / "ga_best").glob("**/*.jsonl.gz"))
+    header = json.loads(gzip.open(log, "rt").readline())
+    assert header["checkpoint"] == tasks[0][1] and header["difficulty"] is None
+    cfg["collect"]["extra_sources"][1]["label"] = "ga_best"
+    with pytest.raises(ValueError, match="duplicate"):
+        dt_collect.sources(cfg)
+
+
+def test_dt_v2_config_changes_only_the_data() -> None:
+    v1 = dt_train.load_config(dt_train.DEFAULT_CONFIG)
+    v2 = dt_train.load_config(str(Path(dt_train.DEFAULT_CONFIG).with_name("config_v2.yaml")))
+    assert {k: v for k, v in v1.items() if k != "collect"} == {
+        k: v for k, v in v2.items() if k != "collect"
+    }
+    srcs = dt_collect.sources(v2)
+    assert all(s.noise == 0.0 for s in srcs) and len(srcs) == 14
+    for s in srcs:
+        if s.checkpoint:
+            assert (dt_collect.ROOT / s.checkpoint).exists(), s.checkpoint
+    seeds = {t[2] for t in dt_collect.collection_tasks(v2, Path("unused"))}
+    assert min(seeds) >= 720000 and max(seeds) < 800000  # below the selection seeds
+
+
 @pytest.fixture
 def dt_checkpoint(tmp_path) -> Path:
     path = tmp_path / "dt.pt"
@@ -267,6 +313,27 @@ def test_dt_training_and_calibration_smoke(dt_logs, tmp_path, monkeypatch) -> No
     stops = target_stops(tmp_path / "ckpt" / "dt" / "calibration.json")
     assert [s.target for s in stops] == [0.5, 1.0] and stops[0].achieved is not None
     assert "plays at about" in stops[0].label
+    # A second run, not promoted, calibrated with its own report, then the v1/v2 choice.
+    v1_bytes = best.read_bytes()
+    dt_train.train(cfg, "smoke_v2", promote=False)
+    assert best.read_bytes() == v1_bytes
+    v2 = dt_train.calibrate(cfg, workers=0, run_name="smoke_v2", report="dt_calibration_v2")
+    selected = json.loads((tmp_path / "ckpt" / "dt" / "smoke_v2" / "selection.json").read_text())
+    assert v2["checkpoint"] == selected["selected_checkpoint"]
+    assert (tmp_path / "ckpt" / "dt" / "smoke_v2" / "calibration.json").exists()
+    assert (tmp_path / "reports" / "dt_calibration_v2.md").exists()
+    assert best.read_bytes() == v1_bytes  # calibrating v2 leaves the promoted model alone
+    choice = dt_train.choose_version("smoke_v2")
+    fits = choice["selection_fitness"]
+    assert choice["chosen"] == ("v2" if fits["v2"] > fits["v1"] else "v1")
+    assert dt_train.version_dir("v1").parent.parent == tmp_path / "ckpt" / "dt" / "versions"
+    assert (dt_train.version_dir("v1") / "best.pt").read_bytes() == v1_bytes
+    chosen = dt_train.version_dir(choice["chosen"])
+    assert best.read_bytes() == (chosen / "best.pt").read_bytes()
+    calibration = json.loads((tmp_path / "ckpt" / "dt" / "calibration.json").read_text())
+    assert calibration == json.loads((chosen / "calibration.json").read_text())
+    dt_train.choose_version("smoke_v2")  # rerun: v1 is kept, never replaced by v2
+    assert (dt_train.version_dir("v1") / "best.pt").read_bytes() == v1_bytes
 
 
 def test_dt_knob_falls_back_and_lobby_applies_target(tmp_path) -> None:
@@ -509,6 +576,7 @@ def test_llm_report_uses_survival_metrics_with_ga_reference(tmp_path, monkeypatc
         outcomes = {"llm": pieces - 2, "timeout": 1, "invalid": 1, "error": 0, "budget": 0}
         return {
             **GameStats(seed, pieces, lines, 100 * lines, 0, topped, 100).to_dict(),
+            "timeout_seconds": 15.0,
             "seconds": 2.0 * pieces,
             "outcomes": outcomes,
             "llm_seconds": 1.9 * pieces,
@@ -532,6 +600,8 @@ def test_llm_report_uses_survival_metrics_with_ga_reference(tmp_path, monkeypatc
         },
     ]
     summaries = [mod.summarize_run(r, {s.seed: s for s in ga}) for r in runs]
+    empty = {"name": "api-features", "label": "API, features", "games": [], "stopped": None}
+    summaries.append(mod.summarize_run(empty, {}, "no valid API key"))
     q = summaries[0]
     assert q["metrics"]["pieces"]["mean"] == pytest.approx(70.0)
     assert q["metrics"]["top_out"]["mean"] == 1.0
@@ -551,7 +621,145 @@ def test_llm_report_uses_survival_metrics_with_ga_reference(tmp_path, monkeypatc
     header = next(line for line in text.splitlines() if line.startswith("| Run "))
     sep = text.splitlines()[text.splitlines().index(header) + 1]
     assert header.count("|") == sep.count("|")
+    pending = next(line for line in text.splitlines() if line.startswith("| API, features"))
+    assert "Pending (no valid API key)" in pending and pending.count("|") == sep.count("|")
+    assert "| 15 s |" in text
     data = json.loads((tmp_path / "reports" / "llm_agent.json").read_text())
     assert data["main_metrics"] == ["pieces", "top_out", "lines_per_piece"]
     run_cfg, label = mod.run_config(cfg, "api-features")
     assert label == "gpt-4.1-mini (small API model, not a frontier model), features"
+
+
+def _paid(ledger, monkeypatch, request):
+    monkeypatch.setenv("FAKE_KEY", "x")
+
+    class Paid(llm_backends._PaidBackend):
+        def _request(self, system, user, timeout):
+            return request()
+
+    return Paid("m", "FAKE_KEY", Price(input=1.0, output=2.0), ledger, 24)
+
+
+def test_rejected_api_requests_cost_nothing(tmp_path, monkeypatch) -> None:
+    from tetris.agents.llm.spending import estimate_tokens
+
+    ledger = SpendingLedger(tmp_path / "spend.json", cap_usd=5.0)
+    reserve = Price(1.0, 2.0).cost(estimate_tokens("s" + "u"), 24)
+
+    def rejected():
+        raise BackendError("HTTP 401: bad key", status=401)
+
+    def no_reply():
+        raise BackendTimeout("slow")
+
+    def dropped():
+        raise BackendError("connection failed: reset")
+
+    with pytest.raises(BackendError):
+        _paid(ledger, monkeypatch, rejected).complete("s", "u", 1.0)
+    assert ledger.spent == 0.0 and ledger.snapshot()["reserved_usd"] == 0.0
+    # No reply: the worst case is kept, since the call may have been billed.
+    for request in (no_reply, dropped):
+        with pytest.raises(BackendError):
+            _paid(ledger, monkeypatch, request).complete("s", "u", 1.0)
+    assert ledger.spent == pytest.approx(2 * reserve)
+
+
+def test_openai_http_error_is_rejected_at_no_cost(tmp_path, monkeypatch) -> None:
+    import io
+    import urllib.error
+
+    def urlopen(req, timeout):
+        body = io.BytesIO(b'{"error": {"message": "Incorrect API key provided"}}')
+        raise urllib.error.HTTPError(req.full_url, 401, "Unauthorized", {}, body)
+
+    monkeypatch.setattr(llm_backends.urllib.request, "urlopen", urlopen)
+    monkeypatch.setenv("FAKE_KEY", "x")
+    ledger = SpendingLedger(tmp_path / "spend.json", cap_usd=5.0)
+    backend = llm_backends.OpenAIBackend("gpt-4.1-mini", "FAKE_KEY", Price(0.4, 1.6), ledger)
+    with pytest.raises(BackendError) as info:
+        backend.complete("s", "u", 1.0)
+    assert info.value.status == 401 and "Incorrect API key" in str(info.value)
+    assert (
+        ledger.snapshot()["spent_usd"] == 0.0
+        and ledger.snapshot()["by_model"]["gpt-4.1-mini"]["calls"] == 1
+    )
+
+
+def test_error_streak_resets_on_any_other_outcome() -> None:
+    agent = LLMAgent(seed=0)
+    agent.configure(backend=FakeBackend(exc=BackendError("down")))
+    for _ in range(3):
+        agent.select_placement(_game())
+    assert agent.stats.error_streak == 3
+    agent.configure(backend=FakeBackend(exc=BackendTimeout("slow")))
+    agent.select_placement(_game())
+    assert agent.stats.error_streak == 0
+
+
+def _eval_setup(mod, tmp_path, monkeypatch, backend):
+    monkeypatch.setattr(mod, "OUT_DIR", tmp_path)
+    monkeypatch.setattr(mod, "STATUS_PATH", tmp_path / "status.json")
+    monkeypatch.setattr(mod, "make_backend", lambda cfg: backend)
+    return load_llm_config(), EvalSetting("garbage", max_pieces=30, garbage_every=3)
+
+
+def test_llm_eval_stops_after_five_errors_in_a_row(tmp_path, monkeypatch) -> None:
+    mod = _eval_llm_module()
+    backend = FakeBackend(exc=BackendError("connection failed: refused"))
+    cfg, setting = _eval_setup(mod, tmp_path, monkeypatch, backend)
+    run = mod.evaluate_run(cfg, "qwen3-features", [900000, 900001], setting, 15.0)
+    assert "5 backend errors in a row" in run["stopped"] and "refused" in run["stopped"]
+    assert run["games"] == [] and backend.calls == 5  # the game in progress is discarded
+    assert "5 backend errors" in mod.load_status()["qwen3-features"]
+
+
+def test_llm_eval_records_its_timeout(tmp_path, monkeypatch) -> None:
+    mod = _eval_llm_module()
+    backend = FakeBackend(reply='{"choice": 1}')
+    cfg, setting = _eval_setup(mod, tmp_path, monkeypatch, backend)
+    assert cfg["timeout_seconds"] == 3.0 and cfg["eval_timeout_seconds"] == 15.0
+    run = mod.evaluate_run(cfg, "qwen3-features", [900000], setting, 15.0)
+    assert run["stopped"] is None and run["games"][0]["timeout_seconds"] == 15.0
+    assert (tmp_path / "qwen3-features_cap30_t15.jsonl").exists()
+    assert mod.stored_run(cfg, "qwen3-features", 30, 3.0)["games"] == run["games"]
+    assert LLMAgent(seed=0).timeout == 3.0  # live play keeps the short timeout
+
+
+@pytest.mark.parametrize(
+    ("exc", "reason"),
+    [
+        (BackendError("HTTP 401: Incorrect API key provided", status=401), "no valid API key"),
+        (BackendError("OPENAI_API_KEY is not set"), "no valid API key"),
+        (BackendError("HTTP 500: busy", status=500), "API test call failed: HTTP 500: busy"),
+    ],
+)
+def test_api_run_is_skipped_when_its_test_call_fails(tmp_path, monkeypatch, exc, reason) -> None:
+    mod = _eval_llm_module()
+    backend = FakeBackend(exc=exc)
+    backend.name = "openai"
+    cfg, setting = _eval_setup(mod, tmp_path, monkeypatch, backend)
+    run = mod.evaluate_run(cfg, "api-features", [900000, 900001], setting, 15.0)
+    assert backend.calls == 1 and run["games"] == [] and run["stopped"] == reason
+    assert mod.load_status() == {"api-features": reason}
+    summary = mod.summarize_run(run, {}, mod.load_status().get("api-features"))
+    assert summary["pending"] == reason
+
+
+def test_api_run_plays_after_a_good_test_call(tmp_path, monkeypatch) -> None:
+    mod = _eval_llm_module()
+    backend = FakeBackend(reply='{"choice": 1}')
+    backend.name = "openai"
+    cfg, setting = _eval_setup(mod, tmp_path, monkeypatch, backend)
+    mod.set_status("api-features", "no valid API key")
+    run = mod.evaluate_run(cfg, "api-features", [900000], setting, 15.0)
+    assert run["stopped"] is None and len(run["games"]) == 1
+    assert backend.calls == 1 + run["games"][0]["pieces"]
+    assert mod.load_status() == {}  # results replace the pending reason
+
+
+def test_mark_pending_records_the_reason(tmp_path, monkeypatch) -> None:
+    mod = _eval_llm_module()
+    monkeypatch.setattr(mod, "STATUS_PATH", tmp_path / "status.json")
+    mod.main(["--mark-pending", "api-features,api-bare", "--reason", "no valid API key"])
+    assert mod.load_status() == {"api-features": "no valid API key", "api-bare": "no valid API key"}

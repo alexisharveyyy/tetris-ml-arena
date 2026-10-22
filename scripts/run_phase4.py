@@ -8,6 +8,11 @@ Progress goes to ``logs/phase4_queue.log`` and each step's own log in ``logs/``.
 Steps whose output already exists are skipped, so the script can be rerun
 after an interruption.
 
+Every step runs through ``scripts/pinned_step.py`` with this checkout first on
+``PYTHONPATH``: it imports this checkout's code (never the one an editable
+install points at), and it aborts unless this checkout is still at the commit
+the queue started from, with ``tetris/`` and ``scripts/`` unmodified.
+
 Usage: python scripts/run_phase4.py [--wait-for-pid PID]
 """
 
@@ -32,6 +37,32 @@ RAW_TUNING = {"tuneA": {"ent_coef": 0.03, "lr": 3e-4}, "tuneB": {"ent_coef": 0.0
 SEED_RUNS = [0, 1, 2]
 
 
+_pinned_commit: str | None = None
+
+
+def pinned_commit() -> str:
+    """The commit this queue runs (HEAD of this checkout when first asked)."""
+    global _pinned_commit
+    if _pinned_commit is None:
+        _pinned_commit = subprocess.run(
+            ["git", "-C", str(ROOT), "rev-parse", "HEAD"],
+            capture_output=True,
+            text=True,
+            check=True,
+        ).stdout.strip()
+        log(f"queue pinned to {ROOT} at {_pinned_commit}")
+    return _pinned_commit
+
+
+def step_env() -> dict[str, str]:
+    """Environment for a step: this checkout first on the import path, and the pin."""
+    env = dict(os.environ)
+    env["PYTHONPATH"] = os.pathsep.join([str(ROOT), *filter(None, [env.get("PYTHONPATH")])])
+    env["TETRIS_PINNED_ROOT"] = str(ROOT)
+    env["TETRIS_PINNED_COMMIT"] = pinned_commit()
+    return env
+
+
 def log(msg: str) -> None:
     line = f"{time.strftime('%Y-%m-%d %H:%M:%S')}  {msg}"
     print(line, flush=True)
@@ -43,10 +74,20 @@ def run(name: str, args: list[str], done_marker: Path | None = None) -> None:
     if done_marker is not None and done_marker.exists():
         log(f"skip {name} (already done: {done_marker.relative_to(ROOT)})")
         return
+    env = step_env()
     log(f"start {name}: {' '.join(args)}")
     t0 = time.time()
     with (LOGS / f"{name}.log").open("w") as out:
-        proc = subprocess.run([PY, *args], cwd=ROOT, stdout=out, stderr=subprocess.STDOUT)
+        proc = subprocess.run(
+            [PY, str(ROOT / "scripts" / "pinned_step.py"), *args],
+            cwd=ROOT,
+            env=env,
+            stdout=out,
+            stderr=subprocess.STDOUT,
+        )
+    if proc.returncode == 3:
+        log(f"ABORTED {name}: not running the pinned code; see logs/{name}.log")
+        raise SystemExit(1)
     if proc.returncode != 0:
         log(f"FAILED {name} (exit {proc.returncode}); see logs/{name}.log")
         raise SystemExit(1)

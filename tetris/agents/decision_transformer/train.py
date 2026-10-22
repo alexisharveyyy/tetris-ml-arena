@@ -3,7 +3,8 @@
 Usage:
     python -m tetris.agents.decision_transformer.train train [--budget-minutes M] [--run-name N]
         [--resume]
-    python -m tetris.agents.decision_transformer.train calibrate
+    python -m tetris.agents.decision_transformer.train calibrate [--run-name N --report R]
+    python -m tetris.agents.decision_transformer.train choose [--run-name seed0_v2]
 
 ``train`` fits the model on the collected trajectories (``collect.py``) for a
 wall-clock budget on MPS, with the gradient pre-flight check and the
@@ -16,6 +17,12 @@ parameter-change watchdog. Every ``eval_every_minutes`` a checkpoint plays the
 against the target (``checkpoints/dt/calibration.json``,
 ``reports/dt_calibration.md`` and ``.png``). The target with the highest
 selection fitness becomes the model's default target, used on the leaderboard.
+With ``--run-name`` it calibrates the model selected in that run instead
+(``calibration.json`` next to it, ``reports/<report>.md``).
+
+``choose`` keeps the promoted model as ``versions/v1``, stores the model
+selected in ``--run-name`` as ``versions/v2``, and promotes v2 only if its
+selection fitness is strictly higher (``checkpoints/dt/version_choice.json``).
 """
 
 from __future__ import annotations
@@ -24,6 +31,7 @@ import argparse
 import hashlib
 import json
 import math
+import shutil
 import time
 from dataclasses import asdict
 from pathlib import Path
@@ -367,9 +375,24 @@ def spearman(x: list[float], y: list[float]) -> float:
 
 
 def calibrate(
-    cfg: dict[str, Any], checkpoint: Path | None = None, workers: int | None = None
+    cfg: dict[str, Any],
+    checkpoint: Path | None = None,
+    workers: int | None = None,
+    run_name: str | None = None,
+    report: str = "dt_calibration",
+    title: str = "Decision Transformer",
 ) -> dict[str, Any]:
-    """Achieved return at each target on the selection seeds; sets the default target."""
+    """Achieved return at each target on the selection seeds; sets the default target.
+
+    The checkpoint is ``checkpoint``, else the one selected in ``run_name``,
+    else the promoted ``best.pt``. ``calibration.json`` goes next to it and
+    the report to ``reports/<report>.md``.
+    """
+    if checkpoint is None and run_name is not None:
+        selection = json.loads(
+            (CHECKPOINT_DIR / AGENT_KEY / run_name / "selection.json").read_text()
+        )
+        checkpoint = Path(selection["selected_checkpoint"])
     checkpoint = checkpoint or CHECKPOINT_DIR / AGENT_KEY / "best.pt"
     seeds = selection_seeds(int(cfg["calibration_games"]))
     setting = setting_for(cfg)
@@ -409,11 +432,13 @@ def calibrate(
     save_checkpoint(checkpoint, AGENT_KEY, net, **extra)
     out_dir = checkpoint.parent
     (out_dir / "calibration.json").write_text(json.dumps(result, indent=2))
-    write_calibration_report(result)
+    write_calibration_report(result, report, title)
     return result
 
 
-def write_calibration_report(result: dict[str, Any]) -> None:
+def write_calibration_report(
+    result: dict[str, Any], report: str = "dt_calibration", title: str = "Decision Transformer"
+) -> None:
     import matplotlib
 
     matplotlib.use("Agg")
@@ -428,14 +453,14 @@ def write_calibration_report(result: dict[str, Any]) -> None:
     ax.plot(t, t, linestyle="--", color="gray", label="achieved = target")
     ax.set_xlabel("target return (fitness units)")
     ax.set_ylabel(f"achieved fitness ({result['games_per_target']} selection seeds)")
-    ax.set_title("Decision Transformer: target return vs achieved")
+    ax.set_title(f"{title}: target return vs achieved")
     ax.grid(alpha=0.3)
     ax.legend()
     fig.tight_layout()
-    fig.savefig(reports / "dt_calibration.png", dpi=110)
+    fig.savefig(reports / f"{report}.png", dpi=110)
     plt.close(fig)
     lines = [
-        "# Decision Transformer: target-return calibration",
+        f"# {title}: target-return calibration",
         "",
         "The model chooses actions by afterstate matching (each placement's logit is the "
         "match between the transformer's output and an embedding of that placement's "
@@ -463,28 +488,81 @@ def write_calibration_report(result: dict[str, Any]) -> None:
         f"Default target (highest achieved fitness, used on the leaderboard): "
         f"{result['leaderboard_target']:.2f}.",
         "",
-        "![calibration](dt_calibration.png)",
+        f"![calibration]({report}.png)",
         "",
     ]
-    (reports / "dt_calibration.md").write_text("\n".join(lines))
+    (reports / f"{report}.md").write_text("\n".join(lines))
+
+
+# ------------------------------------------------------- version choice
+
+
+def version_dir(version: str) -> Path:
+    """``checkpoints/dt/versions/<version>/dt/``; its parent is usable as a
+    TETRIS_CHECKPOINT_DIR (``<dir>/dt/best.pt``)."""
+    return CHECKPOINT_DIR / AGENT_KEY / "versions" / version / AGENT_KEY
+
+
+def keep_version(version: str, checkpoint: Path, calibration: Path, selection: Path) -> Path:
+    """Copy a calibrated model with its calibration and selection records."""
+    out = version_dir(version)
+    out.mkdir(parents=True, exist_ok=True)
+    shutil.copy(checkpoint, out / "best.pt")
+    shutil.copy(calibration, out / "calibration.json")
+    shutil.copy(selection, out / "selection.json")
+    return out
+
+
+def choose_version(new_run: str = "seed0_v2") -> dict[str, Any]:
+    """Keep the promoted model as v1, store ``new_run`` as v2, and promote v2 only if
+    its selection fitness is strictly higher (both chosen on the selection seeds)."""
+    base = CHECKPOINT_DIR / AGENT_KEY
+    if not (version_dir("v1") / "best.pt").exists():
+        keep_version("v1", base / "best.pt", base / "calibration.json", base / "selection.json")
+    run_dir = base / new_run
+    selection = json.loads((run_dir / "selection.json").read_text())
+    keep_version(
+        "v2",
+        Path(selection["selected_checkpoint"]),
+        Path(selection["selected_checkpoint"]).parent / "calibration.json",
+        run_dir / "selection.json",
+    )
+    fits = {
+        v: json.loads((version_dir(v) / "selection.json").read_text())["selection_fitness"]
+        for v in ("v1", "v2")
+    }
+    chosen = "v2" if fits["v2"] > fits["v1"] else "v1"
+    src = version_dir(chosen)
+    for name in ("best.pt", "calibration.json", "selection.json"):
+        shutil.copy(src / name, base / name)
+    result = {"selection_fitness": fits, "chosen": chosen, "rule": "v2 if strictly higher"}
+    (base / "version_choice.json").write_text(json.dumps(result, indent=2))
+    print(f"DT versions: {fits} -> {chosen} is playable", flush=True)
+    return result
 
 
 def main(argv: list[str] | None = None) -> None:
     parser = argparse.ArgumentParser(
         description=__doc__, formatter_class=argparse.RawTextHelpFormatter
     )
-    parser.add_argument("command", choices=["train", "calibrate"])
+    parser.add_argument("command", choices=["train", "calibrate", "choose"])
     parser.add_argument("--config", default=str(DEFAULT_CONFIG))
     parser.add_argument("--budget-minutes", dest="budget_minutes", type=float)
     parser.add_argument("--run-name", default="seed0")
     parser.add_argument("--no-promote", action="store_true")
     parser.add_argument("--resume", action="store_true")
+    parser.add_argument("--report", default="dt_calibration", help="calibrate: report name")
+    parser.add_argument("--title", default="Decision Transformer", help="calibrate: report title")
     args = parser.parse_args(argv)
     cfg = load_config(args.config, {"budget_minutes": args.budget_minutes})
     if args.command == "train":
         train(cfg, args.run_name, not args.no_promote, args.resume)
+    elif args.command == "calibrate":
+        # The promoted model, or with --run-name the model selected in that run.
+        run_name = args.run_name if args.run_name != "seed0" else None
+        calibrate(cfg, run_name=run_name, report=args.report, title=args.title)
     else:
-        calibrate(cfg)
+        choose_version(args.run_name)
 
 
 if __name__ == "__main__":

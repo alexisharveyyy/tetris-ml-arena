@@ -28,7 +28,8 @@ def agents_by_key(client) -> dict:
     return {a["key"]: a for a in client.get("/api/agents").json()["agents"]}
 
 
-def test_agents_lineup_groups_and_availability(client) -> None:
+def test_agents_lineup_groups_and_availability(client, tmp_path, monkeypatch) -> None:
+    use_checkpoint_dir(monkeypatch, tmp_path / "checkpoints", COMMITTED_CHECKPOINTS)
     data = client.get("/api/agents").json()
     agents = {a["key"]: a for a in data["agents"]}
     main = [a["key"] for a in data["agents"] if a["group"] == "main"]
@@ -48,7 +49,7 @@ def test_agents_lineup_groups_and_availability(client) -> None:
     assert agents["bc_pure"]["group"] == "leaderboard" and not agents["bc_pure"]["playable"]
     for key in ("dt", "llm"):
         # "planned" before Phase 6 registers them; "missing" or "disabled" after
-        # (no checkpoint in this checkout, LLM off by default).
+        # (no trained checkpoint, LLM off by default).
         assert agents[key]["status"]["state"] in ("planned", "missing", "disabled")
         assert not agents[key]["available"]
     for key in ("dellacherie", "ga", "cem"):
@@ -346,12 +347,11 @@ def test_ending_a_match_records_it_once(client, web_config) -> None:
     assert len(data["matches"]) == 1
 
 
-def test_registering_a_planned_agent_makes_it_available(client, monkeypatch) -> None:
+def test_registering_a_planned_agent_makes_it_available(client, tmp_path, monkeypatch) -> None:
     """Phase 6 registers dt and llm, which this UI lists as planned identities."""
     from dataclasses import replace
 
-    from tetris.agents import registry
-
+    use_checkpoint_dir(monkeypatch, tmp_path / "checkpoints")
     before = {a["key"]: a for a in client.get("/api/agents").json()["agents"]}
     assert not before["dt"]["available"]
     spec = replace(registry.AGENTS["dellacherie"], key="dt", name="Decision Transformer")

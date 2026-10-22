@@ -100,6 +100,30 @@ python -m tetris.agents.decision_transformer.train calibrate    # about 10 min
 python scripts/run_phase6.py                                    # all three, then the leaderboard
 ```
 
+## v2: skill the board shows
+
+v1's target return barely changed its play (see Results). Hypothesis: v1's
+weak games came from injected mistakes, which the board does not predict, so
+the model imitates the strong placements and ignores the return-to-go. v2
+(`config_v2.yaml`) keeps the model, the 2-hour budget and the selection
+protocol and changes only the data: no injected mistakes; DQN, PPO, BC and
+NEAT each play at three stages of training (the first evaluated checkpoint,
+the selected one, and the one whose selection fitness is closest to halfway
+between them), plus BC (you) and raw-action PPO, 70 games each.
+
+```bash
+python -m tetris.agents.decision_transformer.collect --config tetris/agents/decision_transformer/config_v2.yaml
+python -m tetris.agents.decision_transformer.train train --config ... --run-name seed0_v2 --no-promote
+python -m tetris.agents.decision_transformer.train calibrate --config ... --run-name seed0_v2 --report dt_calibration_v2
+python -m tetris.agents.decision_transformer.train choose --run-name seed0_v2
+python scripts/eval_dt_versions.py      # v1 vs v2 held out, v2 Marathon: reports/dt_v2.md
+python scripts/run_phase6b.py           # all of the above, then the local LLM evaluation
+```
+
+`choose` keeps v1 in `checkpoints/dt/versions/v1/` and v2 in `versions/v2/`,
+and makes v2 the playable DT only if its selection fitness is strictly
+higher.
+
 ## Results
 
 **Data.** 995 games, 303,011 states (2.5 minutes on 11 CPU workers). Episode

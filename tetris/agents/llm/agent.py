@@ -52,6 +52,8 @@ class LLMStats:
     output_tokens: int = 0
     cost_usd: float = 0.0
     last_error: str = ""
+    #: Consecutive ``error`` outcomes (reset by any other outcome).
+    error_streak: int = 0
 
     @property
     def decisions(self) -> int:
@@ -148,6 +150,7 @@ class LLMAgent(Agent):
         finally:
             self.stats.seconds += time.perf_counter() - t0
         self.stats.outcomes[outcome] += 1
+        self.stats.error_streak = self.stats.error_streak + 1 if outcome == "error" else 0
         if chosen is None:
             return heuristic
         first = [s for s in heuristic if s.placement == chosen]
