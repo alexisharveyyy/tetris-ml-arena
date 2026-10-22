@@ -1,0 +1,25 @@
+pinned step: tetris from /Users/alexisharvey/tetris-ml-arena/tetris/__init__.py, commit 8457f2765963e14b4cde694616053688da363481
+runs ['qwen3-bare']: 20 games each, cap 100 pieces, timeout 15 s; API spent so far $5.00 of $5.00
+qwen3-bare (Ollama qwen3:8b, bare, timeout 15 s): 0 games done, 20 to play
+  loaded qwen3:8b in 1.6s
+  seed 900000: 11 pieces, 0 lines, fallbacks 0/11, 2.45 s/piece, $0.0000
+  seed 900001: 9 pieces, 0 lines, fallbacks 0/9, 2.44 s/piece, $0.0000
+  seed 900002: 9 pieces, 0 lines, fallbacks 0/9, 2.27 s/piece, $0.0000
+  seed 900003: 10 pieces, 0 lines, fallbacks 0/10, 2.24 s/piece, $0.0000
+  seed 900004: 10 pieces, 0 lines, fallbacks 0/10, 2.38 s/piece, $0.0000
+  seed 900005: 11 pieces, 0 lines, fallbacks 0/11, 2.58 s/piece, $0.0000
+  seed 900006: 10 pieces, 0 lines, fallbacks 0/10, 2.81 s/piece, $0.0000
+  seed 900007: 11 pieces, 0 lines, fallbacks 0/11, 2.80 s/piece, $0.0000
+  seed 900008: 11 pieces, 0 lines, fallbacks 0/11, 2.61 s/piece, $0.0000
+  seed 900009: 11 pieces, 0 lines, fallbacks 0/11, 2.13 s/piece, $0.0000
+  seed 900010: 10 pieces, 0 lines, fallbacks 0/10, 2.00 s/piece, $0.0000
+  seed 900011: 11 pieces, 0 lines, fallbacks 0/11, 2.33 s/piece, $0.0000
+  seed 900012: 10 pieces, 0 lines, fallbacks 0/10, 2.22 s/piece, $0.0000
+  seed 900013: 10 pieces, 0 lines, fallbacks 0/10, 2.07 s/piece, $0.0000
+  seed 900014: 11 pieces, 0 lines, fallbacks 0/11, 2.26 s/piece, $0.0000
+  seed 900015: 10 pieces, 0 lines, fallbacks 0/10, 2.41 s/piece, $0.0000
+  seed 900016: 13 pieces, 0 lines, fallbacks 0/13, 2.54 s/piece, $0.0000
+  seed 900017: 13 pieces, 1 lines, fallbacks 0/13, 2.11 s/piece, $0.0000
+  seed 900018: 11 pieces, 0 lines, fallbacks 0/11, 2.34 s/piece, $0.0000
+  seed 900019: 10 pieces, 0 lines, fallbacks 0/10, 2.19 s/piece, $0.0000
+wrote reports/llm_agent.md
