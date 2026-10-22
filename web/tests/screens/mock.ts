@@ -21,8 +21,16 @@ export const SHOTS: { name: string; file: string; hash: string; ready: string }[
 ];
 
 /** Mock every /api call and the match WebSocket. ``demo`` turns on demo mode
- * (the "Demo: skip to results" link) without its starting-look switch. */
-export async function mock(page: Page, look: string, screen: string, demo = screen === "match") {
+ * (the "Demo: skip to results" link) without its starting-look switch.
+ * ``players`` replaces the fixture's match players (the fixture is shared by
+ * every spec in a worker, so specs must not change it). */
+export async function mock(
+  page: Page,
+  look: string,
+  screen: string,
+  demo = screen === "match",
+  players: typeof snapshot.players = snapshot.players,
+) {
   await page.route("**/api/**", async (route) => {
     const url = new URL(route.request().url());
     if (url.pathname.startsWith("/api/matches/")) {
@@ -37,9 +45,10 @@ export async function mock(page: Page, look: string, screen: string, demo = scre
   await page.routeWebSocket(/\/ws\?match=/, (ws) => {
     const watch = screen === "watch";
     const solo = screen === "solo";
-    const players = watch ? [snapshot.players[1]] : solo ? [snapshot.players[0]] : snapshot.players;
-    const standings = watch || solo ? players.map((p) => p.id) : snapshot.standings;
-    const snap = { ...snapshot, mode: watch ? "watch" : solo ? "solo" : "marathon", players, standings };
+    const all = players;
+    const shown = watch ? [all[1]] : solo ? [all[0]] : all;
+    const standings = watch || solo ? shown.map((p) => p.id) : snapshot.standings;
+    const snap = { ...snapshot, mode: watch ? "watch" : solo ? "solo" : "marathon", players: shown, standings };
     ws.send(JSON.stringify({ ...snap, ev: watch || solo ? [] : tickerEvents }));
     const timer = setInterval(() => ws.send(JSON.stringify({ ...snap, f: snap.f + 1 })), 100);
     ws.onClose(() => clearInterval(timer));
