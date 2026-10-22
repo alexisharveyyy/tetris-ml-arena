@@ -1,0 +1,294 @@
+{
+  "setting": {
+    "name": "garbage",
+    "max_pieces": 100,
+    "garbage_every": 3,
+    "garbage_rows": 1,
+    "include_hold": true
+  },
+  "main_metrics": [
+    "pieces",
+    "top_out",
+    "lines_per_piece"
+  ],
+  "ga_reference": {
+    "pieces": {
+      "mean": 99.3,
+      "ci95": [
+        97.9,
+        100.0
+      ]
+    },
+    "top_out": {
+      "mean": 0.05,
+      "ci95": [
+        0.0,
+        0.15
+      ]
+    },
+    "lines_per_piece": {
+      "mean": 0.6373372093023256,
+      "ci95": [
+        0.6136744186046512,
+        0.656
+      ]
+    }
+  },
+  "runs": [
+    {
+      "name": "qwen3-features",
+      "label": "Ollama qwen3:8b, features",
+      "games": 20,
+      "stopped": null,
+      "timeout_seconds": 15.0,
+      "metrics": {
+        "pieces": {
+          "mean": 26.8,
+          "ci95": [
+            25.1,
+            28.7
+          ]
+        },
+        "top_out": {
+          "mean": 1.0,
+          "ci95": [
+            1.0,
+            1.0
+          ]
+        },
+        "lines_per_piece": {
+          "mean": 0.14304084349864402,
+          "ci95": [
+            0.10772280830493747,
+            0.17957027945413495
+          ]
+        }
+      },
+      "fallback_rate": 0.0,
+      "fallbacks": {
+        "timeout": 0,
+        "invalid": 0,
+        "error": 0,
+        "budget": 0
+      },
+      "seconds_per_piece": 3.4780009035314277,
+      "llm_seconds_per_decision": 3.4730408864971962,
+      "tokens_per_game": 39029.2,
+      "input_tokens": 776558,
+      "output_tokens": 4026,
+      "cost_usd": 0.0,
+      "minus_ga": {
+        "pieces": [
+          -72.5,
+          -74.9,
+          -69.2
+        ],
+        "top_out": [
+          0.95,
+          0.85,
+          1.0
+        ],
+        "lines_per_piece": [
+          -0.4942963658036816,
+          -0.5352299692620701,
+          -0.4473180384841638
+        ]
+      }
+    },
+    {
+      "name": "qwen3-bare",
+      "label": "Ollama qwen3:8b, bare",
+      "games": 20,
+      "stopped": null,
+      "timeout_seconds": 3.0,
+      "metrics": {
+        "pieces": {
+          "mean": 13.15,
+          "ci95": [
+            12.3,
+            13.95
+          ]
+        },
+        "top_out": {
+          "mean": 1.0,
+          "ci95": [
+            1.0,
+            1.0
+          ]
+        },
+        "lines_per_piece": {
+          "mean": 0.04420204795204795,
+          "ci95": [
+            0.02320492007992008,
+            0.06856101710789211
+          ]
+        }
+      },
+      "fallback_rate": 0.22433460076045628,
+      "fallbacks": {
+        "timeout": 59,
+        "invalid": 0,
+        "error": 0,
+        "budget": 0
+      },
+      "seconds_per_piece": 2.389318652723264,
+      "llm_seconds_per_decision": 2.382290071887035,
+      "tokens_per_game": 10102.9,
+      "input_tokens": 200524,
+      "output_tokens": 1534,
+      "cost_usd": 0.0,
+      "minus_ga": {
+        "pieces": [
+          -86.15,
+          -87.4,
+          -84.65
+        ],
+        "top_out": [
+          0.95,
+          0.85,
+          1.0
+        ],
+        "lines_per_piece": [
+          -0.5931351613502777,
+          -0.6209034450288086,
+          -0.5632724046302535
+        ]
+      }
+    },
+    {
+      "name": "llama31-features",
+      "label": "Ollama llama3.1:8b, features",
+      "games": 20,
+      "stopped": null,
+      "timeout_seconds": 15.0,
+      "metrics": {
+        "pieces": {
+          "mean": 23.95,
+          "ci95": [
+            22.05,
+            25.75
+          ]
+        },
+        "top_out": {
+          "mean": 1.0,
+          "ci95": [
+            1.0,
+            1.0
+          ]
+        },
+        "lines_per_piece": {
+          "mean": 0.09215291160452452,
+          "ci95": [
+            0.06186818666697699,
+            0.12155431096681095
+          ]
+        }
+      },
+      "fallback_rate": 0.0,
+      "fallbacks": {
+        "timeout": 0,
+        "invalid": 0,
+        "error": 0,
+        "budget": 0
+      },
+      "seconds_per_piece": 3.539548432494325,
+      "llm_seconds_per_decision": 3.533030482684943,
+      "tokens_per_game": 34676.25,
+      "input_tokens": 690172,
+      "output_tokens": 3353,
+      "cost_usd": 0.0,
+      "minus_ga": {
+        "pieces": [
+          -75.35,
+          -77.3,
+          -73.5
+        ],
+        "top_out": [
+          0.95,
+          0.85,
+          1.0
+        ],
+        "lines_per_piece": [
+          -0.5451842976978011,
+          -0.5808574645465117,
+          -0.5110240387297401
+        ]
+      }
+    },
+    {
+      "name": "api-features",
+      "label": "gpt-4.1-mini (small API model, not a frontier model), features",
+      "games": 0,
+      "stopped": null,
+      "pending": "no valid API key"
+    },
+    {
+      "name": "api-bare",
+      "label": "gpt-4.1-mini (small API model, not a frontier model), bare",
+      "games": 0,
+      "stopped": null,
+      "pending": "no valid API key"
+    }
+  ],
+  "comparisons": [
+    {
+      "a": "qwen3-features",
+      "b": "llama31-features",
+      "games": 20,
+      "difference": {
+        "pieces": [
+          2.85,
+          0.2,
+          5.85
+        ],
+        "top_out": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "lines_per_piece": [
+          0.0508879318941195,
+          0.012258597410337161,
+          0.09367777361439598
+        ]
+      }
+    },
+    {
+      "a": "qwen3-features",
+      "b": "qwen3-bare",
+      "games": 20,
+      "difference": {
+        "pieces": [
+          13.65,
+          11.7,
+          15.85
+        ],
+        "top_out": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "lines_per_piece": [
+          0.09883879554659607,
+          0.050392759525392204,
+          0.14866986443774327
+        ]
+      }
+    }
+  ],
+  "api_ledger": {
+    "spent_usd": 4.999398800000053,
+    "reserved_usd": 0.0,
+    "calls": 3372,
+    "by_model": {
+      "gpt-4.1-mini": {
+        "calls": 3372,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "usd": 4.999398800000053
+      }
+    },
+    "cap_usd": 5.0,
+    "updated": "2026-10-22 13:34:13"
+  }
+}

@@ -1,0 +1,6 @@
+pinned step: tetris from /Users/alexisharvey/tetris-ml-arena-phase6b/tetris/__init__.py, commit 68a5b2acacc67fa553cf863b012c6791904e6422
+garbage  v1: fitness 1.309
+garbage  v2: fitness 1.220
+plain    v1: fitness 1.196
+plain    v2: fitness 1.196
+wrote reports/dt_v2.md

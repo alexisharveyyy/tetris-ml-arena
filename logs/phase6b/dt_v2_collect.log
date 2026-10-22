@@ -1,0 +1,94 @@
+pinned step: tetris from /Users/alexisharvey/tetris-ml-arena-phase6b/tetris/__init__.py, commit 68a5b2acacc67fa553cf863b012c6791904e6422
+collecting 980 of 980 games with 11 workers
+  50/980 games, 3s
+  100/980 games, 10s
+  150/980 games, 20s
+  200/980 games, 33s
+  250/980 games, 36s
+  300/980 games, 45s
+  350/980 games, 59s
+  400/980 games, 84s
+  450/980 games, 103s
+  500/980 games, 123s
+  550/980 games, 143s
+  600/980 games, 166s
+  650/980 games, 178s
+  700/980 games, 179s
+  750/980 games, 182s
+  800/980 games, 185s
+  850/980 games, 187s
+  900/980 games, 190s
+  950/980 games, 190s
+  980/980 games, 191s
+{
+  "dqn_first": {
+    "games": 70,
+    "states": 4695,
+    "mean_fitness": 0.16577365988123235
+  },
+  "dqn_mid": {
+    "games": 70,
+    "states": 18484,
+    "mean_fitness": 0.7525225579725363
+  },
+  "dqn_best": {
+    "games": 70,
+    "states": 33760,
+    "mean_fitness": 1.3646865047501322
+  },
+  "ppo_first": {
+    "games": 70,
+    "states": 2992,
+    "mean_fitness": 0.0996208372061086
+  },
+  "ppo_mid": {
+    "games": 70,
+    "states": 21778,
+    "mean_fitness": 0.8682362870277294
+  },
+  "ppo_best": {
+    "games": 70,
+    "states": 32650,
+    "mean_fitness": 1.321358951298509
+  },
+  "bc_first": {
+    "games": 70,
+    "states": 27462,
+    "mean_fitness": 1.1051283046550244
+  },
+  "bc_mid": {
+    "games": 70,
+    "states": 30882,
+    "mean_fitness": 1.243631080690779
+  },
+  "bc_best": {
+    "games": 70,
+    "states": 33055,
+    "mean_fitness": 1.3313267204044026
+  },
+  "neat_first": {
+    "games": 70,
+    "states": 14425,
+    "mean_fitness": 0.5697658837072462
+  },
+  "neat_mid": {
+    "games": 70,
+    "states": 27420,
+    "mean_fitness": 1.0994685401240183
+  },
+  "neat_best": {
+    "games": 70,
+    "states": 32468,
+    "mean_fitness": 1.301596422201421
+  },
+  "bc_you": {
+    "games": 70,
+    "states": 4157,
+    "mean_fitness": 0.15597995014132776
+  },
+  "ppo_raw": {
+    "games": 70,
+    "states": 3095,
+    "mean_fitness": 0.10314310826315352
+  }
+}

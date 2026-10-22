@@ -160,3 +160,37 @@ placements and largely ignores the return-to-go. The app labels each stop
 with its calibrated fitness, so the knob is honest but nearly flat; the
 usual speed, reaction-delay and mistake settings remain the way to weaken
 this agent.
+
+### v2 (`reports/dt_v2.md`, `reports/dt_calibration_v2.md`)
+
+**Data.** 980 games, 287,323 states, no injected mistakes (3.2 minutes).
+Source mean returns span 0.100 (first PPO checkpoint) to 1.365 (selected
+DQN); episode returns 0.050 to 1.464 (median 0.846). Low-skill sources play
+short games, so they contribute few states: the five sources with mean
+return below 0.6 give 29,364 of the 287,323 states (10%).
+
+**Training.** Same model, 2 hours on MPS (10,316 steps); pre-flight passed
+(5e-7). Validation top-1 agreement 0.727 at 10 minutes to 0.771. Selection
+fitness over the 12 checkpoints ranged from 1.142 to 1.345; the 50-minute
+checkpoint was selected (1.345, below v1's 1.374).
+
+**v1 stays the playable DT** (v2 needed a strictly higher selection
+fitness). The leaderboard is unchanged.
+
+**The knob still does not work; the hypothesis is not supported.**
+
+| Target | 0.20 | 0.40 | 0.60 | 0.80 | 1.00 | 1.20 | 1.40 |
+|---|---|---|---|---|---|---|---|
+| v1 achieved | 1.319 | 1.219 | 1.326 | 1.370 | 1.353 | 1.297 | 1.355 |
+| v2 achieved | 1.350 | 1.284 | 1.263 | 1.240 | 1.284 | 1.304 | 1.346 |
+
+Rank correlation +0.00 for v2 (v1 +0.43). Asking v2 for 0.2 played at
+1.350, as well as asking for 1.4. Training on skill the board shows did not
+make the model use the return-to-go.
+
+**Held out (500 games, each version at its default target: v1 0.8, v2
+0.2).** Garbage: v2 1.220 against v1 1.309, paired difference -0.090
+[-0.127, -0.054], top-out rate 0.30 against 0.16 (+0.142 [+0.092,
++0.192]); v2 would rank 8th of 11. Plain: both 1.196 with every game at the
+cap (difference -0.001, lines only). Marathon scores are within 1% of v1 at
+every preset. v1's replay reproduced its leaderboard rows exactly.

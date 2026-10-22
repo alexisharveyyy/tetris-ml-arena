@@ -1,0 +1,286 @@
+{
+  "choice": {
+    "selection_fitness": {
+      "v1": 1.3738686833333336,
+      "v2": 1.345346095891137
+    },
+    "chosen": "v1",
+    "rule": "v2 if strictly higher"
+  },
+  "calibration": {
+    "v1": {
+      "checkpoint": "/Users/alexisharvey/tetris-ml-arena-phase6/checkpoints/dt/best.pt",
+      "games_per_target": 30,
+      "rows": [
+        {
+          "target": 0.2,
+          "achieved_fitness": 1.3185051179534635,
+          "top_out_rate": 0.16666666666666666,
+          "mean_pieces": 468.6,
+          "score_per_piece": 1525.220471813854
+        },
+        {
+          "target": 0.4,
+          "achieved_fitness": 1.218519078138488,
+          "top_out_rate": 0.36666666666666664,
+          "mean_pieces": 433.6666666666667,
+          "score_per_piece": 1404.7429792206203
+        },
+        {
+          "target": 0.6,
+          "achieved_fitness": 1.3261126611362495,
+          "top_out_rate": 0.16666666666666666,
+          "mean_pieces": 471.4,
+          "score_per_piece": 1533.2506445449987
+        },
+        {
+          "target": 0.8,
+          "achieved_fitness": 1.3700036713964052,
+          "top_out_rate": 0.1,
+          "mean_pieces": 487.3333333333333,
+          "score_per_piece": 1581.3480189189556
+        },
+        {
+          "target": 1.0,
+          "achieved_fitness": 1.352837741350714,
+          "top_out_rate": 0.13333333333333333,
+          "mean_pieces": 481.73333333333335,
+          "score_per_piece": 1557.48429873619
+        },
+        {
+          "target": 1.2,
+          "achieved_fitness": 1.2971982049415538,
+          "top_out_rate": 0.16666666666666666,
+          "mean_pieces": 462.1,
+          "score_per_piece": 1491.9928197662143
+        },
+        {
+          "target": 1.4,
+          "achieved_fitness": 1.3549637448545864,
+          "top_out_rate": 0.1,
+          "mean_pieces": 481.6,
+          "score_per_piece": 1567.0549794183446
+        }
+      ],
+      "spearman": 0.42857142857142866,
+      "leaderboard_target": 0.8
+    },
+    "v2": {
+      "checkpoint": "/Users/alexisharvey/tetris-ml-arena-phase6b/checkpoints/dt/seed0_v2/eval_0050min_4057.pt",
+      "games_per_target": 30,
+      "rows": [
+        {
+          "target": 0.2,
+          "achieved_fitness": 1.3501219912801738,
+          "top_out_rate": 0.1,
+          "mean_pieces": 480.23333333333335,
+          "score_per_piece": 1558.6212984540293
+        },
+        {
+          "target": 0.4,
+          "achieved_fitness": 1.2842500972506405,
+          "top_out_rate": 0.2,
+          "mean_pieces": 457.6333333333333,
+          "score_per_piece": 1475.933722335894
+        },
+        {
+          "target": 0.6,
+          "achieved_fitness": 1.2628562201163003,
+          "top_out_rate": 0.23333333333333334,
+          "mean_pieces": 449.8333333333333,
+          "score_per_piece": 1452.7582137985344
+        },
+        {
+          "target": 0.8,
+          "achieved_fitness": 1.239729479717216,
+          "top_out_rate": 0.36666666666666664,
+          "mean_pieces": 440.9,
+          "score_per_piece": 1431.7179188688642
+        },
+        {
+          "target": 1.0,
+          "achieved_fitness": 1.2841296547859509,
+          "top_out_rate": 0.3,
+          "mean_pieces": 456.0,
+          "score_per_piece": 1488.518619143802
+        },
+        {
+          "target": 1.2,
+          "achieved_fitness": 1.3044794325647833,
+          "top_out_rate": 0.2,
+          "mean_pieces": 464.93333333333334,
+          "score_per_piece": 1498.4510635924676
+        },
+        {
+          "target": 1.4,
+          "achieved_fitness": 1.3456722958911367,
+          "top_out_rate": 0.16666666666666666,
+          "mean_pieces": 478.8,
+          "score_per_piece": 1552.2891835645469
+        }
+      ],
+      "spearman": 0.0,
+      "leaderboard_target": 0.2
+    }
+  },
+  "held_out": {
+    "garbage": {
+      "v1": {
+        "games": 500,
+        "fitness": 1.3094228178891303,
+        "mean_pieces": 466.038,
+        "mean_lines": 319.192,
+        "mean_score": 730141.312,
+        "score_per_piece": 1509.3872715565212,
+        "lines_per_piece": 0.6791321571872736,
+        "top_out_rate": 0.158,
+        "top_out_lo": 0.1286522063728175,
+        "top_out_hi": 0.1925630327023204,
+        "attack_per_minute": 38.906662725948856
+      },
+      "v2": {
+        "games": 500,
+        "fitness": 1.2198982152278246,
+        "mean_pieces": 434.654,
+        "mean_lines": 295.196,
+        "mean_score": 657620.088,
+        "score_per_piece": 1402.3608609112982,
+        "lines_per_piece": 0.6670186774419883,
+        "top_out_rate": 0.3,
+        "top_out_lo": 0.26148125649400616,
+        "top_out_hi": 0.3415685909183552,
+        "attack_per_minute": 36.79716469292842
+      },
+      "v1_leaderboard_fitness": 1.3094228178891303,
+      "v2_minus_v1": {
+        "fitness": [
+          -0.08952460266130575,
+          -0.12687169851435912,
+          -0.053629743390751924
+        ],
+        "top_out_rate": [
+          0.142,
+          0.092,
+          0.192
+        ]
+      },
+      "v2_rank": 8,
+      "agents": 11
+    },
+    "plain": {
+      "v1": {
+        "games": 500,
+        "fitness": 1.1963742,
+        "mean_pieces": 1000.0,
+        "mean_lines": 398.7,
+        "mean_score": 785496.8,
+        "score_per_piece": 785.4968,
+        "lines_per_piece": 0.39870000000000005,
+        "top_out_rate": 0.0,
+        "top_out_lo": 0.0,
+        "top_out_hi": 0.007624618530903363,
+        "attack_per_minute": 6.929519999999999
+      },
+      "v2": {
+        "games": 500,
+        "fitness": 1.1956752850000003,
+        "mean_pieces": 1000.0,
+        "mean_lines": 398.674,
+        "mean_score": 782701.14,
+        "score_per_piece": 782.70114,
+        "lines_per_piece": 0.398674,
+        "top_out_rate": 0.0,
+        "top_out_lo": 0.0,
+        "top_out_hi": 0.007624618530903363,
+        "attack_per_minute": 6.577679999999999
+      },
+      "v1_leaderboard_fitness": 1.1963742,
+      "v2_minus_v1": {
+        "fitness": [
+          -0.0006989150000000004,
+          -0.001019682649999992,
+          -0.0003824861499999973
+        ],
+        "top_out_rate": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "v2_rank": 5,
+      "agents": 11
+    }
+  },
+  "marathon_v2": [
+    {
+      "preset": "Easy",
+      "games": 100,
+      "mean_score": 97267.47,
+      "mean_lines": 114.21,
+      "mean_level": 12.17,
+      "mean_pieces": 302.69,
+      "cap_hit_rate": 0.0,
+      "mean_survival_s": 592.8163333331228,
+      "score_1min": 2104.66,
+      "score_3min": 11872.82,
+      "score_5min": 28890.5,
+      "score_10min": 96715.23,
+      "lines_1min": 9.34,
+      "lines_3min": 32.88,
+      "lines_5min": 56.68,
+      "lines_10min": 113.82,
+      "alive_1min": 1.0,
+      "alive_3min": 1.0,
+      "alive_5min": 1.0,
+      "alive_10min": 0.42
+    },
+    {
+      "preset": "Medium",
+      "games": 100,
+      "mean_score": 1803147.0,
+      "mean_lines": 797.9,
+      "mean_level": 20.0,
+      "mean_pieces": 2000.0,
+      "cap_hit_rate": 1.0,
+      "mean_survival_s": 2018.9854999984923,
+      "score_1min": 6376.0,
+      "score_3min": 39678.94,
+      "score_5min": 98801.9,
+      "score_10min": 359337.0,
+      "lines_1min": 21.78,
+      "lines_3min": 68.87,
+      "lines_5min": 116.14,
+      "lines_10min": 234.35,
+      "alive_1min": 1.0,
+      "alive_3min": 1.0,
+      "alive_5min": 1.0,
+      "alive_10min": 1.0
+    },
+    {
+      "preset": "Hard",
+      "games": 100,
+      "mean_score": 1785251.36,
+      "mean_lines": 798.17,
+      "mean_level": 20.0,
+      "mean_pieces": 2000.0,
+      "cap_hit_rate": 1.0,
+      "mean_survival_s": 1029.9941666660586,
+      "score_1min": 19629.32,
+      "score_3min": 137071.24,
+      "score_5min": 353661.36,
+      "score_10min": 940301.36,
+      "lines_1min": 45.3,
+      "lines_3min": 139.38,
+      "lines_5min": 233.21,
+      "lines_10min": 465.08,
+      "alive_1min": 1.0,
+      "alive_3min": 1.0,
+      "alive_5min": 1.0,
+      "alive_10min": 1.0
+    }
+  ],
+  "seeds": [
+    900000,
+    900499
+  ]
+}

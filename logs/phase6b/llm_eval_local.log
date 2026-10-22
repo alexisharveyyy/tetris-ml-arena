@@ -1,0 +1,47 @@
+pinned step: tetris from /Users/alexisharvey/tetris-ml-arena-phase6b/tetris/__init__.py, commit 68a5b2acacc67fa553cf863b012c6791904e6422
+runs ['qwen3-features', 'llama31-features']: 20 games each, cap 100 pieces, timeout 15 s; API spent so far $5.00 of $5.00
+qwen3-features (Ollama qwen3:8b, features, timeout 15 s): 0 games done, 20 to play
+  loaded qwen3:8b in 5.0s
+  seed 900000: 28 pieces, 4 lines, fallbacks 0/28, 3.16 s/piece, $0.0000
+  seed 900001: 27 pieces, 3 lines, fallbacks 0/27, 3.00 s/piece, $0.0000
+  seed 900002: 28 pieces, 8 lines, fallbacks 0/28, 2.98 s/piece, $0.0000
+  seed 900003: 26 pieces, 4 lines, fallbacks 0/26, 2.94 s/piece, $0.0000
+  seed 900004: 25 pieces, 4 lines, fallbacks 0/25, 3.70 s/piece, $0.0000
+  seed 900005: 22 pieces, 2 lines, fallbacks 0/22, 3.62 s/piece, $0.0000
+  seed 900006: 34 pieces, 6 lines, fallbacks 0/34, 3.13 s/piece, $0.0000
+  seed 900007: 22 pieces, 4 lines, fallbacks 0/22, 3.50 s/piece, $0.0000
+  seed 900008: 22 pieces, 0 lines, fallbacks 0/22, 4.24 s/piece, $0.0000
+  seed 900009: 39 pieces, 11 lines, fallbacks 0/39, 3.09 s/piece, $0.0000
+  seed 900010: 28 pieces, 3 lines, fallbacks 0/28, 3.22 s/piece, $0.0000
+  seed 900011: 22 pieces, 1 lines, fallbacks 0/22, 3.60 s/piece, $0.0000
+  seed 900012: 25 pieces, 1 lines, fallbacks 0/25, 3.87 s/piece, $0.0000
+  seed 900013: 30 pieces, 5 lines, fallbacks 0/30, 3.88 s/piece, $0.0000
+  seed 900014: 25 pieces, 3 lines, fallbacks 0/25, 3.22 s/piece, $0.0000
+  seed 900015: 26 pieces, 6 lines, fallbacks 0/26, 3.47 s/piece, $0.0000
+  seed 900016: 30 pieces, 9 lines, fallbacks 0/30, 3.58 s/piece, $0.0000
+  seed 900017: 26 pieces, 3 lines, fallbacks 0/26, 3.64 s/piece, $0.0000
+  seed 900018: 28 pieces, 3 lines, fallbacks 0/28, 3.96 s/piece, $0.0000
+  seed 900019: 23 pieces, 1 lines, fallbacks 0/23, 4.31 s/piece, $0.0000
+llama31-features (Ollama llama3.1:8b, features, timeout 15 s): 0 games done, 20 to play
+  loaded llama3.1:8b in 5.7s
+  seed 900000: 17 pieces, 0 lines, fallbacks 0/17, 3.18 s/piece, $0.0000
+  seed 900001: 25 pieces, 3 lines, fallbacks 0/25, 4.34 s/piece, $0.0000
+  seed 900002: 28 pieces, 5 lines, fallbacks 0/28, 3.03 s/piece, $0.0000
+  seed 900003: 28 pieces, 5 lines, fallbacks 0/28, 3.97 s/piece, $0.0000
+  seed 900004: 25 pieces, 3 lines, fallbacks 0/25, 4.04 s/piece, $0.0000
+  seed 900005: 16 pieces, 0 lines, fallbacks 0/16, 3.64 s/piece, $0.0000
+  seed 900006: 28 pieces, 6 lines, fallbacks 0/28, 3.31 s/piece, $0.0000
+  seed 900007: 27 pieces, 3 lines, fallbacks 0/27, 2.99 s/piece, $0.0000
+  seed 900008: 22 pieces, 1 lines, fallbacks 0/22, 3.39 s/piece, $0.0000
+  seed 900009: 18 pieces, 0 lines, fallbacks 0/18, 3.79 s/piece, $0.0000
+  seed 900010: 20 pieces, 1 lines, fallbacks 0/20, 3.38 s/piece, $0.0000
+  seed 900011: 25 pieces, 1 lines, fallbacks 0/25, 3.90 s/piece, $0.0000
+  seed 900012: 27 pieces, 4 lines, fallbacks 0/27, 3.59 s/piece, $0.0000
+  seed 900013: 25 pieces, 4 lines, fallbacks 0/25, 3.71 s/piece, $0.0000
+  seed 900014: 31 pieces, 4 lines, fallbacks 0/31, 3.24 s/piece, $0.0000
+  seed 900015: 19 pieces, 0 lines, fallbacks 0/19, 3.25 s/piece, $0.0000
+  seed 900016: 24 pieces, 4 lines, fallbacks 0/24, 3.50 s/piece, $0.0000
+  seed 900017: 28 pieces, 3 lines, fallbacks 0/28, 3.38 s/piece, $0.0000
+  seed 900018: 19 pieces, 0 lines, fallbacks 0/19, 3.36 s/piece, $0.0000
+  seed 900019: 27 pieces, 2 lines, fallbacks 0/27, 3.79 s/piece, $0.0000
+wrote reports/llm_agent.md

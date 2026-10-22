@@ -97,4 +97,25 @@ model, not a frontier model. Results: `reports/llm_agent.md`.
 
 ## Results
 
-Filled in after the evaluation.
+Garbage setting, 100-piece cap, first 20 held-out seeds; full table in
+`reports/llm_agent.md`. Intervals are 95% bootstrap over games.
+
+| Run | Timeout | Pieces survived | Top-out rate | Lines per piece | Fallbacks (timeout / invalid / error) | Seconds per piece |
+|---|---|---|---|---|---|---|
+| GA heuristic (reference) | | 99.3 [97.9, 100.0] | 0.05 [0.00, 0.15] | 0.637 | | |
+| qwen3:8b, features | 15 s | 26.8 [25.1, 28.7] | 1.00 | 0.143 | 0.0% (0 / 0 / 0) | 3.48 |
+| qwen3:8b, bare | 3 s | 13.2 [12.3, 13.9] | 1.00 | 0.044 | 22.4% (59 / 0 / 0) | 2.39 |
+| llama3.1:8b, features | 15 s | 23.9 [22.1, 25.8] | 1.00 | 0.092 | 0.0% (0 / 0 / 0) | 3.54 |
+| gpt-4.1-mini, features and bare | | Pending (no valid API key) | | | | |
+
+Both local models answered every decision with a legal placement within
+15 s, and both top out in every game, after a quarter of the GA's pieces.
+qwen3 with features is ahead of llama3.1 with features (+2.9 [+0.2, +5.8]
+pieces, +0.051 [+0.012, +0.094] lines per piece). qwen3 with features
+against bare is +13.7 pieces, but that comparison mixes the prompt with the
+timeout (15 s against 3 s, where 22% of bare decisions fell back to the GA).
+
+At the app's 3 s limit these models would fall back often: a decision takes
+3.5 s on average with the features prompt (about 1,450 prompt tokens and 7
+answer tokens per piece). The evaluation does not record per-decision times,
+so the exact share over 3 s is not known.

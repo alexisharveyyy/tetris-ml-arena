@@ -1,0 +1,18 @@
+2026-10-22 10:30:33  phase 6b queue: start
+2026-10-22 10:30:33  queue pinned to /Users/alexisharvey/tetris-ml-arena-phase6b at 68a5b2acacc67fa553cf863b012c6791904e6422
+2026-10-22 10:30:33  start dt_v2_collect: -m tetris.agents.decision_transformer.collect --config tetris/agents/decision_transformer/config_v2.yaml
+2026-10-22 10:33:46  done dt_v2_collect in 3.2 min
+2026-10-22 10:33:46  start dt_v2_train: -m tetris.agents.decision_transformer.train train --config tetris/agents/decision_transformer/config_v2.yaml --run-name seed0_v2 --no-promote
+2026-10-22 12:35:13  done dt_v2_train in 121.5 min
+2026-10-22 12:35:13  start dt_v2_calibrate: -m tetris.agents.decision_transformer.train calibrate --config tetris/agents/decision_transformer/config_v2.yaml --run-name seed0_v2 --report dt_calibration_v2 --title Decision Transformer v2
+2026-10-22 12:38:18  done dt_v2_calibrate in 3.1 min
+2026-10-22 12:38:18  start dt_choose: -m tetris.agents.decision_transformer.train choose --run-name seed0_v2
+2026-10-22 12:38:18  done dt_choose in 0.0 min
+2026-10-22 12:38:18  start dt_versions_eval: scripts/eval_dt_versions.py
+2026-10-22 13:34:13  done dt_versions_eval in 55.9 min
+2026-10-22 13:34:13  dt: v1 stays playable; the leaderboard is unchanged
+2026-10-22 13:34:13  start llm_mark_api_pending: scripts/eval_llm.py --mark-pending api-features,api-bare --reason no valid API key
+2026-10-22 13:34:13  done llm_mark_api_pending in 0.0 min
+2026-10-22 13:34:13  start llm_eval_local: scripts/eval_llm.py --runs qwen3-features,llama31-features
+2026-10-22 14:33:45  done llm_eval_local in 59.5 min
+2026-10-22 14:33:45  phase 6b queue finished
