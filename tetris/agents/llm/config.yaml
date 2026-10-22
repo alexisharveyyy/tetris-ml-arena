@@ -4,7 +4,7 @@ enabled: false
 
 backend: ollama              # ollama | openai | anthropic
 prompt: features             # features (lines, holes, height per placement) | bare (rotation, column)
-timeout_seconds: 3.0         # per decision; on timeout the GA heuristic's move is played
+timeout_seconds: 8.0         # per decision in live play; on timeout the GA heuristic's move is played
 eval_timeout_seconds: 15.0   # per decision in scripts/eval_llm.py only (measures the model, not the fallback)
 max_output_tokens: 24
 
@@ -43,5 +43,5 @@ spending:
   ledger: data/llm/spend.json
 
 play:
-  decision_timeout: 5.0      # worker deadline; the agent's own timeout is shorter
+  decision_timeout: 10.0     # worker deadline; the agent's own timeout (8 s) is shorter
   startup_timeout: 30.0

@@ -15,7 +15,7 @@ Runs (defaults to all):
 Every run plays the first ``--games`` held-out seeds, one game at a time,
 and the GA heuristic plays the same seeds with the same cap as the paired
 reference. The per-decision timeout is ``eval_timeout_seconds`` from the LLM
-config (15 s; live play keeps ``timeout_seconds``, 3 s), so the evaluation
+config (15 s; live play keeps ``timeout_seconds``, 8 s), so the evaluation
 measures the model rather than the fallback. Each finished game is appended
 to ``data/llm/eval/<run>_cap<pieces>_t<timeout>.jsonl``, so an interrupted
 evaluation resumes where it stopped.
@@ -147,6 +147,7 @@ def set_status(name: str, reason: str | None) -> None:
 
 def play_llm_game(agent: LLMAgent, seed: int, setting: EvalSetting) -> dict[str, Any]:
     before = agent.stats.to_dict()
+    first_move = len(agent.stats.moves)
 
     def policy(game):
         if not action_mask(game, setting.include_hold).any():
@@ -173,6 +174,7 @@ def play_llm_game(agent: LLMAgent, seed: int, setting: EvalSetting) -> dict[str,
         "input_tokens": after["input_tokens"] - before["input_tokens"],
         "output_tokens": after["output_tokens"] - before["output_tokens"],
         "cost_usd": after["cost_usd"] - before["cost_usd"],
+        "move_seconds": [round(t, 3) for _, t in agent.stats.moves[first_move:]],
     }
 
 
@@ -337,6 +339,27 @@ def summarize_run(
         "output_tokens": sum(g["output_tokens"] for g in games),
         "cost_usd": sum(g["cost_usd"] for g in games),
         "minus_ga": paired_metrics(stats, [ga[s.seed] for s in stats]),
+        "move_times": move_times(games),
+    }
+
+
+#: Per-decision limits to report the share of slower moves against (live play
+#: and the earlier live default).
+MOVE_LIMITS = (3.0, 8.0)
+
+
+def move_times(games: list[dict[str, Any]]) -> dict[str, Any] | None:
+    """Per-move wait quantiles and the share over each limit (None if not recorded)."""
+    times = [t for g in games for t in g.get("move_seconds", [])]
+    if not times or len(times) < sum(g["pieces"] for g in games) // 2:
+        return None  # runs from before per-move times were recorded
+    arr = np.array(times)
+    return {
+        "moves": len(times),
+        "median": float(np.median(arr)),
+        "p90": float(np.percentile(arr, 90)),
+        "max": float(arr.max()),
+        "over": {f"{lim:g}": float((arr > lim).mean()) for lim in MOVE_LIMITS},
     }
 
 
@@ -381,6 +404,7 @@ def write_report(
     setting: EvalSetting,
     spent: dict[str, Any],
     api_note: str = "",
+    live_timeout: float = 3.0,
 ) -> None:
     ga = metric_summary(ga_stats)
     out = {
@@ -418,7 +442,7 @@ def write_report(
         "or unlisted answer, or a backend error, so a run with many fallbacks partly "
         f"measures the GA. {api_note}The local models are 8-billion-parameter models "
         "quantized to 4 bits. The timeout column is the per-decision limit the run used; "
-        "live play in the app uses 3 s.",
+        f"live play in the app uses {live_timeout:g} s.",
         "",
         f"| Run | Games | Timeout | {' | '.join(f'{x} [95% interval]' for x in names)} "
         "| Fallback rate | Timeouts / invalid / errors | Seconds per piece | Tokens per game "
@@ -476,6 +500,26 @@ def write_report(
             "limits; part of the difference can come from the timeout (a shorter limit means "
             "more fallbacks to the GA).",
         ]
+    timed = [s for s in summaries if s["games"] and s.get("move_times")]
+    if timed:
+        limits = list(timed[0]["move_times"]["over"])
+        lines += [
+            "",
+            "Time waited for the model per move (runs that recorded per-move times):",
+            "",
+            "| Run | Timeout | Moves | Median | 90th percentile | Longest | "
+            + " | ".join(f"Share over {lim} s" for lim in limits)
+            + " |",
+            "|---|---|---|---|---|---|" + "---|" * len(limits),
+        ]
+        for s in timed:
+            t = s["move_times"]
+            lines.append(
+                f"| {s['label']} | {_timeout_label(s['timeout_seconds'])} | {t['moves']} "
+                f"| {t['median']:.2f} s | {t['p90']:.2f} s | {t['max']:.2f} s | "
+                + " | ".join(f"{t['over'][lim]:.1%}" for lim in limits)
+                + " |"
+            )
     stopped = [s for s in summaries if s.get("stopped") and s["games"]]
     if stopped:
         lines += ["", "Runs stopped early (results cover the games finished before the stop):"]
@@ -550,7 +594,15 @@ def main(argv: list[str] | None = None) -> None:
         for c in [compare(runs_by_name[a], runs_by_name[b])]
         if c is not None
     ]
-    write_report(summaries, comparisons, ga_stats, setting, ledger.snapshot(), api_note(cfg))
+    write_report(
+        summaries,
+        comparisons,
+        ga_stats,
+        setting,
+        ledger.snapshot(),
+        api_note(cfg),
+        float(cfg["timeout_seconds"]),
+    )
     print("wrote reports/llm_agent.md", flush=True)
 
 

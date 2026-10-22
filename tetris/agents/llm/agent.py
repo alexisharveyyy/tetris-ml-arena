@@ -54,6 +54,8 @@ class LLMStats:
     last_error: str = ""
     #: Consecutive ``error`` outcomes (reset by any other outcome).
     error_streak: int = 0
+    #: Every decision in order: (outcome, seconds waited for the model).
+    moves: list[tuple[str, float]] = field(default_factory=list)
 
     @property
     def decisions(self) -> int:
@@ -148,8 +150,10 @@ class LLMAgent(Agent):
         except BackendError as exc:
             outcome, self.stats.last_error = "error", str(exc)
         finally:
-            self.stats.seconds += time.perf_counter() - t0
+            waited = time.perf_counter() - t0
+            self.stats.seconds += waited
         self.stats.outcomes[outcome] += 1
+        self.stats.moves.append((outcome, waited))
         self.stats.error_streak = self.stats.error_streak + 1 if outcome == "error" else 0
         if chosen is None:
             return heuristic

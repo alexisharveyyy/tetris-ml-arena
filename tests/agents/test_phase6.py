@@ -718,12 +718,26 @@ def test_llm_eval_records_its_timeout(tmp_path, monkeypatch) -> None:
     mod = _eval_llm_module()
     backend = FakeBackend(reply='{"choice": 1}')
     cfg, setting = _eval_setup(mod, tmp_path, monkeypatch, backend)
-    assert cfg["timeout_seconds"] == 3.0 and cfg["eval_timeout_seconds"] == 15.0
+    assert cfg["timeout_seconds"] == 8.0 and cfg["eval_timeout_seconds"] == 15.0
     run = mod.evaluate_run(cfg, "qwen3-features", [900000], setting, 15.0)
     assert run["stopped"] is None and run["games"][0]["timeout_seconds"] == 15.0
     assert (tmp_path / "qwen3-features_cap30_t15.jsonl").exists()
     assert mod.stored_run(cfg, "qwen3-features", 30, 3.0)["games"] == run["games"]
-    assert LLMAgent(seed=0).timeout == 3.0  # live play keeps the short timeout
+    assert LLMAgent(seed=0).timeout == 8.0  # live play keeps the shorter timeout
+
+
+def test_llm_eval_records_per_move_times(tmp_path, monkeypatch) -> None:
+    mod = _eval_llm_module()
+    backend = FakeBackend(reply='{"choice": 1}')
+    cfg, setting = _eval_setup(mod, tmp_path, monkeypatch, backend)
+    run = mod.evaluate_run(cfg, "qwen3-features", [900000], setting, 15.0)
+    game = run["games"][0]
+    assert len(game["move_seconds"]) == sum(game["outcomes"].values()) == backend.calls
+    times = mod.move_times(run["games"])
+    assert times["moves"] == backend.calls and set(times["over"]) == {"3", "8"}
+    assert times["over"]["3"] == 0.0  # the fake backend answers at once
+    # Runs saved before per-move times were recorded report none.
+    assert mod.move_times([{k: v for k, v in game.items() if k != "move_seconds"}]) is None
 
 
 @pytest.mark.parametrize(
