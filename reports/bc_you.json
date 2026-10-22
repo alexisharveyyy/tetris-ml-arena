@@ -178,5 +178,5 @@
     }
   ],
   "learning_rate": 3e-05,
-  "initialized_from": "/Users/alexisharvey/tetris-ml-arena-phase5/checkpoints/bc/best.pt"
+  "initialized_from": "/Users/alexisharvey/tetris-ml-arena/checkpoints/bc/best.pt"
 }
