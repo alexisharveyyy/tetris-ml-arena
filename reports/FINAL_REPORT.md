@@ -536,12 +536,16 @@ because the control would promise a weaker opponent and not deliver one.
 - Each step logs the commit; the logs are in `logs/`.
 
 **How to read the table:**
+- Commit hashes are those on master after commit messages were rewritten
+  on 2026-10-22, which changed every hash but no file. The queue logs in
+  `logs/` print the hashes from before; `docs/commit_hash_map.txt` maps old
+  to new. The tree hashes below are the same before and after.
 - The last column gives the git tree hashes of `tetris/` and `scripts/` at
   the "Ran at" commit (`git rev-parse <commit>:tetris`, and the same for
   `scripts`). A tree hash depends only on file contents, not on commit
   messages, so it identifies the code even if commit hashes change when
   messages are rewritten. Equal hashes mean identical code: for example
-  bb5ebb2 and 24dbd5d have the same `tetris/` tree.
+  3cf7abd and e37ee78 have the same `tetris/` tree.
 - "Ran at" is the commit whose code produced the result.
 - "Recorded in" is the commit that added the report.
 - "Not recorded" means the run predates commit logging. Its code is
@@ -549,34 +553,34 @@ because the control would promise a weaker opponent and not deliver one.
 
 | Result | Command | Ran at | Recorded in | Code trees at "Ran at" (`tetris/` / `scripts/`) |
 |---|---|---|---|---|
-| Leaderboard: garbage, plain, Marathon, bootstrap, sources (`leaderboard*`) | `python scripts/evaluate.py --games 500 --marathon-games 100` (Phase 6 queue, `scripts/run_phase6.py`) | 485e524 (the main copy, imported by the f24a41e queue; the audit found no relevant difference) | 9560e3d | 485e524: aa18e908697e / b2a1af5428e1 |
-| GA, CEM checkpoints | `python -m tetris.agents.heuristic_ga.train`, `python -m tetris.agents.cem.train` | Not recorded (between c9d4c70 and ef91221) | ef91221 | n/a |
-| DQN v1 checkpoint, `curve_dqn_seed0.png` | `python -m tetris.agents.dqn.train` | Not recorded (around 609fdd7) | 4c1a4df | n/a |
-| DQN v2, `curve_dqn_seed0_v2.png` | `python -m tetris.agents.dqn.train --run-name seed0_v2 --no-promote` (`scripts/run_phase4.py`) | bb5ebb2 | 4c1a4df | bb5ebb2: b9d0d416b32b / 5fa3cefeaa53 |
-| PPO (raw actions) and its tuning runs | `python -m tetris.agents.ppo.train --config tetris/agents/ppo/config_raw.yaml --ent-coef 0.03 --lr 0.0003` (`run_phase4.py`) | bb5ebb2 | 4c1a4df | bb5ebb2: b9d0d416b32b / 5fa3cefeaa53 |
-| PPO checkpoint, `curve_ppo_seed0.png` | `python -m tetris.agents.ppo.train` (`scripts/run_ppo_rerun.py`) | 6e0270a | c98cf3c | 6e0270a: 056522eaedce / f09445abafc9 |
-| Seed spread (`seed_spread.md/.json`, `curve_*_short*.png`) | DQN: `python -m tetris.agents.dqn.train --budget-minutes 60 --seed N --run-name shortN --no-promote` (`run_phase4.py`). PPO: the same in `run_ppo_rerun.py`. Then `python scripts/seed_spread.py` | DQN 24dbd5d; PPO and evaluation 6e0270a | c98cf3c | 24dbd5d: b9d0d416b32b / f3aba7ee363f; 6e0270a: 056522eaedce / f09445abafc9 |
-| `dqn_overestimation.md` | `python scripts/dqn_q_bias.py <run> <checkpoints>` and TensorBoard, written up by hand | Not recorded | 000fe32 (last edit) | n/a |
-| `ppo_mps_bug.md`, `curve_ppo_fixsmoke.png` | Pre-flight check `python scripts/preflight.py`; 12-minute check run (command not recorded) | Fix in 8a8b9aa | 000fe32 | n/a (fix: 8a8b9aa: 3c33379ef495 / f3aba7ee363f) |
-| BC pure, BC + DAgger, BC (you) (`bc_you.json`, `curve_bc_*.png`) | `python -m tetris.agents.imitation.train pure`, `... dagger`, `... choose`, `... you` (`scripts/run_phase5.py`); GA logs from `python scripts/log_games.py` | 77e3713 | c98cf3c (`bc_you.json` reformatted in 9add623) | 77e3713: a094c6686162 / 2d5335945b65 |
-| NEAT (`curve_neat_seed0.png`, `neat_topology.png`), `neat_selection.md` | `python -m tetris.agents.neuroevolution.train` (`run_phase5.py`); the selection analysis is by hand from `checkpoints/neat/selection.json` | 77e3713 | c98cf3c, 9add623 | 77e3713: a094c6686162 / 2d5335945b65 |
-| DT v1 (`dt_calibration.md/.png`, `curve_dt_seed0.png`) | `python -m tetris.agents.decision_transformer.collect`, `... train train`, `... train calibrate` (`scripts/run_phase6.py`) | f24a41e | 9560e3d | f24a41e: 5c300cb7361e / b2a1af5428e1 |
-| DT v2 (`dt_calibration_v2.md/.png`, `curve_dt_seed0_v2.png`, `dt_v2.md`, `dt_versions.json`, `dt_v2_calibration.png`) | `scripts/run_phase6b.py`: collect, then `train --config tetris/agents/decision_transformer/config_v2.yaml --run-name seed0_v2 --no-promote`, `calibrate ... --report dt_calibration_v2`, `choose --run-name seed0_v2`, `python scripts/eval_dt_versions.py` | 68a5b2a (same tree as 7f08e45 on master; see note) | da63af8 | 68a5b2a = 7f08e45: f9f2166afc98 / 5a46a73f1ab6 |
-| LLM: qwen3 and llama3.1 with features, API pending (`llm_agent.md/.json`) | `python scripts/eval_llm.py --mark-pending api-features,api-bare --reason "no valid API key"`, then `python scripts/eval_llm.py --runs qwen3-features,llama31-features` (`run_phase6b.py`) | 68a5b2a (same tree as 7f08e45) | da63af8 | 68a5b2a = 7f08e45: f9f2166afc98 / 5a46a73f1ab6 |
-| LLM: qwen3 bare at 15 s, with the report regenerated | `python scripts/pinned_step.py scripts/eval_llm.py --runs qwen3-bare` | 8457f27 | eb1920c | 8457f27: f0b3a999c3b2 / 9f4e7f4415f8 |
-| `difficulty.md` | `python scripts/eval_difficulty.py` | Not recorded (Phase 3) | 9e856ae | n/a |
-| `stress_test.md` | `python scripts/stress_test.py --mode race --seconds 60` (and `--mode battle`) | Not recorded (Phase 3) | 9e856ae | n/a |
-| `web_performance.md`, `ui/perf.json` | `LIVE=1 npx playwright test perf` in `web/`, and `python scripts/web_latency.py` | Not recorded (phase8-web branch) | 64d2286, e85b916 | n/a |
-| `queue_pinning_audit.md` | Manual audit of the queue logs and the session's edit history | n/a | 97e45ce | n/a |
+| Leaderboard: garbage, plain, Marathon, bootstrap, sources (`leaderboard*`) | `python scripts/evaluate.py --games 500 --marathon-games 100` (Phase 6 queue, `scripts/run_phase6.py`) | 3ca1bde (the main copy, imported by the 14f166a queue; the audit found no relevant difference) | 9a1d9f9 | 3ca1bde: aa18e908697e / b2a1af5428e1 |
+| GA, CEM checkpoints | `python -m tetris.agents.heuristic_ga.train`, `python -m tetris.agents.cem.train` | Not recorded (between 2cc4cea and 257ea76) | 257ea76 | n/a |
+| DQN v1 checkpoint, `curve_dqn_seed0.png` | `python -m tetris.agents.dqn.train` | Not recorded (around 51c9115) | 543be7b | n/a |
+| DQN v2, `curve_dqn_seed0_v2.png` | `python -m tetris.agents.dqn.train --run-name seed0_v2 --no-promote` (`scripts/run_phase4.py`) | 3cf7abd | 543be7b | 3cf7abd: b9d0d416b32b / 5fa3cefeaa53 |
+| PPO (raw actions) and its tuning runs | `python -m tetris.agents.ppo.train --config tetris/agents/ppo/config_raw.yaml --ent-coef 0.03 --lr 0.0003` (`run_phase4.py`) | 3cf7abd | 543be7b | 3cf7abd: b9d0d416b32b / 5fa3cefeaa53 |
+| PPO checkpoint, `curve_ppo_seed0.png` | `python -m tetris.agents.ppo.train` (`scripts/run_ppo_rerun.py`) | 9c4936e | 421d6b5 | 9c4936e: 056522eaedce / f09445abafc9 |
+| Seed spread (`seed_spread.md/.json`, `curve_*_short*.png`) | DQN: `python -m tetris.agents.dqn.train --budget-minutes 60 --seed N --run-name shortN --no-promote` (`run_phase4.py`). PPO: the same in `run_ppo_rerun.py`. Then `python scripts/seed_spread.py` | DQN e37ee78; PPO and evaluation 9c4936e | 421d6b5 | e37ee78: b9d0d416b32b / f3aba7ee363f; 9c4936e: 056522eaedce / f09445abafc9 |
+| `dqn_overestimation.md` | `python scripts/dqn_q_bias.py <run> <checkpoints>` and TensorBoard, written up by hand | Not recorded | f505488 (last edit) | n/a |
+| `ppo_mps_bug.md`, `curve_ppo_fixsmoke.png` | Pre-flight check `python scripts/preflight.py`; 12-minute check run (command not recorded) | Fix in 9f3a432 | f505488 | n/a (fix: 9f3a432: 3c33379ef495 / f3aba7ee363f) |
+| BC pure, BC + DAgger, BC (you) (`bc_you.json`, `curve_bc_*.png`) | `python -m tetris.agents.imitation.train pure`, `... dagger`, `... choose`, `... you` (`scripts/run_phase5.py`); GA logs from `python scripts/log_games.py` | 2c7cfca | 421d6b5 (`bc_you.json` reformatted in 8631ecf) | 2c7cfca: a094c6686162 / 2d5335945b65 |
+| NEAT (`curve_neat_seed0.png`, `neat_topology.png`), `neat_selection.md` | `python -m tetris.agents.neuroevolution.train` (`run_phase5.py`); the selection analysis is by hand from `checkpoints/neat/selection.json` | 2c7cfca | 421d6b5, 8631ecf | 2c7cfca: a094c6686162 / 2d5335945b65 |
+| DT v1 (`dt_calibration.md/.png`, `curve_dt_seed0.png`) | `python -m tetris.agents.decision_transformer.collect`, `... train train`, `... train calibrate` (`scripts/run_phase6.py`) | 14f166a | 9a1d9f9 | 14f166a: 5c300cb7361e / b2a1af5428e1 |
+| DT v2 (`dt_calibration_v2.md/.png`, `curve_dt_seed0_v2.png`, `dt_v2.md`, `dt_versions.json`, `dt_v2_calibration.png`) | `scripts/run_phase6b.py`: collect, then `train --config tetris/agents/decision_transformer/config_v2.yaml --run-name seed0_v2 --no-promote`, `calibrate ... --report dt_calibration_v2`, `choose --run-name seed0_v2`, `python scripts/eval_dt_versions.py` | 68a5b2a (same tree as 471c9f9 on master; see note) | f07da18 | 68a5b2a = 471c9f9: f9f2166afc98 / 5a46a73f1ab6 |
+| LLM: qwen3 and llama3.1 with features, API pending (`llm_agent.md/.json`) | `python scripts/eval_llm.py --mark-pending api-features,api-bare --reason "no valid API key"`, then `python scripts/eval_llm.py --runs qwen3-features,llama31-features` (`run_phase6b.py`) | 68a5b2a (same tree as 471c9f9) | f07da18 | 68a5b2a = 471c9f9: f9f2166afc98 / 5a46a73f1ab6 |
+| LLM: qwen3 bare at 15 s, with the report regenerated | `python scripts/pinned_step.py scripts/eval_llm.py --runs qwen3-bare` | 21b0b65 | f8da418 | 21b0b65: f0b3a999c3b2 / 9f4e7f4415f8 |
+| `difficulty.md` | `python scripts/eval_difficulty.py` | Not recorded (Phase 3) | 3f81d39 | n/a |
+| `stress_test.md` | `python scripts/stress_test.py --mode race --seconds 60` (and `--mode battle`) | Not recorded (Phase 3) | 3f81d39 | n/a |
+| `web_performance.md`, `ui/perf.json` | `LIVE=1 npx playwright test perf` in `web/`, and `python scripts/web_latency.py` | Not recorded (phase8-web branch) | 097fd81, fb62dbf | n/a |
+| `queue_pinning_audit.md` | Manual audit of the queue logs and the session's edit history | n/a | 9f1a999 | n/a |
 
 **Note on 68a5b2a.** The Phase 6b queue's worktree was created from a commit
-whose message was then amended. 68a5b2a and 7f08e45 have identical trees
+whose message was then amended. 68a5b2a and 471c9f9 have identical trees
 (`tetris/` f9f2166afc98, `scripts/` 5a46a73f1ab6, and the whole repository),
 so they contain the same code. 68a5b2a is on no branch.
 - The queue ran at 68a5b2a.
-- Master holds 7f08e45, which has an identical tree (`git diff 68a5b2a
-  7f08e45` is empty), so the code that produced those results is the code
-  at 7f08e45.
+- Master holds 471c9f9, which has an identical tree (`git diff 68a5b2a
+  471c9f9` is empty), so the code that produced those results is the code
+  at 471c9f9.
 
 **Determinism:**
 - Evaluation is deterministic for a fixed checkpoint and seed.

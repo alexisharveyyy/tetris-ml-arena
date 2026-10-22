@@ -6,7 +6,7 @@ pieces per game. The three 1-hour seed runs (`short0` to `short2`) did the
 same. These runs are invalid: the policy never trained. When this report
 was written, their numbers in `reports/leaderboard.md` and
 `reports/seed_spread.md` described an untrained network. Both were later
-replaced by reruns at the fixed code (6e0270a): PPO now ranks 2nd on the
+replaced by reruns at the fixed code (9c4936e): PPO now ranks 2nd on the
 leaderboard, and the seed spread shows the rerun's three 1-hour runs.
 
 ## Checks
