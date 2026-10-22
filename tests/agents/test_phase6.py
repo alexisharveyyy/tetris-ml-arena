@@ -209,9 +209,9 @@ def test_dt_v2_config_changes_only_the_data() -> None:
     }
     srcs = dt_collect.sources(v2)
     assert all(s.noise == 0.0 for s in srcs) and len(srcs) == 14
-    for s in srcs:
-        if s.checkpoint:
-            assert (dt_collect.ROOT / s.checkpoint).exists(), s.checkpoint
+    staged = [s for s in srcs if s.checkpoint]
+    assert len(staged) == 12  # trained checkpoints are local, so only their paths are checked
+    assert all(s.checkpoint.startswith(f"checkpoints/{s.agent}/seed0/") for s in staged)
     seeds = {t[2] for t in dt_collect.collection_tasks(v2, Path("unused"))}
     assert min(seeds) >= 720000 and max(seeds) < 800000  # below the selection seeds
 
