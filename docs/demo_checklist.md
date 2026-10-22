@@ -29,6 +29,21 @@ every font is self-hosted.
    difficulty, the seed and the starting look. Defaults: BC (you) Medium, CEM
    Easy, PPO Medium, seed 48213, Tetromino look.
 
+   - The Decision Transformer plays at its default target return; there is
+     no target control, because its calibration showed the target does not
+     change its strength (`reports/dt_v2.md`). Use the presets to change its
+     strength, as for every other agent.
+   - The LLM agent is off by default and is not needed for the demo. To show
+     it, start Ollama, run `ollama pull qwen3:8b` while online, and set
+     `enabled: true` in `tetris/agents/llm/config.yaml`. It takes up to 8 s
+     per move and is capped at one piece per 8 s at every preset, so pick it
+     for Watch AI or as a single slow opponent. Its board shows "GA
+     fallbacks: n of m moves". Set `enabled: false` again afterwards.
+   - Rehearse with the same `--checkpoint-dir` you will use in class, and
+     check that every agent on the leaderboard screen shows its numbers. An
+     agent listed without numbers has a checkpoint that changed or is missing
+     since the leaderboard run; the screen says which.
+
 4. Do a full rehearsal with Wi-Fi turned off:
 
    ```bash
@@ -56,7 +71,8 @@ every font is self-hosted.
    60 fps) and the input-to-render latency. Reload without `?perf` before
    the class.
 6. Close other heavy apps. Three agents on Unlimited keep three CPU worker
-   processes busy.
+   processes busy. If the LLM agent is enabled, Ollama also uses the GPU and
+   about 6 GB of memory while the model is loaded.
 
 ## Keys during the demo
 

@@ -1,8 +1,8 @@
 # Demo mode: python -m tetris.web --demo
 #
-# Change these after reviewing the Phase 5 results. Agent keys are the registry
-# keys (dellacherie, ga, cem, dqn, ppo, ppo_raw, bc, bc_you, neat); presets are
-# Easy, Medium, Hard or Unlimited. Up to three opponents.
+# Agent keys are the registry keys (dellacherie, ga, cem, dqn, ppo, ppo_raw,
+# bc, bc_you, neat, dt, and llm when enabled in its config); presets are Easy,
+# Medium, Hard or Unlimited. Up to three opponents.
 
 # Look the demo starts on: tetromino, terminal, broadcast or poster.
 look: tetromino
