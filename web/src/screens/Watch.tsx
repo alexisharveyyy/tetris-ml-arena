@@ -10,6 +10,7 @@ import { agentStats, StatRow } from "../components/Panels";
 import { PieceIcon } from "../components/PieceIcon";
 import { Segmented } from "../components/Segmented";
 import { agentStatusLine, unavailableText } from "../lib/copy";
+import { ModelFallbacks } from "../components/ModelFallbacks";
 import { pct } from "../lib/format";
 import { go } from "../router";
 import { useApp } from "../state/app";
@@ -115,6 +116,7 @@ function WatchLive({ matchId }: { matchId: string }) {
           </div>
           <StatRow stats={[...agentStats(p), { label: "Pieces/s", value: p.stats.pps.toFixed(2) }]} />
           <p className="watch__status">{agentStatusLine(p, thinking)}</p>
+          <ModelFallbacks player={p} className="watch__status" />
           {thinking && p.cand.length ? (
             <table className="cand-table">
               <caption>Top candidates {p.cand_current ? "for this piece" : "for the piece it just placed"}</caption>

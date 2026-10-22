@@ -93,6 +93,14 @@ class PlayerState:
         return not self.game.game_over and not self.done
 
 
+def _agent_difficulty(agent_key: str | None, difficulty: DifficultyParams) -> DifficultyParams:
+    """The preset an agent actually plays at: lowered to its ``play.max_pps`` cap."""
+    from tetris.agents.registry import AGENTS
+
+    spec = AGENTS.get(agent_key) if agent_key else None
+    return spec.cap_difficulty(difficulty) if spec else difficulty
+
+
 class MatchController:
     """Runs one match: solo, watch, race, battle, marathon or a headless evaluation.
 
@@ -139,7 +147,7 @@ class MatchController:
             self.runner.add_agent(
                 spec.player_id,
                 spec.agent_key,
-                spec.difficulty,
+                _agent_difficulty(spec.agent_key, spec.difficulty),
                 spec.checkpoint,
                 seed=derive_seed(config.seed, 3000 + i),
             )
@@ -165,7 +173,11 @@ class MatchController:
             if spec.kind == "agent":
                 assert self.runner is not None
                 driver = AgentDriver(
-                    spec.player_id, self.runner, spec.difficulty, self.top_k, self.config.lockstep
+                    spec.player_id,
+                    self.runner,
+                    _agent_difficulty(spec.agent_key, spec.difficulty),
+                    self.top_k,
+                    self.config.lockstep,
                 )
             # Every board shares the piece seed; garbage holes are per board.
             game = Game(
@@ -201,7 +213,7 @@ class MatchController:
         player = self.players[player_id]
         player.spec.difficulty = difficulty
         if player.driver is not None:
-            player.driver.set_difficulty(difficulty)
+            player.driver.set_difficulty(_agent_difficulty(player.spec.agent_key, difficulty))
 
     def set_top_k(self, top_k: int) -> None:
         self.top_k = top_k
@@ -445,6 +457,7 @@ class MatchController:
             "topped_out": g.game_over,
             "finish_time": p.finish_time,
             "survival_time": active,
+            "model_moves": p.driver.model_summary() if p.driver else None,
         }
 
     # ----------------------------------------------------------- snapshot

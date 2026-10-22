@@ -95,6 +95,15 @@ class Status(_Msg):
     fallback: str | None = None  # reason code while the baseline plays
 
 
+class ModelMoves(_Msg):
+    """Moves of an agent that reports each one (the LLM agent), and how many fell
+    back to its heuristic, by cause (timeout, invalid, error, budget, late)."""
+
+    moves: int
+    fallbacks: int
+    by_cause: dict[str, int]
+
+
 class Player(_Msg):
     id: str
     kind: Literal["human", "agent"]
@@ -115,6 +124,7 @@ class Player(_Msg):
     #: True when ``cand`` is for the current piece; False when it is the previous
     #: piece's (fast agents place within one frame; see AgentDriver.overlay).
     cand_current: bool
+    model: ModelMoves | None = None  # per-move fallbacks (the LLM agent), else None
 
 
 class FeedEvent(BaseModel):
@@ -270,7 +280,14 @@ def encode_player(match: MatchController, p: PlayerState, place: int) -> dict[st
         "finish_time": p.finish_time,
         "cand": cand,
         "cand_current": current,
+        "model": _model_moves(row.get("model_moves")),
     }
+
+
+def _model_moves(summary: dict[str, Any] | None) -> dict[str, Any] | None:
+    if not summary:
+        return None
+    return {k: summary[k] for k in ("moves", "fallbacks", "by_cause")}
 
 
 def encode_snapshot(

@@ -2,6 +2,7 @@ import { Board } from "../../../components/Board";
 import { ConnectionBanner, MatchState } from "../../../components/Overlays";
 import type { PlayerSnap } from "../../../api/types";
 import { agentStatusLine } from "../../../lib/copy";
+import { ModelFallbacks } from "../../../components/ModelFallbacks";
 import { fmtInt } from "../../../lib/format";
 import type { MatchModel } from "../../../screens/models";
 import { posterColors } from "../board";
@@ -67,6 +68,7 @@ export function PosterMatch(m: MatchModel) {
               <p className="po-col__status">
                 {human ? queueSentence(p) : agentStatusLine(p, m.showThinking).replace("Outlines show its", "Dashed outlines are its")}
               </p>
+              {human ? null : <ModelFallbacks player={p} className="po-col__status" />}
             </section>
           );
         })}

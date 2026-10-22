@@ -3,6 +3,7 @@
 // match layouts built from the same Board and PiecePreview parts.
 import type { Agent, PlayerSnap } from "../api/types";
 import { agentStatusLine } from "../lib/copy";
+import { ModelFallbacks } from "./ModelFallbacks";
 import { fmtInt, ordinal } from "../lib/format";
 import { Board } from "./Board";
 import { PieceIcon } from "./PieceIcon";
@@ -113,6 +114,7 @@ export function AgentCard({ player, agent, cell, showThinking, of }: AgentProps)
       <p className="agent-card__status">
         {agentStatusLine(player, showThinking)}
       </p>
+      <ModelFallbacks player={player} className="agent-card__status" />
     </section>
   );
 }

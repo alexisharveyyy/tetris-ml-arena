@@ -2,6 +2,7 @@ import { Board } from "../../../components/Board";
 import { ConnectionBanner, MatchState } from "../../../components/Overlays";
 import { PiecePreview } from "../../../components/PiecePreview";
 import { agentStatusLine } from "../../../lib/copy";
+import { ModelFallbacks } from "../../../components/ModelFallbacks";
 import { clock2 } from "../../../lib/format";
 import { keyLabel } from "../../../lib/keys";
 import type { MatchModel } from "../../../screens/models";
@@ -103,6 +104,7 @@ export function TerminalMatch(m: MatchModel) {
                 Score {p.stats.score} L{p.stats.level}
               </p>
               <p className="term-agent-status">{agentStatusLine(p, m.showThinking).replace("Outlines show its top three landing spots for this", "Top 3 spots for next")}</p>
+              <ModelFallbacks player={p} className="term-agent-status" />
             </div>
           ))}
         </section>

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { PlayerSnap, StandingRow } from "../../src/api/types";
-import { agentStatusLine, endedText, pushTicker, resultsHeadline, resultsSummary, tickerLine } from "../../src/lib/copy";
+import { agentStatusLine, endedText, fallbackCausesText, modelFallbackText, pushTicker, resultsHeadline, resultsSummary, tickerLine } from "../../src/lib/copy";
 import { clock, ordinal, ordinalWord } from "../../src/lib/format";
 import { raceGoal } from "../../src/lib/race";
 
@@ -91,5 +91,20 @@ describe("ticker", () => {
     let lines: string[] = [];
     for (const l of ["a", "b", "c", "d"]) lines = pushTicker(lines, l, 3);
     expect(lines).toEqual(["d", "c", "b"]);
+  });
+});
+
+describe("LLM fallback count", () => {
+  const player = (model: PlayerSnap["model"]) => ({ model }) as PlayerSnap;
+
+  it("counts fallbacks against moves", () => {
+    const p = player({ moves: 41, fallbacks: 3, by_cause: { timeout: 2, late: 1, invalid: 0 } });
+    expect(modelFallbackText(p)).toBe("GA fallbacks: 3 of 41 moves");
+    expect(fallbackCausesText(p)).toBe("2 timed out, 1 locked while thinking");
+  });
+
+  it("is absent for agents that do not report moves", () => {
+    expect(modelFallbackText(player(null))).toBeNull();
+    expect(fallbackCausesText(player(undefined))).toBe("");
   });
 });

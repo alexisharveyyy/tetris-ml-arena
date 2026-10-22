@@ -3,7 +3,9 @@
 Offline RL as sequence modeling. The model is trained on games played by the
 other agents and is conditioned on a **target return**: ask for a high return
 and it should play like the strong agents; ask for a low one and it should
-play like the weak ones. The target return is the agent's difficulty knob.
+play like the weak ones. The plan was to use the target return as the
+agent's difficulty knob. It did not work in either version (see Results), so
+the app plays the DT at its default target and offers no target control.
 
 ## Why afterstate matching
 
@@ -78,10 +80,15 @@ the selection seeds and records the fitness it actually achieves
 rank correlation between target and achieved fitness. The target with the
 highest achieved fitness becomes the default, used on the leaderboard.
 
-In the app, the opponent screen shows a **Target return** row for this agent.
-Each stop is labeled with its calibrated fitness ("1.00 (plays at about
-1.05)"), not just the raw target. The usual speed, reaction-delay and
-mistake settings still apply on top.
+**In the app the DT always plays at this default target.** Both calibration
+curves are flat (v1 rank correlation +0.43, v2 +0.00): asking for a return
+of 0.2 played as well as asking for 1.4, so a target control would promise a
+weaker opponent and not deliver one. The registry entry sets
+`supports_target_return=False`, which hides the desktop app's Target return
+row and makes the lobby ignore a saved target; the web app never had one.
+The speed, reaction-delay and mistake presets set its strength, as for every
+other agent. The knob code (`knob.py`, `DifficultyParams.target_return`)
+stays for calibration and any future version.
 
 ## Playing live
 
@@ -156,10 +163,8 @@ Rank correlation +0.43. Every target plays at the level of the strong
 agents; the differences are about the size of 30-game noise. A likely
 reason: the weak games in the data come from injected mistakes, which the
 state does not predict, so the model learns to imitate the strong agents'
-placements and largely ignores the return-to-go. The app labels each stop
-with its calibrated fitness, so the knob is honest but nearly flat; the
-usual speed, reaction-delay and mistake settings remain the way to weaken
-this agent.
+placements and largely ignores the return-to-go. v2 tested that
+hypothesis.
 
 ### v2 (`reports/dt_v2.md`, `reports/dt_calibration_v2.md`)
 
@@ -177,7 +182,7 @@ checkpoint was selected (1.345, below v1's 1.374).
 **v1 stays the playable DT** (v2 needed a strictly higher selection
 fitness). The leaderboard is unchanged.
 
-**The knob still does not work; the hypothesis is not supported.**
+**The knob still does not work: the hypothesis was tested and rejected.**
 
 | Target | 0.20 | 0.40 | 0.60 | 0.80 | 1.00 | 1.20 | 1.40 |
 |---|---|---|---|---|---|---|---|
@@ -194,3 +199,15 @@ make the model use the return-to-go.
 +0.192]); v2 would rank 8th of 11. Plain: both 1.196 with every game at the
 cap (difference -0.001, lines only). Marathon scores are within 1% of v1 at
 every preset. v1's replay reproduced its leaderboard rows exactly.
+
+**Why it may have failed.** Weak agents top out quickly, so their games are
+short and contribute few states: the five sources with mean return below 0.6
+give 10% of the training states, and the sources the model sees most are
+the strong ones. Return-conditioning then has little low-return data to
+learn from, and imitating the strong placements minimizes most of the loss.
+
+**Future work (not run): a v3** would weight episodes rather than states, for
+example sampling training windows so each return bin contributes equally,
+or reweighting the loss by inverse state count per source. The test would be
+the same calibration: a clearly positive rank correlation and a low target
+that actually plays below the strong agents.

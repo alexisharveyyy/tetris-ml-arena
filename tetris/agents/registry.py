@@ -70,6 +70,23 @@ class AgentSpec:
         return float(self.play_config.get("startup_timeout", DEFAULT_STARTUP_TIMEOUT))
 
     @property
+    def max_pps(self) -> float | None:
+        """Speed cap from the ``play`` section, applied over every preset (None: none).
+
+        The LLM agent uses it so its pace matches its decision time limit and does
+        not jump when a move falls back to the fast heuristic.
+        """
+        cap = self.play_config.get("max_pps")
+        return float(cap) if cap is not None else None
+
+    def cap_difficulty(self, difficulty: DifficultyParams) -> DifficultyParams:
+        """``difficulty`` with its speed cap lowered to :attr:`max_pps` if needed."""
+        cap = self.max_pps
+        if cap is None or (difficulty.pps is not None and difficulty.pps <= cap):
+            return difficulty
+        return difficulty.with_pps(cap)
+
+    @property
     def checkpoint_path(self) -> Path | None:
         """The promoted checkpoint: the first that exists in :func:`read_checkpoint_dirs`."""
         if not self.checkpoint:
@@ -179,11 +196,14 @@ AGENTS: dict[str, AgentSpec] = {
         AgentSpec(
             "dt",
             "Decision Transformer",
-            "Return-conditioned transformer trained on the other agents' games; "
-            "the target return sets its strength.",
+            "Return-conditioned transformer trained on the other agents' games. It plays "
+            "at its default target return: in calibration, asking for a lower return did "
+            "not make it play worse, so the target is not offered as a strength setting.",
             "tetris.agents.decision_transformer.agent:DTAgent",
             "best.pt",
-            supports_target_return=True,
+            # The knob is flat (reports/dt_calibration.md, reports/dt_v2.md), so the
+            # app offers no target-return control; speed presets set its strength.
+            supports_target_return=False,
             config="tetris/agents/decision_transformer/config.yaml",
         ),
         AgentSpec(

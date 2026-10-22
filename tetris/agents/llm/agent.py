@@ -108,6 +108,13 @@ class LLMAgent(Agent):
         if stop_on_budget is not None:
             self.stop_on_budget = stop_on_budget
 
+    def move_info(self) -> dict[str, Any] | None:
+        """The last decision's outcome and seconds waited (sent with it in live play)."""
+        if not self.stats.moves:
+            return None
+        outcome, seconds = self.stats.moves[-1]
+        return {"outcome": outcome, "seconds": seconds}
+
     @property
     def backend(self) -> Backend:
         if self._backend is None:

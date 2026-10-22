@@ -44,4 +44,5 @@ spending:
 
 play:
   decision_timeout: 10.0     # worker deadline; the agent's own timeout (8 s) is shorter
+  max_pps: 0.125             # one piece per 8 s, matching timeout_seconds, in every preset
   startup_timeout: 30.0

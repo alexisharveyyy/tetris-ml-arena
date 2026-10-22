@@ -1,5 +1,5 @@
 {
-  "hash": "f414788caca549468cf1ca6643b053d227df651262aa1410c7902fce0a6a6a4b",
-  "files": 98,
+  "hash": "c4d00403918fd57a7945c0eb2056d84f97475f31eb1ccc570d2007d3bfb2f166",
+  "files": 99,
   "note": "Written by npm run build. tetris/web/build.py compares hash with web/src."
 }

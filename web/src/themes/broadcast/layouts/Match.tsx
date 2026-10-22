@@ -1,4 +1,5 @@
 import { Board } from "../../../components/Board";
+import { ModelFallbacks } from "../../../components/ModelFallbacks";
 import { ConnectionBanner, MatchState } from "../../../components/Overlays";
 import { PiecePreview } from "../../../components/PiecePreview";
 import type { PlayerSnap } from "../../../api/types";
@@ -104,6 +105,7 @@ export function BroadcastMatch(m: MatchModel) {
               <p className="bc-agent-board__meta">
                 {a?.family}, {p.preset}
               </p>
+              <ModelFallbacks player={p} className="bc-agent-board__meta" />
               {badge ? <p className="bc-badge">{badge}</p> : null}
               {p.status.state === "topped_out" ? <p className="bc-badge bc-badge--out">{p.status.text}</p> : null}
             </section>

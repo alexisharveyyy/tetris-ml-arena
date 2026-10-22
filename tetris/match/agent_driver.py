@@ -59,6 +59,10 @@ class AgentDriver:
         self._redecisions = 0
         self.redecisions_total = 0
         self.candidate_cells: list[dict[str, Any]] = []
+        #: For agents that report each move (the LLM agent): (outcome, seconds
+        #: waited) per move, including ``late`` for pieces that locked while the
+        #: model was still thinking.
+        self.model_moves: list[tuple[str, float]] = []
         # The previous piece's candidates, kept for overlays (see :meth:`overlay`).
         self._last_cells: list[dict[str, Any]] = []
         self._last_token = -1
@@ -86,6 +90,8 @@ class AgentDriver:
             return
         if self.phase is not Phase.IDLE and game.pieces_placed != self._token:
             # The piece locked without us (for example lock delay while thinking).
+            if self.phase is Phase.THINKING and self.model_moves:
+                self.model_moves.append(("late", self.clock - self._spawn_clock))
             self._finish_piece(locked_by_driver=False)
         if self.phase is Phase.IDLE:
             self._request(game)
@@ -124,6 +130,8 @@ class AgentDriver:
         self.decisions += 1
         self.total_think_time += decision.think_time
         self.last_error = decision.error
+        if decision.info is not None:
+            self.model_moves.append((decision.info["outcome"], decision.info["seconds"]))
         self.candidate_cells = (
             [] if decision.fallback else self._cells_for(game, decision.candidates)
         )
@@ -131,6 +139,21 @@ class AgentDriver:
         if decision.fallback:
             self._last_cells = []
         self.phase = Phase.WAITING
+
+    def model_summary(self) -> dict[str, Any] | None:
+        """Moves, fallbacks by cause and per-move waits (None for other agents)."""
+        if not self.model_moves:
+            return None
+        causes: dict[str, int] = {}
+        for outcome, _ in self.model_moves:
+            if outcome != "llm":
+                causes[outcome] = causes.get(outcome, 0) + 1
+        return {
+            "moves": len(self.model_moves),
+            "fallbacks": sum(causes.values()),
+            "by_cause": causes,
+            "move_seconds": [round(s, 3) for _, s in self.model_moves],
+        }
 
     def _drop_allowed(self) -> bool:
         pps = self.difficulty.pps

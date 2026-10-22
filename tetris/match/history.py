@@ -102,7 +102,11 @@ class MarathonHistory:
                     for r in standings
                     if r["kind"] == "agent"
                 ],
-                "players": [{k: r.get(k) for k in PLAYER_FIELDS} for r in standings],
+                "players": [
+                    {k: r.get(k) for k in PLAYER_FIELDS}
+                    | ({"model_moves": r["model_moves"]} if r.get("model_moves") else {})
+                    for r in standings
+                ],
             }
         )
         self.save()

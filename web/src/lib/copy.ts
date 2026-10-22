@@ -98,6 +98,30 @@ export function agentStatusLine(p: PlayerSnap, showThinking: boolean): string {
   return s.state === "thinking" ? "Thinking." : "Playing.";
 }
 
+const FALLBACK_CAUSES: Record<string, string> = {
+  timeout: "timed out",
+  invalid: "unusable answer",
+  error: "backend error",
+  budget: "spending cap",
+  late: "locked while thinking",
+};
+
+/** "GA fallbacks: 3 of 41 moves" for agents that report each move (the LLM agent). */
+export function modelFallbackText(p: PlayerSnap): string | null {
+  const m = p.model;
+  if (!m) return null;
+  return `GA fallbacks: ${m.fallbacks} of ${m.moves} ${m.moves === 1 ? "move" : "moves"}`;
+}
+
+/** "2 timed out, 1 locked while thinking", or "" when nothing fell back. */
+export function fallbackCausesText(p: PlayerSnap): string {
+  const causes = p.model?.by_cause ?? {};
+  return Object.entries(causes)
+    .filter(([, n]) => n > 0)
+    .map(([k, n]) => `${n} ${FALLBACK_CAUSES[k] ?? k}`)
+    .join(", ");
+}
+
 export function placeText(place: number, of: number): string {
   return `${ordinal(place)} of ${of}`;
 }

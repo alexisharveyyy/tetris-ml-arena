@@ -336,16 +336,15 @@ def test_dt_training_and_calibration_smoke(dt_logs, tmp_path, monkeypatch) -> No
     assert (dt_train.version_dir("v1") / "best.pt").read_bytes() == v1_bytes
 
 
-def test_dt_knob_falls_back_and_lobby_applies_target(tmp_path) -> None:
+def test_dt_knob_falls_back_and_the_app_plays_the_default_target(tmp_path) -> None:
     stops = target_stops(tmp_path / "missing.json")
     assert stops and all(s.achieved is None for s in stops)
+    # The knob is flat, so the app offers no target: a saved one is ignored.
+    assert not AGENTS["dt"].supports_target_return and AGENTS["dt"].leaderboard
     slot = OpponentSlot("dt", "Hard", target_return=0.6)
-    assert slot.difficulty.target_return == 0.6
+    assert slot.difficulty.target_return is None
     assert slot.difficulty.pps == DifficultyParams(pps=2.0).pps
-    again = OpponentSlot.from_dict(slot.to_dict())
-    assert again.target_return == 0.6
-    assert OpponentSlot("ga", "Hard", target_return=0.6).difficulty.target_return is None
-    assert AGENTS["dt"].supports_target_return and AGENTS["dt"].leaderboard
+    assert "default target return" in AGENTS["dt"].description
 
 
 def test_dt_spearman() -> None:
@@ -529,6 +528,71 @@ def test_llm_is_off_by_default_and_never_on_the_leaderboard(monkeypatch) -> None
     )
     assert AGENTS["llm"].available
     assert "llm" not in [a.key for a in leaderboard_agents()]
+
+
+def test_llm_live_play_is_capped_and_reports_each_move(monkeypatch) -> None:
+    from tetris.agents.difficulty import PRESETS
+    from tetris.agents.llm import agent as llm_agent
+    from tetris.match import MatchConfig, MatchController, PlayerSpec
+    from tetris.web.protocol import encode_player
+
+    spec = AGENTS["llm"]
+    assert LLMAgent(seed=0).timeout == 8.0 < spec.decision_timeout
+    assert spec.max_pps == pytest.approx(1 / 8)  # one piece per 8 s timeout
+    assert spec.cap_difficulty(PRESETS["Hard"]).pps == spec.max_pps
+    assert spec.cap_difficulty(PRESETS["Unlimited"]).pps == spec.max_pps
+    assert AGENTS["ga"].cap_difficulty(PRESETS["Hard"]) == PRESETS["Hard"]
+
+    replies = iter(['{"choice": 1}', "no idea"] * 50)  # every other answer is unusable
+
+    class Alternating(FakeBackend):
+        def complete(self, system, user, timeout):
+            self.reply = next(replies)
+            return super().complete(system, user, timeout)
+
+    monkeypatch.setattr(llm_agent, "make_backend", lambda cfg: Alternating())
+    player = PlayerSpec(
+        "a", "LLM", kind="agent", agent_key="llm", difficulty=PRESETS["Hard"], preset="Hard"
+    )
+    match = MatchController(MatchConfig(mode="watch", seed=5, lockstep=True), [player])
+    state = match.players["a"]
+    assert state.driver.difficulty.pps == spec.max_pps  # Hard is capped too
+    for _ in range(60 * 41):
+        match.step(1 / 60)
+    assert 5 <= state.game.pieces_placed <= 6  # one piece per 8 s
+    moves = match.player_row("a")["model_moves"]
+    assert moves["moves"] == len(moves["move_seconds"]) >= 5
+    assert moves["fallbacks"] == moves["by_cause"]["invalid"] == moves["moves"] // 2
+    snap = encode_player(match, state, 1)
+    assert snap["model"] == {k: moves[k] for k in ("moves", "fallbacks", "by_cause")}
+    assert match.player_row("a")["model_moves"] is not None
+    # Agents that do not report moves send nothing.
+    ga = PlayerSpec("g", "GA", kind="agent", agent_key="ga", preset="Hard")
+    other = MatchController(MatchConfig(mode="watch", seed=5, lockstep=True), [ga])
+    other.step(1 / 60)
+    assert encode_player(other, other.players["g"], 1)["model"] is None
+
+
+def test_a_piece_that_locks_while_the_model_thinks_counts_as_a_late_fallback() -> None:
+    from tetris.match.agent_driver import AgentDriver
+    from tetris.match.agent_runtime import Decision
+
+    class SlowRunner:  # the model never answers in time
+        def submit(self, *args) -> None: ...
+
+        def poll(self, player_id) -> Decision | None:
+            return None
+
+    game = _game()
+    driver = AgentDriver("a", SlowRunner(), DifficultyParams())
+    driver.model_moves.append(("llm", 2.0))  # an earlier move the model made
+    driver.update(game, 1 / 60)
+    assert driver.thinking
+    game.apply("hard")  # gravity and lock delay lock the piece meanwhile
+    driver.update(game, 3.0)
+    summary = driver.model_summary()
+    assert summary["moves"] == 2 and summary["by_cause"] == {"late": 1}
+    assert driver.model_summary()["fallbacks"] == 1
 
 
 def test_llm_eval_requires_recent_prices() -> None:

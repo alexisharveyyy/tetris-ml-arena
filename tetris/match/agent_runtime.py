@@ -28,6 +28,9 @@ class Decision:
     error: str | None = None
     #: Made by the baseline after this slot fell back (no model candidates).
     fallback: bool = False
+    #: Per-move report from agents that give one (``move_info()``; the LLM agent):
+    #: ``{"outcome": "llm" | "timeout" | ..., "seconds": waited}``.
+    info: dict[str, Any] | None = None
 
 
 class AgentRunner(ABC):
@@ -82,11 +85,13 @@ def decide(agent: Any, request_id: int, state: dict[str, Any], top_k: int) -> De
     t0 = time.perf_counter()
     try:
         placement, ranked = agent.decide(state, top_k)
+        move_info = getattr(agent, "move_info", None)
         return Decision(
             request_id,
             placement,
             [(c.placement, c.score) for c in ranked],
             time.perf_counter() - t0,
+            info=move_info() if move_info else None,
         )
     except Exception as exc:  # noqa: BLE001 - surfaced to the driver, which falls back
         return Decision(request_id, None, [], time.perf_counter() - t0, error=repr(exc))

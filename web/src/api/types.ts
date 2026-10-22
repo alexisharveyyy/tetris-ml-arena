@@ -221,6 +221,15 @@ export interface PlayerSnap {
   finish_time: number | null;
   cand: Candidate[];
   cand_current: boolean;
+  /** Agents that report each move (the LLM agent): moves and fallbacks to its heuristic. */
+  model?: ModelMoves | null;
+}
+
+export interface ModelMoves {
+  moves: number;
+  fallbacks: number;
+  /** timeout, invalid, error, budget, late (the piece locked while the model was thinking). */
+  by_cause: Record<string, number>;
 }
 
 export interface FeedEvent {
