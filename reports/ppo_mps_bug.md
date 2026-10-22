@@ -3,9 +3,11 @@
 The 3-hour afterstate PPO run (`checkpoints/ppo/seed0`) stayed at selection
 fitness 0.061 to 0.064 for the whole run. That is random play, about 17
 pieces per game. The three 1-hour seed runs (`short0` to `short2`) did the
-same. These runs are invalid: the policy never trained. Their numbers in
-`reports/leaderboard.md` and `reports/seed_spread.md` describe an untrained
-network.
+same. These runs are invalid: the policy never trained. When this report
+was written, their numbers in `reports/leaderboard.md` and
+`reports/seed_spread.md` described an untrained network. Both were later
+replaced by reruns at the fixed code (6e0270a): PPO now ranks 2nd on the
+leaderboard, and the seed spread shows the rerun's three 1-hour runs.
 
 ## Checks
 
