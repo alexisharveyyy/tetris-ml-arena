@@ -102,4 +102,37 @@ python scripts/run_phase6.py                                    # all three, the
 
 ## Results
 
-Filled in after training.
+**Data.** 995 games, 303,011 states (2.5 minutes on 11 CPU workers). Episode
+returns span 0.073 to 1.439 (median 0.790); the selection target (90th
+percentile) was 1.417.
+
+**Training.** 2 hours on MPS, about 10,800 steps. The gradient pre-flight check
+passed (relative difference 6e-7). Validation top-1 agreement with the
+logged action rose from 0.743 at 10 minutes to 0.771. Selection fitness over
+the 12 checkpoints ranged from 1.255 to 1.374 with no trend after the first
+20 minutes; the 90-minute checkpoint was selected (1.374 on the 30 selection
+seeds).
+
+**Held-out leaderboard** (500 garbage games, `reports/leaderboard.md`):
+fitness 1.309, 4th of 11, top-out rate 0.16 [0.13, 0.19]. It is
+statistically tied with CEM above (+0.009 [-0.022, +0.038]) and pure BC
+below, and with GA, NEAT and PPO; only DQN is significantly ahead (+0.035
+[+0.006, +0.065]). The drop from selection (1.374) to held-out (1.309) is the
+same winner's-curse bias seen for NEAT (`reports/neat_selection.md`). In
+the plain setting it reaches the 1000-piece cap in every game (1.196).
+
+**The target return is not an effective difficulty knob.** Calibration
+(`reports/dt_calibration.md`, 30 selection seeds per target):
+
+| Target | 0.20 | 0.40 | 0.60 | 0.80 | 1.00 | 1.20 | 1.40 |
+|---|---|---|---|---|---|---|---|
+| Achieved fitness | 1.319 | 1.219 | 1.326 | 1.370 | 1.353 | 1.297 | 1.355 |
+
+Rank correlation +0.43. Every target plays at the level of the strong
+agents; the differences are about the size of 30-game noise. A likely
+reason: the weak games in the data come from injected mistakes, which the
+state does not predict, so the model learns to imitate the strong agents'
+placements and largely ignores the return-to-go. The app labels each stop
+with its calibrated fitness, so the knob is honest but nearly flat; the
+usual speed, reaction-delay and mistake settings remain the way to weaken
+this agent.

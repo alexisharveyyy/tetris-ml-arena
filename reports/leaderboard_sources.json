@@ -1,134 +1,126 @@
 {
   "sections": {
     "garbage": {
-      "written_at": "2026-10-21T03:19:42",
-      "basis": "inferred on 2026-10-21 by scripts/backfill_sources.py: every checkpoint listed was last modified before the report was written (2026-10-21 03:19:42) and has not changed since. Reports from the Phase 5 queue (commit c98cf3c on master, copied to ~/tetris-ml-arena/reports); write times are the files' modification times in ~/tetris-ml-arena-phase5/reports, whose checkpoints/ is a link to ~/tetris-ml-arena/checkpoints.",
+      "written_at": "2026-10-21T15:40:39-0500",
+      "basis": "recorded by scripts/evaluate.py",
       "agents": {
-        "dqn": {
-          "checkpoint": "dqn/best.pt",
-          "sha256": "2a40d5e844ce0adde44007d7ecc2c67c42231dfd8d753fdab113c06e8a4f7502",
-          "size": 464125,
-          "modified": "2026-10-20T03:40:23"
-        },
-        "ppo": {
-          "checkpoint": "ppo/best.pt",
-          "sha256": "f246dfe3a8c83dbd6bd8870439c1c10a1854945a4d177082704e1cf02f8a08f5",
-          "size": 1116297,
-          "modified": "2026-10-20T22:04:13"
-        },
-        "cem": {
-          "checkpoint": "cem/best.json",
-          "sha256": "c519fe6806021581e9587011c14764b1fca796f2892b1dfa9573abdeafafc54e",
-          "size": 2316,
-          "modified": "2026-10-19T11:34:41"
-        },
-        "bc_pure": {
-          "checkpoint": "bc_pure/best.pt",
-          "sha256": "7da039a6fb70277a012e5c2522bb0f2bd2d5682d635281702762d76db7a09e02",
-          "size": 1116195,
-          "modified": "2026-10-20T23:29:27"
+        "dellacherie": {
+          "checkpoint": null
         },
         "ga": {
           "checkpoint": "ga/best.json",
           "sha256": "2fb7b2a8c1befeb39d0d623902daa25ac64fbf943e0b091c335b8129eb603a46",
-          "size": 2413,
-          "modified": "2026-10-19T11:34:41"
+          "size": 2413
         },
-        "neat": {
-          "checkpoint": "neat/best.json",
-          "sha256": "4f8e6f042e19ac20aff1ec40e98033acdeed61a396782b7162aa90911508fbf2",
-          "size": 705,
-          "modified": "2026-10-21T03:03:56"
+        "cem": {
+          "checkpoint": "cem/best.json",
+          "sha256": "c519fe6806021581e9587011c14764b1fca796f2892b1dfa9573abdeafafc54e",
+          "size": 2316
         },
-        "bc_dagger": {
-          "checkpoint": "bc_dagger/best.pt",
-          "sha256": "220669601fd649f41f8176e113c9d391946efa79b050949a7f4de72a38e4fa95",
-          "size": 1116195,
-          "modified": "2026-10-20T23:53:30"
+        "dqn": {
+          "checkpoint": "dqn/best.pt",
+          "sha256": "2a40d5e844ce0adde44007d7ecc2c67c42231dfd8d753fdab113c06e8a4f7502",
+          "size": 464125
         },
-        "dellacherie": {
-          "checkpoint": null
-        },
-        "bc_you": {
-          "checkpoint": "bc_you/best.pt",
-          "sha256": "518d51230cca9b64129fc53bd81c6fac7f746d5e7d37e9528918ff9312ac5e67",
-          "size": 1114153,
-          "modified": "2026-10-21T00:03:12"
+        "ppo": {
+          "checkpoint": "ppo/best.pt",
+          "sha256": "f246dfe3a8c83dbd6bd8870439c1c10a1854945a4d177082704e1cf02f8a08f5",
+          "size": 1116297
         },
         "ppo_raw": {
           "checkpoint": "ppo_raw/best.pt",
           "sha256": "7c500942c6cf4a7b95d04b9a21188d3e5dce1fda5c864fba0a34dae101c0e51e",
-          "size": 736359,
-          "modified": "2026-10-20T00:17:20"
+          "size": 736359
+        },
+        "bc_pure": {
+          "checkpoint": "bc_pure/best.pt",
+          "sha256": "7da039a6fb70277a012e5c2522bb0f2bd2d5682d635281702762d76db7a09e02",
+          "size": 1116195
+        },
+        "bc_dagger": {
+          "checkpoint": "bc_dagger/best.pt",
+          "sha256": "220669601fd649f41f8176e113c9d391946efa79b050949a7f4de72a38e4fa95",
+          "size": 1116195
+        },
+        "bc_you": {
+          "checkpoint": "bc_you/best.pt",
+          "sha256": "518d51230cca9b64129fc53bd81c6fac7f746d5e7d37e9528918ff9312ac5e67",
+          "size": 1114153
+        },
+        "dt": {
+          "checkpoint": "dt/best.pt",
+          "sha256": "542630ebfab63a6c43df97e78c9397aeba3136118aee1081e270ba99627d2f7a",
+          "size": 4582861
+        },
+        "neat": {
+          "checkpoint": "neat/best.json",
+          "sha256": "4f8e6f042e19ac20aff1ec40e98033acdeed61a396782b7162aa90911508fbf2",
+          "size": 705
         }
       }
     },
     "plain": {
-      "written_at": "2026-10-21T03:59:48",
-      "basis": "inferred on 2026-10-21 by scripts/backfill_sources.py: every checkpoint listed was last modified before the report was written (2026-10-21 03:59:48) and has not changed since. Reports from the Phase 5 queue (commit c98cf3c on master, copied to ~/tetris-ml-arena/reports); write times are the files' modification times in ~/tetris-ml-arena-phase5/reports, whose checkpoints/ is a link to ~/tetris-ml-arena/checkpoints.",
+      "written_at": "2026-10-21T17:18:31-0500",
+      "basis": "recorded by scripts/evaluate.py",
       "agents": {
-        "ppo": {
-          "checkpoint": "ppo/best.pt",
-          "sha256": "f246dfe3a8c83dbd6bd8870439c1c10a1854945a4d177082704e1cf02f8a08f5",
-          "size": 1116297,
-          "modified": "2026-10-20T22:04:13"
-        },
-        "dqn": {
-          "checkpoint": "dqn/best.pt",
-          "sha256": "2a40d5e844ce0adde44007d7ecc2c67c42231dfd8d753fdab113c06e8a4f7502",
-          "size": 464125,
-          "modified": "2026-10-20T03:40:23"
-        },
-        "cem": {
-          "checkpoint": "cem/best.json",
-          "sha256": "c519fe6806021581e9587011c14764b1fca796f2892b1dfa9573abdeafafc54e",
-          "size": 2316,
-          "modified": "2026-10-19T11:34:41"
-        },
-        "bc_pure": {
-          "checkpoint": "bc_pure/best.pt",
-          "sha256": "7da039a6fb70277a012e5c2522bb0f2bd2d5682d635281702762d76db7a09e02",
-          "size": 1116195,
-          "modified": "2026-10-20T23:29:27"
+        "dellacherie": {
+          "checkpoint": null
         },
         "ga": {
           "checkpoint": "ga/best.json",
           "sha256": "2fb7b2a8c1befeb39d0d623902daa25ac64fbf943e0b091c335b8129eb603a46",
-          "size": 2413,
-          "modified": "2026-10-19T11:34:41"
+          "size": 2413
         },
-        "bc_dagger": {
-          "checkpoint": "bc_dagger/best.pt",
-          "sha256": "220669601fd649f41f8176e113c9d391946efa79b050949a7f4de72a38e4fa95",
-          "size": 1116195,
-          "modified": "2026-10-20T23:53:30"
+        "cem": {
+          "checkpoint": "cem/best.json",
+          "sha256": "c519fe6806021581e9587011c14764b1fca796f2892b1dfa9573abdeafafc54e",
+          "size": 2316
         },
-        "neat": {
-          "checkpoint": "neat/best.json",
-          "sha256": "4f8e6f042e19ac20aff1ec40e98033acdeed61a396782b7162aa90911508fbf2",
-          "size": 705,
-          "modified": "2026-10-21T03:03:56"
+        "dqn": {
+          "checkpoint": "dqn/best.pt",
+          "sha256": "2a40d5e844ce0adde44007d7ecc2c67c42231dfd8d753fdab113c06e8a4f7502",
+          "size": 464125
         },
-        "dellacherie": {
-          "checkpoint": null
-        },
-        "bc_you": {
-          "checkpoint": "bc_you/best.pt",
-          "sha256": "518d51230cca9b64129fc53bd81c6fac7f746d5e7d37e9528918ff9312ac5e67",
-          "size": 1114153,
-          "modified": "2026-10-21T00:03:12"
+        "ppo": {
+          "checkpoint": "ppo/best.pt",
+          "sha256": "f246dfe3a8c83dbd6bd8870439c1c10a1854945a4d177082704e1cf02f8a08f5",
+          "size": 1116297
         },
         "ppo_raw": {
           "checkpoint": "ppo_raw/best.pt",
           "sha256": "7c500942c6cf4a7b95d04b9a21188d3e5dce1fda5c864fba0a34dae101c0e51e",
-          "size": 736359,
-          "modified": "2026-10-20T00:17:20"
+          "size": 736359
+        },
+        "bc_pure": {
+          "checkpoint": "bc_pure/best.pt",
+          "sha256": "7da039a6fb70277a012e5c2522bb0f2bd2d5682d635281702762d76db7a09e02",
+          "size": 1116195
+        },
+        "bc_dagger": {
+          "checkpoint": "bc_dagger/best.pt",
+          "sha256": "220669601fd649f41f8176e113c9d391946efa79b050949a7f4de72a38e4fa95",
+          "size": 1116195
+        },
+        "bc_you": {
+          "checkpoint": "bc_you/best.pt",
+          "sha256": "518d51230cca9b64129fc53bd81c6fac7f746d5e7d37e9528918ff9312ac5e67",
+          "size": 1114153
+        },
+        "dt": {
+          "checkpoint": "dt/best.pt",
+          "sha256": "542630ebfab63a6c43df97e78c9397aeba3136118aee1081e270ba99627d2f7a",
+          "size": 4582861
+        },
+        "neat": {
+          "checkpoint": "neat/best.json",
+          "sha256": "4f8e6f042e19ac20aff1ec40e98033acdeed61a396782b7162aa90911508fbf2",
+          "size": 705
         }
       }
     },
     "marathon": {
-      "written_at": "2026-10-21T04:36:02",
-      "basis": "inferred on 2026-10-21 by scripts/backfill_sources.py: every checkpoint listed was last modified before the report was written (2026-10-21 04:36:02) and has not changed since. Reports from the Phase 5 queue (commit c98cf3c on master, copied to ~/tetris-ml-arena/reports); write times are the files' modification times in ~/tetris-ml-arena-phase5/reports, whose checkpoints/ is a link to ~/tetris-ml-arena/checkpoints.",
+      "written_at": "2026-10-21T18:08:06-0500",
+      "basis": "recorded by scripts/evaluate.py",
       "agents": {
         "dellacherie": {
           "checkpoint": null
@@ -136,56 +128,52 @@
         "ga": {
           "checkpoint": "ga/best.json",
           "sha256": "2fb7b2a8c1befeb39d0d623902daa25ac64fbf943e0b091c335b8129eb603a46",
-          "size": 2413,
-          "modified": "2026-10-19T11:34:41"
+          "size": 2413
         },
         "cem": {
           "checkpoint": "cem/best.json",
           "sha256": "c519fe6806021581e9587011c14764b1fca796f2892b1dfa9573abdeafafc54e",
-          "size": 2316,
-          "modified": "2026-10-19T11:34:41"
+          "size": 2316
         },
         "dqn": {
           "checkpoint": "dqn/best.pt",
           "sha256": "2a40d5e844ce0adde44007d7ecc2c67c42231dfd8d753fdab113c06e8a4f7502",
-          "size": 464125,
-          "modified": "2026-10-20T03:40:23"
+          "size": 464125
         },
         "ppo": {
           "checkpoint": "ppo/best.pt",
           "sha256": "f246dfe3a8c83dbd6bd8870439c1c10a1854945a4d177082704e1cf02f8a08f5",
-          "size": 1116297,
-          "modified": "2026-10-20T22:04:13"
+          "size": 1116297
         },
         "ppo_raw": {
           "checkpoint": "ppo_raw/best.pt",
           "sha256": "7c500942c6cf4a7b95d04b9a21188d3e5dce1fda5c864fba0a34dae101c0e51e",
-          "size": 736359,
-          "modified": "2026-10-20T00:17:20"
+          "size": 736359
         },
         "bc_pure": {
           "checkpoint": "bc_pure/best.pt",
           "sha256": "7da039a6fb70277a012e5c2522bb0f2bd2d5682d635281702762d76db7a09e02",
-          "size": 1116195,
-          "modified": "2026-10-20T23:29:27"
+          "size": 1116195
         },
         "bc_dagger": {
           "checkpoint": "bc_dagger/best.pt",
           "sha256": "220669601fd649f41f8176e113c9d391946efa79b050949a7f4de72a38e4fa95",
-          "size": 1116195,
-          "modified": "2026-10-20T23:53:30"
+          "size": 1116195
         },
         "bc_you": {
           "checkpoint": "bc_you/best.pt",
           "sha256": "518d51230cca9b64129fc53bd81c6fac7f746d5e7d37e9528918ff9312ac5e67",
-          "size": 1114153,
-          "modified": "2026-10-21T00:03:12"
+          "size": 1114153
+        },
+        "dt": {
+          "checkpoint": "dt/best.pt",
+          "sha256": "542630ebfab63a6c43df97e78c9397aeba3136118aee1081e270ba99627d2f7a",
+          "size": 4582861
         },
         "neat": {
           "checkpoint": "neat/best.json",
           "sha256": "4f8e6f042e19ac20aff1ec40e98033acdeed61a396782b7162aa90911508fbf2",
-          "size": 705,
-          "modified": "2026-10-21T03:03:56"
+          "size": 705
         }
       }
     }

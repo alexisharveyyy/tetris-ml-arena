@@ -14,7 +14,7 @@ controller, and a web frontend can wrap the same controller later.
 | 3 | Race and Battle, opponent selection, difficulty, worker pool | Done |
 | 4 | DQN, PPO | Done |
 | 5 | Imitation learning, recording mode, NEAT | Done |
-| 6 | Decision Transformer, optional LLM agent | Planned |
+| 6 | Decision Transformer, optional LLM agent | Decision Transformer done; LLM evaluation pending |
 | 7 | Evaluation harness, leaderboard, docs, web plan | Planned |
 
 ## Main findings
@@ -22,7 +22,7 @@ controller, and a web frontend can wrap the same controller later.
 From the held-out garbage leaderboard (500 seeds, paired bootstrap;
 `reports/leaderboard.md`):
 
-- **The top 7 agents are statistically tied in sequence.** Every adjacent
+- **The top 8 agents are statistically tied in sequence.** Every adjacent
   pair from DQN (1.345) down to BC + DAgger (1.280) has a fitness interval
   that includes 0. DQN and PPO are significantly ahead of the bottom of the
   group, but the whole spread is 0.065. These agents share the same action
@@ -30,9 +30,14 @@ From the held-out garbage leaderboard (500 seeds, paired bootstrap;
   and the linear ones use the same 13 board features. The ceiling appears to
   come from that shared setup rather than from the learning method: a
   linear weighting (GA, CEM), a deep network on the raw board (DQN, PPO), a
-  cloned policy (BC) and an evolved network (NEAT) all land in the same
-  band. Raw-action PPO, which must learn placements from scratch, is far
+  cloned policy (BC), an evolved network (NEAT) and a Decision Transformer
+  trained offline on their games all land in the same band. Raw-action PPO, which must learn placements from scratch, is far
   below (0.103).
+- **The Decision Transformer's target return barely changes its play.**
+  It ranks 4th (1.309, tied with CEM above and pure BC below), but asking
+  for a return of 0.2 still plays at 1.32 and the rank correlation between
+  target and achieved fitness is only +0.43 (`reports/dt_calibration.md`),
+  so it does not work as a difficulty knob.
 - **DAgger added nothing when BC already agreed 95% with the teacher.** Pure
   BC matched the GA on 95.1% of held-out GA states and played as well as the
   GA (+0.007, tie). Two DAgger rounds raised agreement to 96.3% but not play

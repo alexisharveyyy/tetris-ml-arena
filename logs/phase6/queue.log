@@ -1,0 +1,10 @@
+2026-10-21 13:08:13  phase 6 queue: start
+2026-10-21 13:08:13  start dt_collect: -m tetris.agents.decision_transformer.collect
+2026-10-21 13:10:43  done dt_collect in 2.5 min
+2026-10-21 13:10:43  start dt_train: -m tetris.agents.decision_transformer.train train
+2026-10-21 15:12:28  done dt_train in 121.7 min
+2026-10-21 15:12:28  start dt_calibrate: -m tetris.agents.decision_transformer.train calibrate
+2026-10-21 15:15:52  done dt_calibrate in 3.4 min
+2026-10-21 15:15:52  start leaderboard: scripts/evaluate.py --games 500 --marathon-games 100
+2026-10-21 18:08:06  done leaderboard in 172.2 min
+2026-10-21 18:08:06  phase 6 queue finished

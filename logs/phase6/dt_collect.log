@@ -1,0 +1,133 @@
+collecting 995 of 995 games with 11 workers
+  50/995 games, 3s
+  100/995 games, 4s
+  150/995 games, 6s
+  200/995 games, 8s
+  250/995 games, 9s
+  300/995 games, 11s
+  350/995 games, 14s
+  400/995 games, 15s
+  450/995 games, 28s
+  500/995 games, 37s
+  550/995 games, 46s
+  600/995 games, 69s
+  650/995 games, 86s
+  700/995 games, 106s
+  750/995 games, 128s
+  800/995 games, 142s
+  850/995 games, 145s
+  900/995 games, 147s
+  950/995 games, 147s
+  995/995 games, 148s
+{
+  "dellacherie_noise0": {
+    "games": 45,
+    "states": 19345,
+    "mean_fitness": 1.2014300552587043
+  },
+  "dellacherie_noise0.1": {
+    "games": 45,
+    "states": 13009,
+    "mean_fitness": 0.805802201976218
+  },
+  "dellacherie_noise0.3": {
+    "games": 45,
+    "states": 4722,
+    "mean_fitness": 0.27875816767235456
+  },
+  "ga_noise0": {
+    "games": 45,
+    "states": 20724,
+    "mean_fitness": 1.2980760608355244
+  },
+  "ga_noise0.1": {
+    "games": 45,
+    "states": 14910,
+    "mean_fitness": 0.9310616544890089
+  },
+  "ga_noise0.3": {
+    "games": 45,
+    "states": 5324,
+    "mean_fitness": 0.3199552127068462
+  },
+  "cem_noise0": {
+    "games": 45,
+    "states": 20926,
+    "mean_fitness": 1.3057601795594778
+  },
+  "cem_noise0.1": {
+    "games": 45,
+    "states": 17318,
+    "mean_fitness": 1.0832911426308143
+  },
+  "cem_noise0.3": {
+    "games": 45,
+    "states": 4955,
+    "mean_fitness": 0.2952340941589039
+  },
+  "dqn_noise0": {
+    "games": 45,
+    "states": 19622,
+    "mean_fitness": 1.2338221747839788
+  },
+  "dqn_noise0.1": {
+    "games": 45,
+    "states": 15672,
+    "mean_fitness": 0.9838555993608837
+  },
+  "dqn_noise0.3": {
+    "games": 45,
+    "states": 5266,
+    "mean_fitness": 0.3139837016611183
+  },
+  "ppo_noise0": {
+    "games": 45,
+    "states": 21159,
+    "mean_fitness": 1.3306161779438808
+  },
+  "ppo_noise0.1": {
+    "games": 45,
+    "states": 18754,
+    "mean_fitness": 1.180887550539832
+  },
+  "ppo_noise0.3": {
+    "games": 45,
+    "states": 12572,
+    "mean_fitness": 0.7862749104557275
+  },
+  "bc_pure_noise0": {
+    "games": 45,
+    "states": 20783,
+    "mean_fitness": 1.300460474314093
+  },
+  "bc_pure_noise0.1": {
+    "games": 45,
+    "states": 18063,
+    "mean_fitness": 1.1316811431734077
+  },
+  "bc_pure_noise0.3": {
+    "games": 45,
+    "states": 9106,
+    "mean_fitness": 0.5677001833793635
+  },
+  "neat_noise0": {
+    "games": 45,
+    "states": 19815,
+    "mean_fitness": 1.2363325324492982
+  },
+  "neat_noise0.1": {
+    "games": 45,
+    "states": 14535,
+    "mean_fitness": 0.9103661322698001
+  },
+  "neat_noise0.3": {
+    "games": 45,
+    "states": 4213,
+    "mean_fitness": 0.24743179673714727
+  },
+  "ppo_raw_noise0": {
+    "games": 50,
+    "states": 2218,
+    "mean_fitness": 0.10329607978308783
+  }
+}
