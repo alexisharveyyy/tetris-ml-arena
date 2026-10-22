@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import argparse
 import csv
+import dataclasses
 import time
 from pathlib import Path
 
@@ -19,6 +20,7 @@ from tetris.agents.evaluation import (
     GARBAGE_SETTING,
     HELD_OUT_SEEDS,
     PLAIN_SETTING,
+    GameStats,
     default_workers,
     evaluate_agent,
     paired_bootstrap,
@@ -50,6 +52,17 @@ def record_sources(out: Path, section: str, keys: list[str], before: dict) -> No
             src["invalid"] = "the promoted checkpoint changed during the evaluation"
         sources[key] = src
     write_sources(out, section, sources)
+
+
+def write_games(path: Path, keys: list[str], all_stats: dict, setting: str) -> None:
+    """Per-game results, so later comparisons can bootstrap without replaying games."""
+    fields = [f.name for f in dataclasses.fields(GameStats)]
+    with path.open("w", newline="") as f:
+        writer = csv.writer(f)
+        writer.writerow(["key", *fields])
+        for key in keys:
+            for g in all_stats[(setting, key)]:
+                writer.writerow([key, *(getattr(g, name) for name in fields)])
 
 
 def marathon_section(
@@ -173,6 +186,7 @@ def main() -> None:
             rows.append({"agent": AGENTS[key].name, "key": key, **summarize(stats)})
             print(f"{setting.name:8s} {key:12s} done in {time.time() - t0:.0f}s", flush=True)
         record_sources(out, setting.name, keys, before)
+        write_games(out / f"leaderboard_games_{setting.name}.csv", keys, all_stats, setting.name)
         rows.sort(key=lambda r: (-r["fitness"], -r["mean_score"]))
         with (out / f"leaderboard_{setting.name}.csv").open("w", newline="") as f:
             writer = csv.DictWriter(f, fieldnames=list(rows[0]))

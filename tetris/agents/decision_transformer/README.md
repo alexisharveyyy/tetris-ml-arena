@@ -117,7 +117,7 @@ python -m tetris.agents.decision_transformer.train train --config ... --run-name
 python -m tetris.agents.decision_transformer.train calibrate --config ... --run-name seed0_v2 --report dt_calibration_v2
 python -m tetris.agents.decision_transformer.train choose --run-name seed0_v2
 python scripts/eval_dt_versions.py      # v1 vs v2 held out, v2 Marathon: reports/dt_v2.md
-python scripts/run_phase6b.py           # all of the above, then the local LLM evaluation
+python scripts/run_phase6b.py           # all of the above, a full leaderboard rerun if v2 wins, then the local LLM evaluation
 ```
 
 `choose` keeps v1 in `checkpoints/dt/versions/v1/` and v2 in `versions/v2/`,

@@ -180,7 +180,7 @@ python -m tetris.agents.heuristic_ga.train     # GA heuristic, about 15 minutes 
 python -m tetris.agents.cem.train              # cross-entropy method, about 15 minutes
 python scripts/log_games.py --agent ga         # logs games for imitation learning
 python scripts/run_phase6.py                   # Decision Transformer: collect, train, calibrate
-python scripts/run_phase6b.py                  # DT v2 (collect, train, calibrate, choose, evaluate), then the local LLM evaluation
+python scripts/run_phase6b.py                  # DT v2 (collect, train, calibrate, choose, evaluate; full leaderboard rerun if v2 wins), then the local LLM evaluation
 python scripts/eval_llm.py --dry-run           # LLM agent evaluation plan (needs Ollama or an API key)
 tensorboard --logdir runs
 ```
