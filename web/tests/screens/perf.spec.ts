@@ -1,8 +1,9 @@
 // Performance run against a running server (no mocks): the human and three
 // agents on Unlimited, with key presses throughout. Records browser frame
 // times, input-to-render latency, long tasks and message size from the ?perf
-// probe (src/lib/perf.ts) into reports/ui/perf.json.
-//   LIVE=1 TETRIS_CHECKPOINT_DIR=~/tetris-ml-arena/checkpoints npx playwright test perf
+// probe (src/lib/perf.ts) into web/screenshots/perf.json, which is not in git
+// (the recorded run is reports/ui/perf.json).
+//   LIVE=1 TETRIS_CHECKPOINT_DIR=$PWD/../checkpoints npx playwright test perf
 //   (AGENTS=bc_you,cem,ppo SECONDS=45 RUNS=tetromino@1920x1080,...)
 import { expect, test } from "@playwright/test";
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
@@ -10,7 +11,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const LIVE = process.env.LIVE_URL;
-const OUT = join(dirname(fileURLToPath(import.meta.url)), "..", "..", "..", "reports", "ui");
+const OUT = join(dirname(fileURLToPath(import.meta.url)), "..", "..", "screenshots");
 const REPORT = join(OUT, "perf.json");
 const AGENTS = (process.env.AGENTS ?? "bc_you,cem,ppo").split(",");
 const SECONDS = Number(process.env.SECONDS ?? 45);
@@ -92,7 +93,6 @@ for (const run of RUNS) {
     }
     all[`${look} ${size}`] = result;
     writeFileSync(REPORT, JSON.stringify(all, null, 1) + "\n");
-    console.log(JSON.stringify(result));
     expect(stats.inputToRender.length).toBeGreaterThan(20);
     // The frame loop ran for the whole window (the match did not end early).
     expect(frames.length).toBeGreaterThan(stats.elapsed * 55);

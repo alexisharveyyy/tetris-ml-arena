@@ -74,7 +74,7 @@ def main() -> None:
     parser.add_argument("--agents", nargs="+", default=["dellacherie", "ga", "cem"])
     parser.add_argument("--games", type=int, default=30)
     parser.add_argument("--workers", type=int, default=default_workers())
-    parser.add_argument("--out", default=str(ROOT / "reports" / "difficulty.md"))
+    parser.add_argument("--out", default=str(ROOT / "reports" / "analysis" / "difficulty.md"))
     args = parser.parse_args()
     tasks = [
         (k, p, SEED_BASE + i) for p in PRESET_NAMES for k in args.agents for i in range(args.games)

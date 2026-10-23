@@ -24,7 +24,7 @@ actions whose afterstate equals the teacher's (see dataset.py).
   selection fitness; recorded in ``checkpoints/bc/version_choice.json``.
 * ``you``: fine-tunes the chosen model on your recordings (on-space steps
   only, at least 800 in 3 games) at a low learning rate. Games are split into
-  train, validation (early stopping) and test games; ``reports/bc_you.json``
+  train, validation (early stopping) and test games; ``reports/training/bc_you.json``
   gives top-1 and top-3 agreement on the test games for the GA-trained model
   and the fine-tuned one, and their difference on each test game.
 
@@ -580,7 +580,8 @@ def train_you(cfg: dict[str, Any], run_name: str = "seed0", resume: bool = False
     """
     from tetris.match.recording import recording_files, recording_totals
 
-    report_path = ROOT / "reports" / "bc_you.json"
+    report_path = ROOT / "reports" / "training" / "bc_you.json"
+    report_path.parent.mkdir(parents=True, exist_ok=True)
     totals = recording_totals()
     need = int(cfg["you_min_placements"])
     skip = None

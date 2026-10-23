@@ -309,7 +309,7 @@ def test_dt_training_and_calibration_smoke(dt_logs, tmp_path, monkeypatch) -> No
     result = dt_train.calibrate(cfg, best, workers=0)
     assert [r["target"] for r in result["rows"]] == [0.5, 1.0]
     assert result["leaderboard_target"] in (0.5, 1.0)
-    assert (tmp_path / "reports" / "dt_calibration.md").exists()
+    assert (tmp_path / "reports" / "analysis" / "dt_calibration.md").exists()
     stops = target_stops(tmp_path / "ckpt" / "dt" / "calibration.json")
     assert [s.target for s in stops] == [0.5, 1.0] and stops[0].achieved is not None
     assert "plays at about" in stops[0].label
@@ -321,7 +321,7 @@ def test_dt_training_and_calibration_smoke(dt_logs, tmp_path, monkeypatch) -> No
     selected = json.loads((tmp_path / "ckpt" / "dt" / "smoke_v2" / "selection.json").read_text())
     assert v2["checkpoint"] == selected["selected_checkpoint"]
     assert (tmp_path / "ckpt" / "dt" / "smoke_v2" / "calibration.json").exists()
-    assert (tmp_path / "reports" / "dt_calibration_v2.md").exists()
+    assert (tmp_path / "reports" / "analysis" / "dt_calibration_v2.md").exists()
     assert best.read_bytes() == v1_bytes  # calibrating v2 leaves the promoted model alone
     choice = dt_train.choose_version("smoke_v2")
     fits = choice["selection_fitness"]
@@ -676,7 +676,7 @@ def test_llm_report_uses_survival_metrics_with_ga_reference(tmp_path, monkeypatc
     assert comparison["difference"]["pieces"][0] == pytest.approx(30.0)
     cfg = load_llm_config()
     mod.write_report(summaries, [comparison], ga, setting, {}, mod.api_note(cfg))
-    text = (tmp_path / "reports" / "llm_agent.md").read_text()
+    text = (tmp_path / "reports" / "llm" / "llm_agent.md").read_text()
     assert "Pieces survived" in text and "Lines per piece" in text and "Top-out rate" in text
     assert "GA heuristic (reference)" in text and "reached the cap in 3 of 3 games" in text
     assert "gpt-4.1-mini, a small API model, not a frontier model" in text
@@ -688,7 +688,7 @@ def test_llm_report_uses_survival_metrics_with_ga_reference(tmp_path, monkeypatc
     pending = next(line for line in text.splitlines() if line.startswith("| API, features"))
     assert "Pending (no valid API key)" in pending and pending.count("|") == sep.count("|")
     assert "| 15 s |" in text
-    data = json.loads((tmp_path / "reports" / "llm_agent.json").read_text())
+    data = json.loads((tmp_path / "reports" / "llm" / "llm_agent.json").read_text())
     assert data["main_metrics"] == ["pieces", "top_out", "lines_per_piece"]
     run_cfg, label = mod.run_config(cfg, "api-features")
     assert label == "gpt-4.1-mini (small API model, not a frontier model), features"

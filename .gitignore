@@ -5,7 +5,7 @@ __pycache__/
 .ruff_cache/
 *.egg-info/
 configs/user_settings.yaml
-screenshots/
+/screenshots/
 runs/
 data/
 checkpoints/**
@@ -20,3 +20,4 @@ configs/user_history.json
 web/node_modules/
 web/test-results/
 web/playwright-report/
+web/screenshots/

@@ -78,7 +78,7 @@ def main() -> None:
     parser = argparse.ArgumentParser(
         description=__doc__, formatter_class=argparse.RawTextHelpFormatter
     )
-    parser.add_argument("--reports", type=Path, default=ROOT / "reports")
+    parser.add_argument("--reports", type=Path, default=ROOT / "reports" / "leaderboard")
     parser.add_argument(
         "--written",
         nargs="+",

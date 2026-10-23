@@ -136,8 +136,8 @@ class CurveLogger:
         self.agent_key = agent_key
         self.run_name = run_name
         self.writer = SummaryWriter(str(ROOT / "runs" / agent_key / run_name))
-        self.reports = ROOT / "reports"
-        self.reports.mkdir(exist_ok=True)
+        self.reports = ROOT / "reports" / "training" / "curves"
+        self.reports.mkdir(parents=True, exist_ok=True)
         self.csv_path = CHECKPOINT_DIR / agent_key / run_name / "selection_curve.csv"
 
     def scalar(self, tag: str, value: float, step: int) -> None:

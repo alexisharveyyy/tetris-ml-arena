@@ -134,7 +134,7 @@ def main() -> None:
         log("DQN main run did not produce checkpoints/dqn/best.pt; stopping")
         raise SystemExit(1)
 
-    # DQN v2: the stability fix (reports/dqn_overestimation.md), fresh 3-hour run.
+    # DQN v2: the stability fix (reports/training/dqn_overestimation.md), fresh 3-hour run.
     run(
         "dqn_v2",
         ["-m", "tetris.agents.dqn.train", "--run-name", "seed0_v2", "--no-promote"],

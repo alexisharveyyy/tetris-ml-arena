@@ -31,7 +31,7 @@ WEB_DIR = Path(__file__).resolve().parent
 class WebConfig:
     settings_path: Path = DEFAULT_SETTINGS_PATH
     history_path: Path = DEFAULT_HISTORY_PATH
-    reports_dir: Path = ROOT / "reports"
+    reports_dir: Path = ROOT / "reports" / "leaderboard"
     runner_factory: Callable[[], AgentRunner] = ProcessRunner
     #: Countdown before Marathon and Race matches start.
     start_countdown: float = 3.0

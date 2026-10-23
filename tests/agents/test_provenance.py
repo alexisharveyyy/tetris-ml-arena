@@ -68,7 +68,8 @@ def test_buggy_checkpoints_are_never_valid(tmp_path) -> None:
 
 
 def test_repo_reports_record_their_sources() -> None:
-    sources = load_sources(provenance.Path(__file__).resolve().parents[2] / "reports")
+    repo = provenance.Path(__file__).resolve().parents[2]
+    sources = load_sources(repo / "reports" / "leaderboard")
     for section in ("garbage", "plain", "marathon"):
         agents = sources["sections"][section]["agents"]
         # The Phase 5 reports evaluated the fixed PPO, not the MPS-bug checkpoint.

@@ -1,6 +1,6 @@
 """Which checkpoint produced each leaderboard result, and is that result still current?
 
-``scripts/evaluate.py`` writes ``reports/leaderboard_sources.json`` next to the
+``scripts/evaluate.py`` writes ``reports/leaderboard/leaderboard_sources.json`` next to the
 CSVs: for each report section (``garbage``, ``plain``, ``marathon``) and agent,
 the checkpoint it evaluated (path relative to its checkpoint directory, sha256
 and size). Readers call :func:`result_status` before showing a number:

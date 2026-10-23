@@ -18,7 +18,7 @@ and evaluates the choice with the target network:
 Hitting the piece cap is truncation, not termination: the next state is the
 final state of the episode and the target bootstraps from it.
 
-Stability (v2, see reports/dqn_overestimation.md): the target network follows
+Stability (v2, see reports/training/dqn_overestimation.md): the target network follows
 the online network by Polyak averaging (``target_tau``), the learning rate is
 cosine-decayed over the budget (``lr`` to ``lr_final``), and the replay buffer
 holds about 36 minutes of play. Configs without ``target_tau`` fall back to a

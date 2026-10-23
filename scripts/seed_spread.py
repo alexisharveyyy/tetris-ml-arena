@@ -1,7 +1,7 @@
 """Seed variance of the 1-hour runs: held-out results of each run's selected checkpoint.
 
 Usage: python scripts/seed_spread.py [--agents dqn ppo] [--games 500]
-Writes reports/seed_spread.md and .json.
+Writes reports/training/seed_spread.md and .json.
 """
 
 from __future__ import annotations
@@ -37,7 +37,7 @@ def main() -> None:
         "the first 30% (18 minutes), the DQN learning rate follows the same cosine decay "
         "(1e-4 to 1e-5) over the hour, and the PPO learning rate decays linearly over the "
         "hour (to 5% of its start value). DQN short runs use the v2 config (soft target "
-        "update, LR schedule, 2M replay; see reports/dqn_overestimation.md).",
+        "update, LR schedule, 2M replay; see reports/training/dqn_overestimation.md).",
         "",
         "| Agent | Run | Selected at | Selection fitness | Held-out fitness | Top-out rate "
         "| Pieces |",
@@ -73,8 +73,8 @@ def main() -> None:
                 f"{np.std(fits, ddof=1) if len(fits) > 1 else 0:.3f} | | |"
             )
     md.append("")
-    (ROOT / "reports" / "seed_spread.json").write_text(json.dumps(out, indent=2))
-    (ROOT / "reports" / "seed_spread.md").write_text("\n".join(md))
+    (ROOT / "reports" / "training" / "seed_spread.json").write_text(json.dumps(out, indent=2))
+    (ROOT / "reports" / "training" / "seed_spread.md").write_text("\n".join(md))
     print("\n".join(md))
 
 

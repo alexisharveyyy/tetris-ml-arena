@@ -33,9 +33,9 @@ def leaderboard_with_v2() -> None:
     The previous leaderboard kept only summary rows, not per-game results, so
     the bootstrap against every agent needs their games replayed. Evaluation is
     deterministic; the check step confirms every other agent's rows come out
-    identical. The previous files are kept in reports/leaderboard_dt_v1/.
+    identical. The previous files are kept in reports/leaderboard/leaderboard_dt_v1/.
     """
-    reports = ROOT / "reports"
+    reports = ROOT / "reports" / "leaderboard"
     old = reports / "leaderboard_dt_v1"
     if not old.exists():
         old.mkdir()
@@ -79,7 +79,8 @@ def main() -> None:
         CKPT / "dt" / "seed0_v2" / "calibration.json",
     )
     run("dt_choose", ["-m", f"{DT}.train", "choose", "--run-name", "seed0_v2"], None)
-    run("dt_versions_eval", ["scripts/eval_dt_versions.py"], ROOT / "reports" / "dt_v2.md")
+    dt_v2_report = ROOT / "reports" / "analysis" / "dt_v2.md"
+    run("dt_versions_eval", ["scripts/eval_dt_versions.py"], dt_v2_report)
     if json.loads((CKPT / "dt" / "version_choice.json").read_text())["chosen"] == "v2":
         leaderboard_with_v2()
     else:

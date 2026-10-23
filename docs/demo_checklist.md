@@ -31,7 +31,7 @@ every font is self-hosted.
 
    - The Decision Transformer plays at its default target return; there is
      no target control, because its calibration showed the target does not
-     change its strength (`reports/dt_v2.md`). Use the presets to change its
+     change its strength (`reports/analysis/dt_v2.md`). Use the presets to change its
      strength, as for every other agent.
    - The LLM agent is off by default and is not needed for the demo. To show
      it, start Ollama, run `ollama pull qwen3:8b` while online, and set

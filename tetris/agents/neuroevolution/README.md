@@ -58,7 +58,7 @@ Both are the same as for GA and CEM (`tetris/agents/linear_training.py`):
 - **Storage:** genomes are stored as plain JSON (`best.json`), so playing
   needs neither neat-python nor a pickle. `state.pkl` in the run directory
   holds the population for `--resume`.
-- **Topology:** `reports/neat_topology.png` is drawn with matplotlib, since
+- **Topology:** `reports/training/neat_topology.png` is drawn with matplotlib, since
   graphviz is not installed. Inputs are labeled with feature names; hidden
   nodes are laid out by depth. Blue edges are positive weights, red are
   negative, and edge width shows |weight|.
@@ -76,7 +76,7 @@ python -m tetris.agents.neuroevolution.train --budget-minutes 1 --pop-size 10 --
 
 222 generations in 3 hours. The selected genome is from generation 60
 (44 minutes, selection fitness 1.395). It has 2 hidden nodes and 9
-connections and uses 6 of the 13 features (`reports/neat_topology.png`).
+connections and uses 6 of the 13 features (`reports/training/neat_topology.png`).
 Its output is dominated by a linear term in rows with holes, wells, row
 transitions and landing height; the hidden relu (over holes and eroded cells)
 contributes little.
@@ -105,7 +105,7 @@ expected:
 DQN, with 18 evaluated checkpoints, shows no drop (1.340 selection, 1.345
 held out): its selection curve had one clear peak, so few candidates were
 close to the top. The other agents drop by 0.04 to 0.07. Details:
-`reports/neat_selection.md`. The selection rule was not changed after
+`reports/analysis/neat_selection.md`. The selection rule was not changed after
 seeing the held-out results.
 
 **Future work:** for population methods (GA, CEM, NEAT), use more selection

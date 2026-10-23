@@ -136,7 +136,7 @@ def main() -> None:
     )
     parser.add_argument("--games", type=int, default=500)
     parser.add_argument("--workers", type=int, default=default_workers())
-    parser.add_argument("--out", default=str(ROOT / "reports"))
+    parser.add_argument("--out", default=str(ROOT / "reports" / "leaderboard"))
     parser.add_argument(
         "--marathon-games", type=int, default=100, help="0 skips the Marathon section"
     )

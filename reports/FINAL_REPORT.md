@@ -172,7 +172,7 @@ The budgets are wall clock on one machine, not equal compute (Section 5).
 
 ## 3. Results
 
-### 3.1 Garbage leaderboard (`reports/leaderboard.md`)
+### 3.1 Garbage leaderboard (`reports/leaderboard/leaderboard.md`)
 
 500 held-out games per agent. In the group column, agents that share a
 letter are not significantly different by the paired bootstrap; agents with
@@ -206,7 +206,7 @@ no letter in common are.
 - They differ only in score per piece (fitness 1.189 to 1.225, PPO first).
 - BC (you) tops out in 15% of games; raw-action PPO in all of them.
 
-### 3.2 Marathon (`reports/leaderboard.md`)
+### 3.2 Marathon (`reports/leaderboard/leaderboard.md`)
 
 Mean score at 1, 3, 5 and 10 minutes of play, 100 games per preset. An agent
 that has topped out keeps its final score.
@@ -238,7 +238,7 @@ that has topped out keeps its final score.
 - **Exceptions:** BC (you) falls behind from 5 minutes on, and raw-action PPO
   tops out in under 2 minutes.
 
-### 3.3 Seed spread (`reports/seed_spread.md`)
+### 3.3 Seed spread (`reports/training/seed_spread.md`)
 
 The main runs use one seed each. To measure run-to-run variation, DQN (v2
 config) and PPO were each trained three more times for 1 hour (seeds 0-2).
@@ -286,7 +286,7 @@ held-out seeds:
   - The experiment that would test this (the same methods with lookahead or
     a larger action space) was not run.
 
-### 4.2 DQN overestimation (`reports/dqn_overestimation.md`)
+### 4.2 DQN overestimation (`reports/training/dqn_overestimation.md`)
 
 - **What happened:** DQN v1's greedy play peaked at 25 minutes (selection
   fitness 1.340) and then fell to 0.49-0.77 by 105-145 minutes.
@@ -306,7 +306,7 @@ held-out seeds:
   any agent. Selecting checkpoints on held-apart seeds kept the decline out
   of the leaderboard.
 
-### 4.3 The MPS gradient bug (`reports/ppo_mps_bug.md`)
+### 4.3 The MPS gradient bug (`reports/training/ppo_mps_bug.md`)
 
 - **The symptom:** the first afterstate PPO run never trained. Its selection
   fitness stayed at 0.061-0.064 (about 17 pieces per game, random play) for
@@ -323,7 +323,7 @@ held-out seeds:
   - A watchdog stops runs whose learning has stalled.
 - **Rerun:** PPO was rerun at the fixed commit and now ranks 2nd.
 - **Audit:** results that depended on the broken runs were replaced
-  (`reports/queue_pinning_audit.md`).
+  (`reports/training/queue_pinning_audit.md`).
 - **Lesson:** a silent numerical failure looked like a hard learning
   problem. Only a gradient check against a reference device separated the
   two.
@@ -341,7 +341,7 @@ held-out seeds:
   visits. With so few disagreements, BC rarely drifted into such states,
   so there was little for DAgger to correct.
 
-### 4.5 NEAT stayed nearly linear (`tetris/agents/neuroevolution/README.md`, `reports/neat_topology.png`)
+### 4.5 NEAT stayed nearly linear (`tetris/agents/neuroevolution/README.md`, `reports/training/neat_topology.png`)
 
 - **What evolved:** starting from linear genomes over the 13 features, the
   selected network kept 2 hidden nodes. Its output is dominated by a linear
@@ -352,7 +352,7 @@ held-out seeds:
   agrees with 4.1: the features and action space limit play more than the
   model class does.
 
-### 4.6 Winner's curse in checkpoint selection (`reports/neat_selection.md`)
+### 4.6 Winner's curse in checkpoint selection (`reports/analysis/neat_selection.md`)
 
 - **The size of it:** NEAT's selected genome scored 1.395 on the 30
   selection seeds and 1.280 held out, a drop of 0.115.
@@ -370,7 +370,7 @@ held-out seeds:
   scores are compared. The selection rule was not changed after the
   held-out results were seen, since changing it would tune on them.
 
-### 4.7 The Decision Transformer's target return (`reports/dt_calibration.md`, `reports/dt_v2.md`)
+### 4.7 The Decision Transformer's target return (`reports/analysis/dt_calibration.md`, `reports/analysis/dt_v2.md`)
 
 - **The plan:** the DT is conditioned on a target return, so asking for a
   lower return should give a weaker opponent: a difficulty knob learned
@@ -414,7 +414,7 @@ injected at three rates to create weak games.
 **In the app** the DT plays at its default target with no target control,
 because the control would promise a weaker opponent and not deliver one.
 
-### 4.8 BC (you): imitation from very little human data (`reports/bc_you.json`)
+### 4.8 BC (you): imitation from very little human data (`reports/training/bc_you.json`)
 
 - **The data:** 7 recorded plain games of one person (1,397 placements the
   action space can express, plus 3 tucks it cannot).
@@ -431,7 +431,7 @@ because the control would promise a weaker opponent and not deliver one.
   a strong agent. With 2 test games, its agreement numbers are anecdotal
   (Section 5).
 
-### 4.9 LLM agent (`reports/llm_agent.md`)
+### 4.9 LLM agent (`reports/llm/llm_agent.md`)
 
 **What it is:** a novelty opponent, off by default.
 - The model sees a text description of the board and a numbered list of
@@ -518,7 +518,7 @@ because the control would promise a weaker opponent and not deliver one.
   where attacks cancel garbage, is not measured here.
 - **Code provenance before pinning.** Queues before Phase 6b were not pinned
   to their code. An audit found one result that ran on uncommitted code, and
-  it had already been replaced (`reports/queue_pinning_audit.md`). Some early
+  it had already been replaced (`reports/training/queue_pinning_audit.md`). Some early
   runs did not record their commit (Section 6).
 
 ## 6. Reproduction
@@ -550,28 +550,30 @@ because the control would promise a weaker opponent and not deliver one.
 - "Recorded in" is the commit that added the report.
 - "Not recorded" means the run predates commit logging. Its code is
   bracketed by the commits around it, but the exact commit is unknown.
+- File paths are relative to `reports/` and give where the files are now.
+  Until the reorganization, every report sat directly in `reports/`.
 
 | Result | Command | Ran at | Recorded in | Code trees at "Ran at" (`tetris/` / `scripts/`) |
 |---|---|---|---|---|
-| Leaderboard: garbage, plain, Marathon, bootstrap, sources (`leaderboard*`) | `python scripts/evaluate.py --games 500 --marathon-games 100` (Phase 6 queue, `scripts/run_phase6.py`) | 3ca1bde (the main copy, imported by the 14f166a queue; the audit found no relevant difference) | 9a1d9f9 | 3ca1bde: aa18e908697e / b2a1af5428e1 |
+| Leaderboard: garbage, plain, Marathon, bootstrap, sources (`leaderboard/`) | `python scripts/evaluate.py --games 500 --marathon-games 100` (Phase 6 queue, `scripts/run_phase6.py`) | 3ca1bde (the main copy, imported by the 14f166a queue; the audit found no relevant difference) | 9a1d9f9 | 3ca1bde: aa18e908697e / b2a1af5428e1 |
 | GA, CEM checkpoints | `python -m tetris.agents.heuristic_ga.train`, `python -m tetris.agents.cem.train` | Not recorded (between 2cc4cea and 257ea76) | 257ea76 | n/a |
-| DQN v1 checkpoint, `curve_dqn_seed0.png` | `python -m tetris.agents.dqn.train` | Not recorded (around 51c9115) | 543be7b | n/a |
-| DQN v2, `curve_dqn_seed0_v2.png` | `python -m tetris.agents.dqn.train --run-name seed0_v2 --no-promote` (`scripts/run_phase4.py`) | 3cf7abd | 543be7b | 3cf7abd: b9d0d416b32b / 5fa3cefeaa53 |
+| DQN v1 checkpoint, `training/curves/curve_dqn_seed0.png` | `python -m tetris.agents.dqn.train` | Not recorded (around 51c9115) | 543be7b | n/a |
+| DQN v2, `training/curves/curve_dqn_seed0_v2.png` | `python -m tetris.agents.dqn.train --run-name seed0_v2 --no-promote` (`scripts/run_phase4.py`) | 3cf7abd | 543be7b | 3cf7abd: b9d0d416b32b / 5fa3cefeaa53 |
 | PPO (raw actions) and its tuning runs | `python -m tetris.agents.ppo.train --config tetris/agents/ppo/config_raw.yaml --ent-coef 0.03 --lr 0.0003` (`run_phase4.py`) | 3cf7abd | 543be7b | 3cf7abd: b9d0d416b32b / 5fa3cefeaa53 |
-| PPO checkpoint, `curve_ppo_seed0.png` | `python -m tetris.agents.ppo.train` (`scripts/run_ppo_rerun.py`) | 9c4936e | 421d6b5 | 9c4936e: 056522eaedce / f09445abafc9 |
-| Seed spread (`seed_spread.md/.json`, `curve_*_short*.png`) | DQN: `python -m tetris.agents.dqn.train --budget-minutes 60 --seed N --run-name shortN --no-promote` (`run_phase4.py`). PPO: the same in `run_ppo_rerun.py`. Then `python scripts/seed_spread.py` | DQN e37ee78; PPO and evaluation 9c4936e | 421d6b5 | e37ee78: b9d0d416b32b / f3aba7ee363f; 9c4936e: 056522eaedce / f09445abafc9 |
-| `dqn_overestimation.md` | `python scripts/dqn_q_bias.py <run> <checkpoints>` and TensorBoard, written up by hand | Not recorded | f505488 (last edit) | n/a |
-| `ppo_mps_bug.md`, `curve_ppo_fixsmoke.png` | Pre-flight check `python scripts/preflight.py`; 12-minute check run (command not recorded) | Fix in 9f3a432 | f505488 | n/a (fix: 9f3a432: 3c33379ef495 / f3aba7ee363f) |
-| BC pure, BC + DAgger, BC (you) (`bc_you.json`, `curve_bc_*.png`) | `python -m tetris.agents.imitation.train pure`, `... dagger`, `... choose`, `... you` (`scripts/run_phase5.py`); GA logs from `python scripts/log_games.py` | 2c7cfca | 421d6b5 (`bc_you.json` reformatted in 8631ecf) | 2c7cfca: a094c6686162 / 2d5335945b65 |
-| NEAT (`curve_neat_seed0.png`, `neat_topology.png`), `neat_selection.md` | `python -m tetris.agents.neuroevolution.train` (`run_phase5.py`); the selection analysis is by hand from `checkpoints/neat/selection.json` | 2c7cfca | 421d6b5, 8631ecf | 2c7cfca: a094c6686162 / 2d5335945b65 |
-| DT v1 (`dt_calibration.md/.png`, `curve_dt_seed0.png`) | `python -m tetris.agents.decision_transformer.collect`, `... train train`, `... train calibrate` (`scripts/run_phase6.py`) | 14f166a | 9a1d9f9 | 14f166a: 5c300cb7361e / b2a1af5428e1 |
-| DT v2 (`dt_calibration_v2.md/.png`, `curve_dt_seed0_v2.png`, `dt_v2.md`, `dt_versions.json`, `dt_v2_calibration.png`) | `scripts/run_phase6b.py`: collect, then `train --config tetris/agents/decision_transformer/config_v2.yaml --run-name seed0_v2 --no-promote`, `calibrate ... --report dt_calibration_v2`, `choose --run-name seed0_v2`, `python scripts/eval_dt_versions.py` | 68a5b2a (same tree as 471c9f9 on master; see note) | f07da18 | 68a5b2a = 471c9f9: f9f2166afc98 / 5a46a73f1ab6 |
-| LLM: qwen3 and llama3.1 with features, API pending (`llm_agent.md/.json`) | `python scripts/eval_llm.py --mark-pending api-features,api-bare --reason "no valid API key"`, then `python scripts/eval_llm.py --runs qwen3-features,llama31-features` (`run_phase6b.py`) | 68a5b2a (same tree as 471c9f9) | f07da18 | 68a5b2a = 471c9f9: f9f2166afc98 / 5a46a73f1ab6 |
+| PPO checkpoint, `training/curves/curve_ppo_seed0.png` | `python -m tetris.agents.ppo.train` (`scripts/run_ppo_rerun.py`) | 9c4936e | 421d6b5 | 9c4936e: 056522eaedce / f09445abafc9 |
+| Seed spread (`training/seed_spread.md/.json`, `training/curves/curve_*_short*.png`) | DQN: `python -m tetris.agents.dqn.train --budget-minutes 60 --seed N --run-name shortN --no-promote` (`run_phase4.py`). PPO: the same in `run_ppo_rerun.py`. Then `python scripts/seed_spread.py` | DQN e37ee78; PPO and evaluation 9c4936e | 421d6b5 | e37ee78: b9d0d416b32b / f3aba7ee363f; 9c4936e: 056522eaedce / f09445abafc9 |
+| `training/dqn_overestimation.md` | `python scripts/dqn_q_bias.py <run> <checkpoints>` and TensorBoard, written up by hand | Not recorded | f505488 (last edit) | n/a |
+| `training/ppo_mps_bug.md`, `training/curves/curve_ppo_fixsmoke.png` | Pre-flight check `python scripts/preflight.py`; 12-minute check run (command not recorded) | Fix in 9f3a432 | f505488 | n/a (fix: 9f3a432: 3c33379ef495 / f3aba7ee363f) |
+| BC pure, BC + DAgger, BC (you) (`training/bc_you.json`, `training/curves/curve_bc_*.png`) | `python -m tetris.agents.imitation.train pure`, `... dagger`, `... choose`, `... you` (`scripts/run_phase5.py`); GA logs from `python scripts/log_games.py` | 2c7cfca | 421d6b5 (`training/bc_you.json` reformatted in 8631ecf) | 2c7cfca: a094c6686162 / 2d5335945b65 |
+| NEAT (`training/curves/curve_neat_seed0.png`, `training/neat_topology.png`), `analysis/neat_selection.md` | `python -m tetris.agents.neuroevolution.train` (`run_phase5.py`); the selection analysis is by hand from `checkpoints/neat/selection.json` | 2c7cfca | 421d6b5, 8631ecf | 2c7cfca: a094c6686162 / 2d5335945b65 |
+| DT v1 (`analysis/dt_calibration.md/.png`, `training/curves/curve_dt_seed0.png`) | `python -m tetris.agents.decision_transformer.collect`, `... train train`, `... train calibrate` (`scripts/run_phase6.py`) | 14f166a | 9a1d9f9 | 14f166a: 5c300cb7361e / b2a1af5428e1 |
+| DT v2 (`analysis/dt_calibration_v2.md/.png`, `training/curves/curve_dt_seed0_v2.png`, `analysis/dt_v2.md`, `analysis/dt_versions.json`, `analysis/dt_v1_vs_v2_calibration.png`) | `scripts/run_phase6b.py`: collect, then `train --config tetris/agents/decision_transformer/config_v2.yaml --run-name seed0_v2 --no-promote`, `calibrate ... --report dt_calibration_v2`, `choose --run-name seed0_v2`, `python scripts/eval_dt_versions.py` | 68a5b2a (same tree as 471c9f9 on master; see note) | f07da18 | 68a5b2a = 471c9f9: f9f2166afc98 / 5a46a73f1ab6 |
+| LLM: qwen3 and llama3.1 with features, API pending (`llm/llm_agent.md/.json`) | `python scripts/eval_llm.py --mark-pending api-features,api-bare --reason "no valid API key"`, then `python scripts/eval_llm.py --runs qwen3-features,llama31-features` (`run_phase6b.py`) | 68a5b2a (same tree as 471c9f9) | f07da18 | 68a5b2a = 471c9f9: f9f2166afc98 / 5a46a73f1ab6 |
 | LLM: qwen3 bare at 15 s, with the report regenerated | `python scripts/pinned_step.py scripts/eval_llm.py --runs qwen3-bare` | 21b0b65 | f8da418 | 21b0b65: f0b3a999c3b2 / 9f4e7f4415f8 |
-| `difficulty.md` | `python scripts/eval_difficulty.py` | Not recorded (Phase 3) | 3f81d39 | n/a |
-| `stress_test.md` | `python scripts/stress_test.py --mode race --seconds 60` (and `--mode battle`) | Not recorded (Phase 3) | 3f81d39 | n/a |
-| `web_performance.md`, `ui/perf.json` | `LIVE=1 npx playwright test perf` in `web/`, and `python scripts/web_latency.py` | Not recorded (phase8-web branch) | 097fd81, fb62dbf | n/a |
-| `queue_pinning_audit.md` | Manual audit of the queue logs and the session's edit history | n/a | 9f1a999 | n/a |
+| `analysis/difficulty.md` | `python scripts/eval_difficulty.py` | Not recorded (Phase 3) | 3f81d39 | n/a |
+| `ui/stress_test.md` | `python scripts/stress_test.py --mode race --seconds 60` (and `--mode battle`) | Not recorded (Phase 3) | 3f81d39 | n/a |
+| `ui/web_performance.md`, `ui/perf.json` | `LIVE=1 npx playwright test perf` in `web/`, and `python scripts/web_latency.py` | Not recorded (phase8-web branch) | 097fd81, fb62dbf | n/a |
+| `training/queue_pinning_audit.md` | Manual audit of the queue logs and the session's edit history | n/a | 9f1a999 | n/a |
 
 **Note on 68a5b2a.** The Phase 6b queue's worktree was created from a commit
 whose message was then amended. 68a5b2a and 471c9f9 have identical trees

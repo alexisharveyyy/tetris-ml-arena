@@ -10,8 +10,8 @@ the Marathon section. Other agents are not replayed: v2 is placed against their
 results in ``reports/leaderboard_*.csv``. v1's replay should reproduce its
 leaderboard row exactly (play is deterministic per seed); the report checks it.
 
-Writes ``reports/dt_v2.md``, ``reports/dt_v2_calibration.png`` and
-``reports/dt_versions.json``.
+Writes ``reports/analysis/dt_v2.md``, ``reports/analysis/dt_v1_vs_v2_calibration.png`` and
+``reports/analysis/dt_versions.json``.
 """
 
 from __future__ import annotations
@@ -51,7 +51,7 @@ def read_json(path: Path) -> dict[str, Any]:
 
 
 def leaderboard_rows(setting: str) -> list[dict[str, Any]]:
-    with (ROOT / "reports" / f"leaderboard_{setting}.csv").open() as f:
+    with (ROOT / "reports" / "leaderboard" / f"leaderboard_{setting}.csv").open() as f:
         return list(csv.DictReader(f))
 
 
@@ -155,8 +155,9 @@ def main() -> None:
     marathon = marathon_v2(args.marathon_games, args.workers) if args.marathon_games else []
     v1_marathon = [r for r in leaderboard_rows("marathon") if r["key"] == "dt"]
 
-    reports = ROOT / "reports"
-    plot_calibration(cal, reports / "dt_v2_calibration.png")
+    reports = ROOT / "reports" / "analysis"
+    reports.mkdir(parents=True, exist_ok=True)
+    plot_calibration(cal, reports / "dt_v1_vs_v2_calibration.png")
     (reports / "dt_versions.json").write_text(
         json.dumps(
             {
@@ -230,13 +231,13 @@ def main() -> None:
             f"| {v} | {cal[v]['spearman']:+.2f} | {min(ach):.3f} | {max(ach):.3f} "
             f"| {cal[v]['leaderboard_target']:.2f} |"
         )
-    md += ["", "![calibration](dt_v2_calibration.png)", ""]
+    md += ["", "![calibration](dt_v1_vs_v2_calibration.png)", ""]
     md += [
         "## Held-out play (DT only)",
         "",
         f"Held-out seeds {seeds[0]}..{seeds[-1]}, each version at its default target. The "
         "other agents were not replayed; v2's rank is against their leaderboard results "
-        "(`reports/leaderboard.md`).",
+        "(`reports/leaderboard/leaderboard.md`).",
         "",
         "| Setting | Version | Fitness | Top-out rate [95% Wilson] | Pieces survived "
         "| Lines/piece | Rank |",
@@ -283,7 +284,7 @@ def main() -> None:
     md.append(f"Runtime: {(time.time() - t0) / 60:.0f} minutes.")
     md.append("")
     (reports / "dt_v2.md").write_text("\n".join(md))
-    print("wrote reports/dt_v2.md", flush=True)
+    print("wrote reports/analysis/dt_v2.md", flush=True)
 
 
 if __name__ == "__main__":

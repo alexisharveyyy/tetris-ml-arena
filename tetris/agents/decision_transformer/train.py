@@ -15,7 +15,7 @@ parameter-change watchdog. Every ``eval_every_minutes`` a checkpoint plays the
 ``calibrate`` plays the selected model at every target in
 ``calibration_targets`` on the selection seeds and writes the achieved return
 against the target (``checkpoints/dt/calibration.json``,
-``reports/dt_calibration.md`` and ``.png``). The target with the highest
+``reports/analysis/dt_calibration.md`` and ``.png``). The target with the highest
 selection fitness becomes the model's default target, used on the leaderboard.
 With ``--run-name`` it calibrates the model selected in that run instead
 (``calibration.json`` next to it, ``reports/<report>.md``).
@@ -445,8 +445,8 @@ def write_calibration_report(
     import matplotlib.pyplot as plt
 
     rows = result["rows"]
-    reports = ROOT / "reports"
-    reports.mkdir(exist_ok=True)
+    reports = ROOT / "reports" / "analysis"
+    reports.mkdir(parents=True, exist_ok=True)
     fig, ax = plt.subplots(figsize=(6, 4.5))
     t = [r["target"] for r in rows]
     ax.plot(t, [r["achieved_fitness"] for r in rows], marker="o", label="achieved")

@@ -3,7 +3,7 @@
 Evaluation is deterministic (fixed seeds, fixed checkpoints), so every row of
 an agent whose checkpoint did not change must come out identical. This
 compares the garbage, plain and Marathon rows and the bootstrap rows of every
-agent except the changed ones, writes ``reports/leaderboard_rerun_check.md``
+agent except the changed ones, writes ``reports/leaderboard/leaderboard_rerun_check.md``
 and prints any mismatch. It never fails the queue: a mismatch is reported,
 not acted on.
 
@@ -56,7 +56,7 @@ def compare(old_dir: Path, new_dir: Path, changed: set[str]) -> tuple[list[str],
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("old_dir")
-    parser.add_argument("--new", default=str(ROOT / "reports"))
+    parser.add_argument("--new", default=str(ROOT / "reports" / "leaderboard"))
     parser.add_argument("--changed", nargs="+", default=["dt"])
     args = parser.parse_args()
     old_dir, new_dir = Path(args.old_dir), Path(args.new)

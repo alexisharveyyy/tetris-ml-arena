@@ -76,7 +76,7 @@ block of 1,000 per source, apart from every other seed range.
 
 `train.py calibrate` plays the selected model at targets 0.2, 0.4, ... 1.4 on
 the selection seeds and records the fitness it actually achieves
-(`reports/dt_calibration.md`, `checkpoints/dt/calibration.json`), with the
+(`reports/analysis/dt_calibration.md`, `checkpoints/dt/calibration.json`), with the
 rank correlation between target and achieved fitness. The target with the
 highest achieved fitness becomes the default, used on the leaderboard.
 
@@ -123,7 +123,7 @@ python -m tetris.agents.decision_transformer.collect --config tetris/agents/deci
 python -m tetris.agents.decision_transformer.train train --config ... --run-name seed0_v2 --no-promote
 python -m tetris.agents.decision_transformer.train calibrate --config ... --run-name seed0_v2 --report dt_calibration_v2
 python -m tetris.agents.decision_transformer.train choose --run-name seed0_v2
-python scripts/eval_dt_versions.py      # v1 vs v2 held out, v2 Marathon: reports/dt_v2.md
+python scripts/eval_dt_versions.py      # v1 vs v2 held out, v2 Marathon: reports/analysis/dt_v2.md
 python scripts/run_phase6b.py           # all of the above, a full leaderboard rerun if v2 wins, then the local LLM evaluation
 ```
 
@@ -144,16 +144,16 @@ the 12 checkpoints ranged from 1.255 to 1.374 with no trend after the first
 20 minutes; the 90-minute checkpoint was selected (1.374 on the 30 selection
 seeds).
 
-**Held-out leaderboard** (500 garbage games, `reports/leaderboard.md`):
+**Held-out leaderboard** (500 garbage games, `reports/leaderboard/leaderboard.md`):
 fitness 1.309, 4th of 11, top-out rate 0.16 [0.13, 0.19]. It is
 statistically tied with CEM above (+0.009 [-0.022, +0.038]) and pure BC
 below, and with GA, NEAT and PPO; only DQN is significantly ahead (+0.035
 [+0.006, +0.065]). The drop from selection (1.374) to held-out (1.309) is the
-same winner's-curse bias seen for NEAT (`reports/neat_selection.md`). In
+same winner's-curse bias seen for NEAT (`reports/analysis/neat_selection.md`). In
 the plain setting it reaches the 1000-piece cap in every game (1.196).
 
 **The target return is not an effective difficulty knob.** Calibration
-(`reports/dt_calibration.md`, 30 selection seeds per target):
+(`reports/analysis/dt_calibration.md`, 30 selection seeds per target):
 
 | Target | 0.20 | 0.40 | 0.60 | 0.80 | 1.00 | 1.20 | 1.40 |
 |---|---|---|---|---|---|---|---|
@@ -166,7 +166,7 @@ state does not predict, so the model learns to imitate the strong agents'
 placements and largely ignores the return-to-go. v2 tested that
 hypothesis.
 
-### v2 (`reports/dt_v2.md`, `reports/dt_calibration_v2.md`)
+### v2 (`reports/analysis/dt_v2.md`, `reports/analysis/dt_calibration_v2.md`)
 
 **Data.** 980 games, 287,323 states, no injected mistakes (3.2 minutes).
 Source mean returns span 0.100 (first PPO checkpoint) to 1.365 (selected

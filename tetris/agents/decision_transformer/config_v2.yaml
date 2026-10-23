@@ -6,7 +6,7 @@ torch_threads: 2
 # DT v2: tests whether skill that the board shows makes the target return
 # work as a difficulty knob. v1 varied skill with injected mistakes, which the
 # state does not predict, and its target return barely changed its play
-# (reports/dt_calibration.md). v2 has no injected mistakes; instead each
+# (reports/analysis/dt_calibration.md). v2 has no injected mistakes; instead each
 # trained agent plays at three stages of its training, picked by one rule:
 #   first: the first checkpoint its selection evaluated
 #   best:  the selected (promoted) checkpoint

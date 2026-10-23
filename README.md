@@ -10,15 +10,15 @@ are compared on 500 held-out games under one protocol.
 The full write-up is `reports/FINAL_REPORT.md`; the code structure is in
 `docs/architecture.md`.
 
-![Match screen, Tetromino look](reports/ui/A3-match.png)
+![Match screen, Tetromino look](docs/screenshots/A3-match.png)
 
 | | |
 |---|---|
-| ![Home, Poster look](reports/ui/D1-home.png) | ![Leaderboard, Broadcast look](reports/ui/C5-leaderboard.png) |
-| ![Match, Terminal look](reports/ui/B3-match.png) | ![Results, Tetromino look](reports/ui/A4-results.png) |
+| ![Home, Poster look](docs/screenshots/D1-home.png) | ![Leaderboard, Broadcast look](docs/screenshots/C5-leaderboard.png) |
+| ![Match, Terminal look](docs/screenshots/B3-match.png) | ![Results, Tetromino look](docs/screenshots/A4-results.png) |
 
 Screenshots: `cd web && npx playwright test screens` regenerates every
-screen in every look in `reports/ui/` (mocked data; see Tests).
+screen in every look in `web/screenshots/` (mocked data; see Tests).
 
 ## Status
 
@@ -36,7 +36,7 @@ screen in every look in `reports/ui/` (mocked data; see Tests).
 ## Main findings
 
 From the held-out garbage leaderboard (500 seeds, paired bootstrap;
-`reports/leaderboard.md`). The full discussion is in
+`reports/leaderboard/leaderboard.md`). The full discussion is in
 `reports/FINAL_REPORT.md`.
 
 - **The top 8 agents are statistically tied in sequence.** Every adjacent
@@ -56,7 +56,7 @@ From the held-out garbage leaderboard (500 seeds, paired bootstrap;
   training data with skill the board shows would fix that; it did not (rank
   correlation +0.00) and played worse held out (-0.090 [-0.127, -0.054]), so
   v1 stays. The app plays the DT at its default target
-  (`reports/dt_v2.md`).
+  (`reports/analysis/dt_v2.md`).
 - **DAgger added nothing when BC already agreed 95% with the teacher.** Pure
   BC matched the GA on 95.1% of held-out GA states and played as well as the
   GA (+0.007, tie). Two DAgger rounds raised agreement to 96.3% but not play
@@ -66,22 +66,22 @@ From the held-out garbage leaderboard (500 seeds, paired bootstrap;
   features. It ties the GA and is significantly behind CEM.
 - **Selection on 30 seeds overestimates.** Picking the best of many noisy
   checkpoints picks lucky ones: NEAT dropped 0.115 from selection to held
-  out, the others 0.04 to 0.07 (`reports/neat_selection.md`).
+  out, the others 0.04 to 0.07 (`reports/analysis/neat_selection.md`).
 - **Small local LLMs cannot play this game.** qwen3:8b and llama3.1:8b
   answer every move but top out in every game, after about a quarter of the
   GA's pieces; the features prompt helps (+16.2 pieces for qwen3)
-  (`reports/llm_agent.md`).
+  (`reports/llm/llm_agent.md`).
 - **Two bugs were diagnosed and fixed along the way:**
   - *DQN overestimation:* greedy play peaked at 25 minutes and then
     declined as Q-values drifted upward; a soft target update and an LR
     schedule slowed the decline, but its best (1.253) stayed below the
-    first run's 1.340 (`reports/dqn_overestimation.md`).
+    first run's 1.340 (`reports/training/dqn_overestimation.md`).
   - *MPS gradient bug:* on Apple MPS, convolution backward returned wrong
     gradients (relative error about 6e8) at about 115k afterstates per
     batch, so the first afterstate PPO run never trained. The scorer now
     runs in chunks, and every GPU run starts with a pre-flight check against
     CPU gradients and runs under a stalled-training watchdog
-    (`reports/ppo_mps_bug.md`).
+    (`reports/training/ppo_mps_bug.md`).
 
 ## Setup
 
@@ -201,7 +201,7 @@ its board shows a warning.
 
 The mistake rate is the chance of picking one of the next five best placements
 instead of the best one, so mistakes stay plausible. Measured results are in
-`reports/difficulty.md`. Easy clears about 10 lines per minute in a race.
+`reports/analysis/difficulty.md`. Easy clears about 10 lines per minute in a race.
 
 ### The LLM opponent (optional, off by default)
 
@@ -242,7 +242,7 @@ changed since that build, and the launcher rebuilds it when Node is
 installed. `/debug` is a bare page that exercises the whole loop;
 `python -m tetris.web.protocol` prints the WebSocket protocol's JSON schema;
 `scripts/web_latency.py` measures snapshot size and input latency against a
-running server (`reports/web_performance.md`).
+running server (`reports/ui/web_performance.md`).
 
 ## Demo mode
 
@@ -268,7 +268,7 @@ python scripts/stress_test.py --mode battle  # frame times with 3 Unlimited agen
 ```
 
 `evaluate.py` plays each available agent on 500 fixed held-out seeds and
-writes `reports/leaderboard.md` plus CSVs: per-agent rows, every game
+writes `reports/leaderboard/leaderboard.md` plus CSVs: per-agent rows, every game
 (`leaderboard_games_<setting>.csv`), paired bootstrap intervals between
 agents, and the checkpoint behind each result
 (`leaderboard_sources.json`). The primary leaderboard is the garbage setting
@@ -335,7 +335,7 @@ tetris/
 web/          React + TypeScript frontend source, four looks, Vitest and Playwright tests
 configs/      env defaults, demo.yaml
 scripts/      evaluation, queues (run_phase*.py, pinned_step.py), diagnostics
-reports/      leaderboard and every result; FINAL_REPORT.md; ui/ screenshots
+reports/      FINAL_REPORT.md and every result, indexed in reports/README.md
 docs/         architecture.md, demo_checklist.md
 logs/         queue logs of the runs behind the reports
 tests/

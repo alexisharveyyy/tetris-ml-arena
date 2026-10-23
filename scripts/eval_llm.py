@@ -27,7 +27,7 @@ first and are skipped if it fails, and stop cleanly when the spending cap
 would be crossed. Runs without results appear in the report as pending, with
 the reason from ``data/llm/eval/status.json`` (``--mark-pending`` sets one).
 
-Writes ``reports/llm_agent.md`` and ``reports/llm_agent.json``.
+Writes ``reports/llm/llm_agent.md`` and ``reports/llm/llm_agent.json``.
 """
 
 from __future__ import annotations
@@ -415,7 +415,8 @@ def write_report(
         "comparisons": comparisons,
         "api_ledger": spent,
     }
-    reports = ROOT / "reports"
+    reports = ROOT / "reports" / "llm"
+    reports.mkdir(parents=True, exist_ok=True)
     (reports / "llm_agent.json").write_text(json.dumps(out, indent=2))
     n = len(ga_stats)
     ga_capped = sum(not s.topped_out for s in ga_stats)
@@ -603,7 +604,7 @@ def main(argv: list[str] | None = None) -> None:
         api_note(cfg),
         float(cfg["timeout_seconds"]),
     )
-    print("wrote reports/llm_agent.md", flush=True)
+    print("wrote reports/llm/llm_agent.md", flush=True)
 
 
 if __name__ == "__main__":

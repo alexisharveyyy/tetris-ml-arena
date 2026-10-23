@@ -1,4 +1,4 @@
-// Screenshots of every screen in every look, saved to reports/ui/.
+// Screenshots of every screen in every look, saved to web/screenshots/ (not in git).
 //   npx playwright test                     all looks and screens
 //   LOOKS=tetromino SCREENS=home npx playwright test
 import { expect, test } from "@playwright/test";
@@ -7,7 +7,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { BASE, mock, SHOTS } from "./mock";
 
-const OUT = join(dirname(fileURLToPath(import.meta.url)), "..", "..", "..", "reports", "ui");
+const OUT = join(dirname(fileURLToPath(import.meta.url)), "..", "..", "screenshots");
 const LETTER: Record<string, string> = { tetromino: "A", terminal: "B", broadcast: "C", poster: "D" };
 const WIDTH = Number(process.env.WIDTH ?? 1440);
 const HEIGHT = Number(process.env.HEIGHT ?? 900);

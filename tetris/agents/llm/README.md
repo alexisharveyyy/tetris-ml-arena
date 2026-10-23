@@ -93,12 +93,12 @@ GA and between runs. Leaderboard fitness is not used: with a 100-piece cap
 the GA reaches the cap in almost every game. The report also gives fallback
 rates by cause, seconds per piece, tokens per game and cost, and says that
 20 games gives wide intervals. The API model, gpt-4.1-mini, is a small API
-model, not a frontier model. Results: `reports/llm_agent.md`.
+model, not a frontier model. Results: `reports/llm/llm_agent.md`.
 
 ## Results
 
 Garbage setting, 100-piece cap, first 20 held-out seeds; full table in
-`reports/llm_agent.md`. Intervals are 95% bootstrap over games.
+`reports/llm/llm_agent.md`. Intervals are 95% bootstrap over games.
 
 | Run | Timeout | Pieces survived | Top-out rate | Lines per piece | Fallbacks (timeout / invalid / error) | Seconds per piece |
 |---|---|---|---|---|---|---|

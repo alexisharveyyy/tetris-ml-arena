@@ -98,7 +98,7 @@ setting; garbage is also available.
   - training stops after 6 checks without improvement, or after 10 minutes;
   - the best validation checkpoint is kept, so BC (you) can be exactly the
     GA-trained model if fine-tuning never helps.
-- **Report** (`reports/bc_you.json`): top-1 and top-3 agreement with your test
+- **Report** (`reports/training/bc_you.json`): top-1 and top-3 agreement with your test
   games for:
   - the baseline (the GA-trained BC model);
   - the fine-tuned model;
@@ -135,7 +135,7 @@ DAgger rounds whose games were already collected, are skipped.
 
 ## Results
 
-Held-out garbage setting, 500 seeds (`reports/leaderboard.md`):
+Held-out garbage setting, 500 seeds (`reports/leaderboard/leaderboard.md`):
 
 | Agent | Selection fitness | Held-out fitness | Top-out rate | GA top-1 / top-3 agreement |
 |---|---|---|---|---|
@@ -150,7 +150,7 @@ Held-out garbage setting, 500 seeds (`reports/leaderboard.md`):
 - The playable `bc` agent is pure BC (higher selection fitness).
 
 **BC (you)**, from 7 recorded plain games (1,397 on-space placements), split
-4 train / 1 validation / 2 test games (`reports/bc_you.json`):
+4 train / 1 validation / 2 test games (`reports/training/bc_you.json`):
 
 | Model | Top-1 on your test games | Top-3 |
 |---|---|---|

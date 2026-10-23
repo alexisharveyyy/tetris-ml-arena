@@ -104,7 +104,7 @@ reaction delay, decision noise).
   - the file must be complete and unchanged for a settle window;
   - it must load in a CPU worker within the startup timeout.
 - **`provenance.py`** records which checkpoint (path and SHA-256) produced
-  each leaderboard result (`reports/leaderboard_sources.json`). The web
+  each leaderboard result (`reports/leaderboard/leaderboard_sources.json`). The web
   leaderboard marks a result "pending rerun" when the promoted checkpoint
   has changed since.
 
@@ -244,13 +244,13 @@ the tests and rehearsal servers use so they never touch the real files.
 - Vitest unit tests for copy, availability and components.
 - Playwright:
   - screenshots of every screen in every look, against mocked API and
-    WebSocket data (`reports/ui/`);
+    WebSocket data, saved to `web/screenshots/` (not in git; the README uses five of them, in `docs/screenshots/`);
   - an accessibility audit with axe (`audit.spec.ts`);
   - the LLM fallback line in all four looks (`model.spec.ts`).
 - Live specs (`LIVE=1`) start a real server in demo mode with temporary
   state: keyboard, live play and frame-time measurement.
   - Measured: 60 fps in every look; input-to-render p50 of about 25 ms
-    (`reports/web_performance.md`).
+    (`reports/ui/web_performance.md`).
 
 ## Where results come from
 
@@ -258,7 +258,7 @@ the tests and rehearsal servers use so they never touch the real files.
 train.py (per agent) --> checkpoints/<agent>/<run>/eval_*.pt --(selection seeds)--> best.pt
 scripts/evaluate.py  --> reports/leaderboard*.{md,csv}, leaderboard_sources.json,
                          leaderboard_games_*.csv (per game, from now on)
-scripts/eval_*.py    --> reports/dt_v2.md, llm_agent.md, difficulty.md, ...
+scripts/eval_*.py    --> reports/analysis/dt_v2.md, llm_agent.md, difficulty.md, ...
 reports/             --> web leaderboard screen (tetris/web/leaderboard.py)
 ```
 

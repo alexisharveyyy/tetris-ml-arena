@@ -7,7 +7,7 @@
 //   - every board canvas has role="img" and a label;
 //   - play screens (match, watch, solo) fit the window: no scrolling, and
 //     every board fully visible and not covered by anything (such as a ticker).
-// Writes reports/ui/audit.json; each test fails on its own screen's problems.
+// Writes web/screenshots/audit.json (not in git); each test fails on its own screen's problems.
 //   npx playwright test audit            (LOOKS=, SCREENS=, SIZES=1280x720 to narrow)
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
@@ -16,7 +16,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { BASE, LOOK_IDS, mock, SHOTS } from "./mock";
 
-const OUT = join(dirname(fileURLToPath(import.meta.url)), "..", "..", "..", "reports", "ui");
+const OUT = join(dirname(fileURLToPath(import.meta.url)), "..", "..", "screenshots");
 const REPORT = join(OUT, "audit.json");
 const LOOKS = (process.env.LOOKS ?? LOOK_IDS.join(",")).split(",");
 const SCREENS = (process.env.SCREENS ?? SHOTS.map((s) => s.name).join(",")).split(",");

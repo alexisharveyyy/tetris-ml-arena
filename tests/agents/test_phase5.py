@@ -210,7 +210,7 @@ def test_bc_you_skips_below_the_placement_minimum(tmp_path, monkeypatch) -> None
     assert "skipped" in out
     assert (
         "0 on-space placements"
-        in json.loads((tmp_path / "reports" / "bc_you.json").read_text())["skipped"]
+        in json.loads((tmp_path / "reports" / "training" / "bc_you.json").read_text())["skipped"]
     )
 
 
@@ -365,7 +365,7 @@ def test_bc_you_fine_tunes_with_game_split_and_reports_baseline(tmp_path, monkey
     assert abs(weighted - diff["top1"]["mean"]) < 1e-9
     assert report["validation_curve"][0]["minutes"] == 0.0  # first check: the baseline model
     assert (tmp_path / "ckpt" / "bc_you" / "best.pt").exists()
-    assert json.loads((tmp_path / "reports" / "bc_you.json").read_text())["fine_tuned"]
+    assert json.loads((tmp_path / "reports" / "training" / "bc_you.json").read_text())["fine_tuned"]
 
 
 def _bc_you_setup(tmp_path, monkeypatch, games: int = 5):

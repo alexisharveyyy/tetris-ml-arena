@@ -101,11 +101,11 @@ that size MPS returned wrong convolution gradients (relative error about 6e8
 against the CPU). The scorer now runs in chunks of 4,096 afterstates
 (`SCORER_CHUNK` in `tetris/rl/nets.py`), with a regression test that compares
 MPS and CPU gradients at the training size. Diagnosis and the check run:
-`reports/ppo_mps_bug.md`.
+`reports/training/ppo_mps_bug.md`.
 
 ## Results
 
-Held-out garbage setting, 500 seeds (`reports/leaderboard.md`):
+Held-out garbage setting, 500 seeds (`reports/leaderboard/leaderboard.md`):
 
 | Agent | Fitness | Top-out rate |
 |---|---|---|
@@ -116,7 +116,7 @@ Held-out garbage setting, 500 seeds (`reports/leaderboard.md`):
   and with CEM (PPO minus CEM +0.021 [-0.008, +0.051]), and ahead of GA
   (+0.050 [+0.016, +0.083]).
 - Seed spread, three 1-hour runs: held-out 0.497, 0.544 and 1.045
-  (0.695 +/- 0.304, `reports/seed_spread.md`). One hour is not enough for PPO
+  (0.695 +/- 0.304, `reports/training/seed_spread.md`). One hour is not enough for PPO
   to converge reliably; DQN's 1-hour runs give 1.173 +/- 0.066.
 - Every run passed the MPS gradient pre-flight check, and the illegal-action
   guard never fired.

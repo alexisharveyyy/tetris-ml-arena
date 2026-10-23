@@ -72,7 +72,7 @@ best and second-best placement shrank to about 0.2. v1 used a hard target sync
 every 500 updates (about 17 s), a constant learning rate of 2.5e-4 and a 400k
 replay buffer (about 7 minutes of play). v2 changes only those three settings,
 as listed above. The diagnosis and a v1/v2 comparison are in
-`reports/dqn_overestimation.md`.
+`reports/training/dqn_overestimation.md`.
 
 The leaderboard DQN is whichever run has the higher selection fitness (v1 if
 v2 does not beat it); `checkpoints/dqn/version_choice.json` records the choice.

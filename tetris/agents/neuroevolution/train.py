@@ -9,7 +9,7 @@ seeds (common random numbers) in the garbage setting, and its fitness is the
 leaderboard fitness. Every ``select_every`` generations that generation's best
 genome is evaluated on the 30 selection seeds; at the end the genome with the
 highest selection fitness becomes ``checkpoints/neat/best.json``, with its
-topology drawn to ``reports/neat_topology.png``. Held-out results come from
+topology drawn to ``reports/training/neat_topology.png``. Held-out results come from
 ``scripts/evaluate.py``. CPU only.
 """
 
@@ -174,7 +174,8 @@ def train(
     if promote:
         shutil.copy(best.checkpoint, CHECKPOINT_DIR / AGENT_KEY / "best.json")
         (CHECKPOINT_DIR / AGENT_KEY / "selection.json").write_text(json.dumps(summary, indent=2))
-        shutil.copy(topo, ROOT / "reports" / "neat_topology.png")
+        (ROOT / "reports" / "training").mkdir(parents=True, exist_ok=True)
+        shutil.copy(topo, ROOT / "reports" / "training" / "neat_topology.png")
     logger.plot(references=linear_references())
     logger.close()
     print(

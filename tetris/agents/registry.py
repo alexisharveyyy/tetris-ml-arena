@@ -201,8 +201,9 @@ AGENTS: dict[str, AgentSpec] = {
             "not make it play worse, so the target is not offered as a strength setting.",
             "tetris.agents.decision_transformer.agent:DTAgent",
             "best.pt",
-            # The knob is flat (reports/dt_calibration.md, reports/dt_v2.md), so the
-            # app offers no target-return control; speed presets set its strength.
+            # The knob is flat (reports/analysis/dt_calibration.md and dt_v2.md),
+            # so the app offers no target-return control; speed presets set its
+            # strength.
             supports_target_return=False,
             config="tetris/agents/decision_transformer/config.yaml",
         ),

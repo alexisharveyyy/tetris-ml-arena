@@ -2,7 +2,7 @@
 
 The first afterstate PPO run trained for 3 hours on MPS without learning:
 convolution gradients were wrong at its batch size and nothing failed (see
-reports/ppo_mps_bug.md). Two checks now guard every training run.
+reports/training/ppo_mps_bug.md). Two checks now guard every training run.
 
 * :func:`preflight` runs before training on a non-CPU device. It builds the
   run's network twice from the same weights, computes the run's real loss on
