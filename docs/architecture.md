@@ -1,7 +1,7 @@
 # Architecture
 
-How Tetris ML Arena is built, as it stands at the end of Phase 7. For setup
-and usage, see `README.md`; for results, see `reports/FINAL_REPORT.md`.
+How Tetris ML Arena is built. For setup, see `README.md`; for usage,
+`docs/usage.md`; for results, `reports/FINAL_REPORT.md`.
 
 ## Overview
 
@@ -266,3 +266,36 @@ reports/leaderboard/      --> web leaderboard screen (tetris/web/leaderboard.py)
 `checkpoints/`, `data/` and `runs/` are not in git. The reports name the
 checkpoint behind each result, and `reports/FINAL_REPORT.md` Section 6 gives
 the command and commit for each one.
+
+## Game rules
+
+- 10x20 visible board plus 4 hidden spawn rows; SRS rotation with standard
+  wall kicks.
+- Lock delay uses extended placement: up to 15 moves or rotations reset it,
+  and a move counts even when a floor kick lifts the piece. Once the 15 are
+  used, the piece locks as soon as it touches down (no infinite spinning).
+- 7-bag randomizer, 5 visible next pieces, hold once per piece.
+- Guideline gravity curve, 0.5 s lock delay with up to 15 move resets.
+- Scoring: 100/300/500/800 times level, 1.5x for back-to-back Tetrises, 50
+  times combo times level.
+- Attack: single 0, double 1, triple 2, Tetris 4; combo bonus 0-1: 0, 2-3: 1,
+  4-5: 2, 6-7: 3, 8-10: 4, 11+: 5; +1 for back-to-back Tetris. No T-spins.
+- Incoming garbage waits in a pending meter. Outgoing attack cancels it
+  first. Whatever is left is inserted the next time a piece locks without
+  clearing a line. Each batch shares one random hole column.
+- All randomness comes from seeded SplitMix64 streams, so the full state
+  serializes to JSON (`Game.to_dict` / `Game.from_dict`).
+
+## Action space
+
+Agents choose a placement: `(rotation, column, use_hold)`, which gives
+4 x 10 x 2 = 80 discrete actions with a legality mask. A placement is legal
+when the piece can rotate in place at spawn (every intermediate orientation
+must also fit, so no kick is needed), shift sideways at spawn height to the
+target column, and hard drop. Tucks and spins are out of scope.
+
+A test runs 480 random states, about 21,800 legal actions, including tall,
+jagged and spawn-row stacks. It checks that the path planner can reach every
+action the mask allows, and that executing the plan reproduces the enumerated
+board exactly. `tetris.env.enumerate_afterstates(game)` returns every legal
+placement with its resulting board and features.

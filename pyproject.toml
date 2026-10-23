@@ -1,13 +1,28 @@
 [build-system]
-requires = ["setuptools>=69"]
+requires = ["setuptools>=77"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "tetris-ml-arena"
 version = "0.1.0"
-description = "Play Tetris against machine learning and deep learning agents."
+description = "Play Tetris in real time against machine learning agents, compared under one evaluation protocol."
 readme = "README.md"
+authors = [{ name = "Alexis Harvey" }]
+license = "MIT"
+license-files = ["LICENSE"]
 requires-python = ">=3.11"
+keywords = ["tetris", "reinforcement-learning", "imitation-learning", "neuroevolution", "decision-transformer"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Education",
+    "Intended Audience :: Science/Research",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Games/Entertainment :: Puzzle Games",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
 dependencies = [
     "numpy==2.5.4",
     "gymnasium==1.4.0",
@@ -22,6 +37,11 @@ dependencies = [
 [project.optional-dependencies]
 dev = ["pytest==9.1.1", "ruff==0.17.1", "httpx2==2.15.0"]
 web = ["fastapi==0.156.4", "pydantic==2.14.1", "uvicorn==0.54.0", "websockets==17.3"]
+
+[project.urls]
+Homepage = "https://github.com/OWNER/tetris-ml-arena"
+Repository = "https://github.com/OWNER/tetris-ml-arena"
+Issues = "https://github.com/OWNER/tetris-ml-arena/issues"
 
 [project.scripts]
 tetris-arena = "tetris.ui.pygame.app:main"
