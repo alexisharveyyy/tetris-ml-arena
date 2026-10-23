@@ -39,9 +39,9 @@ dev = ["pytest==9.1.1", "ruff==0.17.1", "httpx2==2.15.0"]
 web = ["fastapi==0.156.4", "pydantic==2.14.1", "uvicorn==0.54.0", "websockets==17.3"]
 
 [project.urls]
-Homepage = "https://github.com/OWNER/tetris-ml-arena"
-Repository = "https://github.com/OWNER/tetris-ml-arena"
-Issues = "https://github.com/OWNER/tetris-ml-arena/issues"
+Homepage = "https://github.com/alexisharveyyy/tetris-ml-arena"
+Repository = "https://github.com/alexisharveyyy/tetris-ml-arena"
+Issues = "https://github.com/alexisharveyyy/tetris-ml-arena/issues"
 
 [project.scripts]
 tetris-arena = "tetris.ui.pygame.app:main"
