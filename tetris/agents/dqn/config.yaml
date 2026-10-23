@@ -1,7 +1,7 @@
 # Double DQN over afterstates with prioritized replay (see train.py).
 seed: 0
 budget_minutes: 180          # wall-clock training budget
-device: mps                  # MPS was about 60-90x faster than CPU (scripts/bench_device.py)
+device: mps                  # MPS was about 60-90x faster than CPU (scripts/train/bench_device.py)
 torch_threads: 2
 
 # Environment: the garbage evaluation setting (1 direct row every 3 pieces, 500-piece cap).

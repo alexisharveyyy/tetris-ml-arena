@@ -1,9 +1,9 @@
 """Run one queue step only if it will execute the pinned worktree's code.
 
-Usage (from the queue helper, scripts/run_phase4.py):
+Usage (from the queue helper, scripts/queue/run_phase4.py):
     TETRIS_PINNED_ROOT=<worktree> TETRIS_PINNED_COMMIT=<sha> \\
-        python scripts/pinned_step.py -m package.module [args...]
-    ... python scripts/pinned_step.py scripts/some_script.py [args...]
+        python scripts/queue/pinned_step.py -m package.module [args...]
+    ... python scripts/queue/pinned_step.py scripts/eval/evaluate.py [args...]
 
 Before running the step, in the same interpreter that will run it, this
 checks that the ``tetris`` package resolves to the pinned worktree (not, for

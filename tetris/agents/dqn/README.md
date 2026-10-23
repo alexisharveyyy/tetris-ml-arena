@@ -79,7 +79,7 @@ v2 does not beat it); `checkpoints/dqn/version_choice.json` records the choice.
 
 ## Device choice
 
-`scripts/bench_device.py` on an Apple M2 Max:
+`scripts/train/bench_device.py` on an Apple M2 Max:
 
 | Workload | CPU (4 threads) | MPS |
 |---|---|---|
@@ -102,7 +102,7 @@ tensorboard --logdir runs/dqn
 
 Every 10 minutes a checkpoint is evaluated on the 30 selection seeds in
 background processes. The best one by selection fitness becomes
-`checkpoints/dqn/best.pt`. Held-out results come from `scripts/evaluate.py`.
+`checkpoints/dqn/best.pt`. Held-out results come from `scripts/eval/evaluate.py`.
 
 ## Results
 

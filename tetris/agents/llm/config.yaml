@@ -5,7 +5,7 @@ enabled: false
 backend: ollama              # ollama | openai | anthropic
 prompt: features             # features (lines, holes, height per placement) | bare (rotation, column)
 timeout_seconds: 8.0         # per decision in live play; on timeout the GA heuristic's move is played
-eval_timeout_seconds: 15.0   # per decision in scripts/eval_llm.py only (measures the model, not the fallback)
+eval_timeout_seconds: 15.0   # per decision in scripts/eval/eval_llm.py only (measures the model, not the fallback)
 max_output_tokens: 24
 
 ollama:

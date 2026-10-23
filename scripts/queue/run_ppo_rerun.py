@@ -9,7 +9,7 @@ with the MPS pre-flight and runs under the progress watchdog
 Progress goes to ``logs/phase4_queue.log`` (of the checkout it runs from) and each step's own log in
 ``logs/``. Steps whose output already exists are skipped on rerun.
 
-Usage: python scripts/run_ppo_rerun.py
+Usage: python scripts/queue/run_ppo_rerun.py
 """
 
 from __future__ import annotations
@@ -41,8 +41,12 @@ def main() -> None:
             CKPT / "ppo" / name / "selection.json",
         )
     run("ppo_seed0", TRAIN, CKPT / "ppo" / "seed0" / "selection.json")
-    run("leaderboard", ["scripts/evaluate.py", "--games", "500", "--marathon-games", "100"], None)
-    run("seed_spread", ["scripts/seed_spread.py"], None)
+    run(
+        "leaderboard",
+        ["scripts/eval/evaluate.py", "--games", "500", "--marathon-games", "100"],
+        None,
+    )
+    run("seed_spread", ["scripts/eval/seed_spread.py"], None)
     log("ppo rerun queue finished")
 
 

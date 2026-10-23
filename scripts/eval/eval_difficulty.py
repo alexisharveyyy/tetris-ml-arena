@@ -5,7 +5,7 @@ delay, move rate and speed cap) with the primary garbage setting: one
 non-cancellable garbage row every 3 pieces, 500-piece cap.
 
 Usage:
-    python scripts/eval_difficulty.py [--agents dellacherie ga cem] [--games 30]
+    python scripts/eval/eval_difficulty.py [--agents dellacherie ga cem] [--games 30]
 """
 
 from __future__ import annotations

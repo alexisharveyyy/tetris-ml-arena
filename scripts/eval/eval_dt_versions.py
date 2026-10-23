@@ -1,11 +1,11 @@
 """Compare Decision Transformer v1 and v2: data, selection, calibration, held-out play.
 
-Usage: python scripts/eval_dt_versions.py [--games 500] [--marathon-games 100]
+Usage: python scripts/eval/eval_dt_versions.py [--games 500] [--marathon-games 100]
 
 Run after ``train choose`` (``checkpoints/dt/versions/v1`` and ``v2``). Plays
 both versions, each at its calibrated default target, on the held-out seeds
 in the garbage and plain settings (the same seeds and settings as
-``scripts/evaluate.py``), with the paired bootstrap of v2 minus v1, and v2 in
+``scripts/eval/evaluate.py``), with the paired bootstrap of v2 minus v1, and v2 in
 the Marathon section. Other agents are not replayed: v2 is placed against their
 results in ``reports/leaderboard_*.csv``. v1's replay should reproduce its
 leaderboard row exactly (play is deterministic per seed); the report checks it.

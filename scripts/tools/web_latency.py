@@ -7,7 +7,7 @@ input-to-render latency; the browser adds its draw on the next animation frame.
 
 Usage:
     python -m tetris.web --no-browser &         # in another shell
-    python scripts/web_latency.py [--url http://127.0.0.1:8765] [--seconds 15]
+    python scripts/tools/web_latency.py [--url http://127.0.0.1:8765] [--seconds 15]
         [--agents ga cem dqn] [--preset Unlimited]
 """
 

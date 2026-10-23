@@ -55,7 +55,7 @@ billed. The worst case is kept only when no reply arrives (timeout, dropped
 connection) or a reply has no readable token usage.
 
 Prices per million tokens are in `config.yaml` with the date they were
-checked. `scripts/eval_llm.py` refuses to call an API when that date is more
+checked. `scripts/eval/eval_llm.py` refuses to call an API when that date is more
 than 7 days old.
 
 ## Enable in the app
@@ -67,9 +67,9 @@ opponent. Start `ollama serve` first for the local backend. The worker allows
 ## Evaluate
 
 ```bash
-python scripts/eval_llm.py --dry-run            # plan and API spending so far
-python scripts/eval_llm.py                      # all runs, 20 games each
-python scripts/eval_llm.py --runs qwen3-features,llama31-features
+python scripts/eval/eval_llm.py --dry-run            # plan and API spending so far
+python scripts/eval/eval_llm.py                      # all runs, 20 games each
+python scripts/eval/eval_llm.py --runs qwen3-features,llama31-features
 ```
 
 Runs: `qwen3-features`, `qwen3-bare`, `llama31-features`, `api-features`,

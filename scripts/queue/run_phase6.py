@@ -6,13 +6,13 @@ Each step is a separate process; nothing runs in parallel with GPU training.
 Meant to run from a git worktree pinned to a commit, like run_phase5.py.
 
 The LLM evaluation is not part of this queue: it runs GPU inference (Ollama)
-and API calls, and starts separately with ``scripts/eval_llm.py`` once the
+and API calls, and starts separately with ``scripts/eval/eval_llm.py`` once the
 Decision Transformer is done and GPU use is approved.
 
 Progress goes to ``logs/phase4_queue.log`` (shared helper) and each step's
 own log in ``logs/``. Finished steps are skipped on rerun.
 
-Usage: python scripts/run_phase6.py
+Usage: python scripts/queue/run_phase6.py
 """
 
 from __future__ import annotations
@@ -30,7 +30,11 @@ def main() -> None:
     run("dt_collect", ["-m", f"{DT}.collect"], ROOT / "data" / "logs" / "dt" / "manifest.json")
     run("dt_train", ["-m", f"{DT}.train", "train"], CKPT / "dt" / "seed0" / "selection.json")
     run("dt_calibrate", ["-m", f"{DT}.train", "calibrate"], CKPT / "dt" / "calibration.json")
-    run("leaderboard", ["scripts/evaluate.py", "--games", "500", "--marathon-games", "100"], None)
+    run(
+        "leaderboard",
+        ["scripts/eval/evaluate.py", "--games", "500", "--marathon-games", "100"],
+        None,
+    )
     log("phase 6 queue finished")
 
 

@@ -1,6 +1,6 @@
 """Which checkpoint produced each leaderboard result, and is that result still current?
 
-``scripts/evaluate.py`` writes ``reports/leaderboard/leaderboard_sources.json`` next to the
+``scripts/eval/evaluate.py`` writes ``reports/leaderboard/leaderboard_sources.json`` next to the
 CSVs: for each report section (``garbage``, ``plain``, ``marathon``) and agent,
 the checkpoint it evaluated (path relative to its checkpoint directory, sha256
 and size). Readers call :func:`result_status` before showing a number:
@@ -79,7 +79,7 @@ def write_sources(reports: Path, section: str, sources: dict[str, dict[str, Any]
     data = load_sources(reports)
     data.setdefault("sections", {})[section] = {
         "written_at": time.strftime("%Y-%m-%dT%H:%M:%S%z"),
-        "basis": "recorded by scripts/evaluate.py",
+        "basis": "recorded by scripts/eval/evaluate.py",
         "agents": sources,
     }
     (reports / SOURCES_FILE).write_text(json.dumps(data, indent=2) + "\n")

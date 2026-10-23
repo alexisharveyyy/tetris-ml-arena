@@ -13,7 +13,7 @@ desktop app does, without opening a window:
    decision timeout, and one that crashes (SIGKILL) must be detected; both
    switch to the in-process Dellacherie agent, show a warning and keep playing.
 
-Usage: python scripts/play_path_check.py [--agents dqn ppo ppo_raw] [--seconds 20]
+Usage: python scripts/tools/play_path_check.py [--agents dqn ppo ppo_raw] [--seconds 20]
 """
 
 from __future__ import annotations

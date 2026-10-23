@@ -5,7 +5,7 @@ tetris/rl/safeguards.py). This script reports it for all three trainers, and
 with ``--show-bug`` also for afterstate PPO with chunking disabled (the
 configuration of the broken run), which must fail.
 
-Usage: python scripts/preflight.py [--show-bug]
+Usage: python scripts/train/preflight.py [--show-bug]
 """
 
 from __future__ import annotations

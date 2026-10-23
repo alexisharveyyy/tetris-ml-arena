@@ -191,7 +191,7 @@ def cached_dataset(files: list[Path], cache_dir: Path, name: str) -> ImitationDa
 def teacher_data(cfg: dict[str, Any]) -> ImitationData:
     files = log_files([ROOT / d for d in cfg["log_dirs"]])
     if not files:
-        raise FileNotFoundError(f"no logs under {cfg['log_dirs']}; run scripts/log_games.py")
+        raise FileNotFoundError(f"no logs under {cfg['log_dirs']}; run scripts/train/log_games.py")
     return cached_dataset(files, Path(cfg["cache_dir"]), cfg["teacher"])
 
 

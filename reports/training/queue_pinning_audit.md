@@ -34,7 +34,7 @@ and 30 Marathon rows, all columns identical.
 4's first seed spread), and that result was replaced by a correctly pinned
 rerun. No current result is affected; nothing needs rerunning.
 
-**Fix.** Queue steps now run through `scripts/pinned_step.py` with the
+**Fix.** Queue steps now run through `scripts/queue/pinned_step.py` with the
 worktree first on `PYTHONPATH`. Each step logs the path `tetris` was imported
 from and the commit, and aborts unless that path is the pinned worktree, its
 HEAD is the queue's commit and nothing under `tetris/` or `scripts/` has

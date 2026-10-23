@@ -1,9 +1,9 @@
 """Evaluate the LLM agent: backends x prompt variants on the same garbage-setting seeds.
 
 Usage:
-    python scripts/eval_llm.py [--runs NAME,...] [--games 20] [--max-pieces 100]
+    python scripts/eval/eval_llm.py [--runs NAME,...] [--games 20] [--max-pieces 100]
                                [--timeout SECONDS] [--dry-run]
-    python scripts/eval_llm.py --mark-pending NAME,... --reason TEXT
+    python scripts/eval/eval_llm.py --mark-pending NAME,... --reason TEXT
 
 Runs (defaults to all):
     qwen3-features     Ollama qwen3:8b, placements listed with lines, holes, height (default agent)

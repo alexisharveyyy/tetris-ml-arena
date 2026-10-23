@@ -1,6 +1,6 @@
 """Seed variance of the 1-hour runs: held-out results of each run's selected checkpoint.
 
-Usage: python scripts/seed_spread.py [--agents dqn ppo] [--games 500]
+Usage: python scripts/eval/seed_spread.py [--agents dqn ppo] [--games 500]
 Writes reports/training/seed_spread.md and .json.
 """
 

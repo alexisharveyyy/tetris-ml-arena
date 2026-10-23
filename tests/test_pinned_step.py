@@ -1,4 +1,4 @@
-"""Queue steps run the pinned worktree's code, or abort (scripts/pinned_step.py)."""
+"""Queue steps run the pinned worktree's code, or abort (scripts/queue/pinned_step.py)."""
 
 from __future__ import annotations
 
@@ -10,7 +10,7 @@ from pathlib import Path
 
 import pytest
 
-SCRIPTS = Path(__file__).resolve().parents[1] / "scripts"
+SCRIPTS = Path(__file__).resolve().parents[1] / "scripts" / "queue"
 
 
 def _load(name: str):
@@ -34,12 +34,13 @@ def worktree(tmp_path) -> Path:
     """A git checkout with a stand-in ``tetris`` package and a copy of the launcher."""
     root = tmp_path / "wt"
     (root / "tetris").mkdir(parents=True)
-    (root / "scripts").mkdir()
+    (root / "scripts" / "queue").mkdir(parents=True)
     (root / "tetris" / "__init__.py").write_text("")
     (root / "tetris" / "step.py").write_text(
         "import sys, tetris\nprint('ran', tetris.__file__, sys.argv[1:])\n"
     )
-    (root / "scripts" / "pinned_step.py").write_text((SCRIPTS / "pinned_step.py").read_text())
+    launcher = root / "scripts" / "queue" / "pinned_step.py"
+    launcher.write_text((SCRIPTS / "pinned_step.py").read_text())
     (root / "scripts" / "hello.py").write_text("import sys\nprint('script', sys.argv[1:])\n")
     (root / ".gitignore").write_text("__pycache__/\nlogs/\n")  # as in the real repo
     _git(root, "init", "-q")
@@ -56,7 +57,7 @@ def _run(root: Path, commit: str, *args: str) -> subprocess.CompletedProcess:
         "TETRIS_PINNED_COMMIT": commit,
     }
     return subprocess.run(
-        [sys.executable, str(root / "scripts" / "pinned_step.py"), *args],
+        [sys.executable, str(root / "scripts" / "queue" / "pinned_step.py"), *args],
         cwd=root,
         env=env,
         capture_output=True,

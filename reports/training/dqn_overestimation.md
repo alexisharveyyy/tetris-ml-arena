@@ -31,7 +31,7 @@ below).
 
 ## Offline Q calibration
 
-**Method** (`scripts/dqn_q_bias.py`):
+**Method** (`scripts/analysis/dqn_q_bias.py`):
 
 - For each checkpoint, play 12 greedy games in the garbage setting (seeds
   700000 to 700011, outside every training, selection and held-out range), on
@@ -202,7 +202,7 @@ peak, and that checkpoint is statistically tied with CEM.
 - **Higher epsilon floor.** Raise it from 0.005 to 0.02, so the replay buffer
   keeps boards close to a top-out after the decay ends. This addresses the
   replay composition explanation above.
-- **Logging.** Log the offline Q bias (`scripts/dqn_q_bias.py`) at every
+- **Logging.** Log the offline Q bias (`scripts/analysis/dqn_q_bias.py`) at every
   selection evaluation, to see whether the bias stays negative or near zero.
 
 **Expected cost:**

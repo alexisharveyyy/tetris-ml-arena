@@ -1,6 +1,6 @@
 # Stress test
 
-`python scripts/stress_test.py --mode race|battle --seconds 60`
+`python scripts/tools/stress_test.py --mode race|battle --seconds 60`
 
 Setup: Apple M2 Max (12 cores), headless SDL. The human plus 3 agents (CEM,
 GA, Dellacherie) all on Unlimited, one worker process per agent, real-time

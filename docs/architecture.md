@@ -92,7 +92,7 @@ and `README.md`:
 - the garbage and plain settings, fitness, and the held-out and selection
   seeds;
 - parallel headless play, Wilson intervals and the paired bootstrap.
-- `scripts/evaluate.py` builds the leaderboard from it and writes
+- `scripts/eval/evaluate.py` builds the leaderboard from it and writes
   per-game results.
 
 **Difficulty (`difficulty.py`):** the presets (speed cap, move rate,
@@ -118,17 +118,17 @@ reaction delay, decision noise).
   and resume.
 
 **Safeguards for GPU runs:**
-- `scripts/preflight.py` compares MPS gradients with CPU gradients before
+- `scripts/train/preflight.py` compares MPS gradients with CPU gradients before
   any GPU run.
 - A watchdog stops runs whose learning has stalled.
 
-**Long jobs run as queues** (`scripts/run_phase*.py`, built on the helper in
+**Long jobs run as queues** (`scripts/queue/run_phase*.py`, built on the helper in
 `run_phase4.py`):
 - **Isolation:** each queue runs from a detached git worktree pinned to one
   commit.
 - **Order:** steps run one at a time, so nothing runs in parallel with GPU
   training.
-- **Pinning check:** each step starts through `scripts/pinned_step.py`. It
+- **Pinning check:** each step starts through `scripts/queue/pinned_step.py`. It
   logs where `tetris` was imported from and the commit, and refuses to run
   unless both are the pinned ones and no code has changed.
 
@@ -256,7 +256,7 @@ the tests and rehearsal servers use so they never touch the real files.
 
 ```
 train.py (per agent) --> checkpoints/<agent>/<run>/eval_*.pt --(selection seeds)--> best.pt
-scripts/evaluate.py  --> reports/leaderboard*.{md,csv}, leaderboard_sources.json,
+scripts/eval/evaluate.py  --> reports/leaderboard*.{md,csv}, leaderboard_sources.json,
                          leaderboard_games_*.csv (per game, from now on)
 scripts/eval_*.py    --> reports/analysis/dt_v2.md, llm_agent.md, difficulty.md, ...
 reports/             --> web leaderboard screen (tetris/web/leaderboard.py)

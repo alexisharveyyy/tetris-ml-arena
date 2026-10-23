@@ -75,7 +75,7 @@ pick among the next five legal actions by probability.
 
 ## Device choice
 
-`scripts/bench_device.py` on an Apple M2 Max (raw policy shapes):
+`scripts/train/bench_device.py` on an Apple M2 Max (raw policy shapes):
 
 | Workload | CPU (4 threads) | MPS |
 |---|---|---|

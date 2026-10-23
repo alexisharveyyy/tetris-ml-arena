@@ -86,7 +86,8 @@ def test_backfill_records_only_checkpoints_older_than_the_report(tmp_path, monke
     from datetime import datetime, timedelta
 
     spec = importlib.util.spec_from_file_location(
-        "backfill_sources", provenance.Path(__file__).parents[2] / "scripts" / "backfill_sources.py"
+        "backfill_sources",
+        provenance.Path(__file__).parents[2] / "scripts" / "analysis" / "backfill_sources.py",
     )
     backfill = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(backfill)

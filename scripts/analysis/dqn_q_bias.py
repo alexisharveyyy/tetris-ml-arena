@@ -4,8 +4,8 @@ versus the discounted return the game actually delivered from that point.
 Plays greedy games in the garbage setting (seeds 700000-700011, outside every
 training, selection and held-out range) on the CPU.
 
-Usage: python scripts/dqn_q_bias.py RUN CHECKPOINT [CHECKPOINT ...] [--games 12]
-    e.g. python scripts/dqn_q_bias.py seed0 eval_0025min_1418880.pt
+Usage: python scripts/analysis/dqn_q_bias.py RUN CHECKPOINT [CHECKPOINT ...] [--games 12]
+    e.g. python scripts/analysis/dqn_q_bias.py seed0 eval_0025min_1418880.pt
 """
 
 from __future__ import annotations

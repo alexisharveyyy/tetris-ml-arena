@@ -7,7 +7,7 @@ agent except the changed ones, writes ``reports/leaderboard/leaderboard_rerun_ch
 and prints any mismatch. It never fails the queue: a mismatch is reported,
 not acted on.
 
-Usage: python scripts/check_leaderboard_rerun.py OLD_DIR [--changed dt] [--new reports]
+Usage: python scripts/eval/check_leaderboard_rerun.py OLD_DIR [--changed dt] [--new reports]
 """
 
 from __future__ import annotations
@@ -16,7 +16,7 @@ import argparse
 import csv
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = Path(__file__).resolve().parents[2]
 
 
 def read_rows(path: Path) -> list[dict[str, str]]:

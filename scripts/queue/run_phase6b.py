@@ -7,12 +7,12 @@ playable DT, then the LLM evaluation of qwen3:8b and
 llama3.1:8b with features at the 15 s evaluation timeout (Ollama, GPU). The
 API runs are recorded as pending (no valid API key) and not run. Each step is
 a separate process, run pinned to this checkout's commit
-(``scripts/pinned_step.py``); nothing runs in parallel with GPU work.
+(``scripts/queue/pinned_step.py``); nothing runs in parallel with GPU work.
 
 Progress goes to ``logs/phase4_queue.log`` (shared helper) and each step's
 own log in ``logs/``. Finished steps are skipped on rerun.
 
-Usage: python scripts/run_phase6b.py
+Usage: python scripts/queue/run_phase6b.py
 """
 
 from __future__ import annotations
@@ -42,10 +42,12 @@ def leaderboard_with_v2() -> None:
         for f in reports.glob("leaderboard*.*"):
             shutil.copy2(f, old / f.name)
         log(f"saved the leaderboard with DT v1 to {old.relative_to(ROOT)}")
-    run("leaderboard_dt_v2", ["scripts/evaluate.py"], reports / "leaderboard_games_garbage.csv")
+    run(
+        "leaderboard_dt_v2", ["scripts/eval/evaluate.py"], reports / "leaderboard_games_garbage.csv"
+    )
     run(
         "leaderboard_rerun_check",
-        ["scripts/check_leaderboard_rerun.py", str(old)],
+        ["scripts/eval/check_leaderboard_rerun.py", str(old)],
         reports / "leaderboard_rerun_check.md",
     )
 
@@ -80,7 +82,7 @@ def main() -> None:
     )
     run("dt_choose", ["-m", f"{DT}.train", "choose", "--run-name", "seed0_v2"], None)
     dt_v2_report = ROOT / "reports" / "analysis" / "dt_v2.md"
-    run("dt_versions_eval", ["scripts/eval_dt_versions.py"], dt_v2_report)
+    run("dt_versions_eval", ["scripts/eval/eval_dt_versions.py"], dt_v2_report)
     if json.loads((CKPT / "dt" / "version_choice.json").read_text())["chosen"] == "v2":
         leaderboard_with_v2()
     else:
@@ -88,7 +90,7 @@ def main() -> None:
     run(
         "llm_mark_api_pending",
         [
-            "scripts/eval_llm.py",
+            "scripts/eval/eval_llm.py",
             "--mark-pending",
             "api-features,api-bare",
             "--reason",
@@ -97,7 +99,9 @@ def main() -> None:
         None,
     )
     run(
-        "llm_eval_local", ["scripts/eval_llm.py", "--runs", "qwen3-features,llama31-features"], None
+        "llm_eval_local",
+        ["scripts/eval/eval_llm.py", "--runs", "qwen3-features,llama31-features"],
+        None,
     )
     log("phase 6b queue finished")
 

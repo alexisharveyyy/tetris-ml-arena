@@ -1,6 +1,6 @@
 """Benchmark MPS vs CPU for the DQN and PPO workloads.
 
-Usage: python scripts/bench_device.py [--repeats 30]
+Usage: python scripts/train/bench_device.py [--repeats 30]
 """
 
 from __future__ import annotations

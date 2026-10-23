@@ -4,7 +4,7 @@ agent_key: ppo_raw
 policy: raw
 seed: 0
 budget_minutes: 60
-device: mps                  # MPS was about 13-35x faster than CPU (scripts/bench_device.py)
+device: mps                  # MPS was about 13-35x faster than CPU (scripts/train/bench_device.py)
 torch_threads: 2
 
 setting: garbage             # 1 direct garbage row every 3 pieces, 500-piece cap

@@ -4,7 +4,7 @@ The garbage setting is the primary leaderboard; the plain capped setting is a
 secondary sanity check.
 
 Usage:
-    python scripts/evaluate.py [--agents ga cem dellacherie] [--games 100] [--workers N]
+    python scripts/eval/evaluate.py [--agents ga cem dellacherie] [--games 100] [--workers N]
 """
 
 from __future__ import annotations

@@ -598,7 +598,7 @@ def test_a_piece_that_locks_while_the_model_thinks_counts_as_a_late_fallback() -
 def test_llm_eval_requires_recent_prices() -> None:
     import importlib.util
 
-    path = Path(__file__).resolve().parents[2] / "scripts" / "eval_llm.py"
+    path = Path(__file__).resolve().parents[2] / "scripts" / "eval" / "eval_llm.py"
     spec = importlib.util.spec_from_file_location("eval_llm", path)
     mod = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(mod)
@@ -621,7 +621,7 @@ def test_llm_eval_requires_recent_prices() -> None:
 def _eval_llm_module():
     import importlib.util
 
-    path = Path(__file__).resolve().parents[2] / "scripts" / "eval_llm.py"
+    path = Path(__file__).resolve().parents[2] / "scripts" / "eval" / "eval_llm.py"
     spec = importlib.util.spec_from_file_location("eval_llm_report", path)
     mod = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(mod)

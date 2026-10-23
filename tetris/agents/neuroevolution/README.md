@@ -40,7 +40,7 @@ Both are the same as for GA and CEM (`tetris/agents/linear_training.py`):
 - **Selection:** every 5 generations, that generation's best genome is
   evaluated on the 30 selection seeds. The best of those becomes
   `checkpoints/neat/best.json`.
-- **Reporting:** held-out results (500 seeds) come from `scripts/evaluate.py`.
+- **Reporting:** held-out results (500 seeds) come from `scripts/eval/evaluate.py`.
 
 **Settings:**
 

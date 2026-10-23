@@ -8,12 +8,12 @@ Progress goes to ``logs/phase4_queue.log`` and each step's own log in ``logs/``.
 Steps whose output already exists are skipped, so the script can be rerun
 after an interruption.
 
-Every step runs through ``scripts/pinned_step.py`` with this checkout first on
+Every step runs through ``scripts/queue/pinned_step.py`` with this checkout first on
 ``PYTHONPATH``: it imports this checkout's code (never the one an editable
 install points at), and it aborts unless this checkout is still at the commit
 the queue started from, with ``tetris/`` and ``scripts/`` unmodified.
 
-Usage: python scripts/run_phase4.py [--wait-for-pid PID]
+Usage: python scripts/queue/run_phase4.py [--wait-for-pid PID]
 """
 
 from __future__ import annotations
@@ -27,7 +27,7 @@ import sys
 import time
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parent.parent
+ROOT = Path(__file__).resolve().parents[2]
 LOGS = ROOT / "logs"
 CKPT = ROOT / "checkpoints"
 PY = sys.executable
@@ -79,7 +79,7 @@ def run(name: str, args: list[str], done_marker: Path | None = None) -> None:
     t0 = time.time()
     with (LOGS / f"{name}.log").open("w") as out:
         proc = subprocess.run(
-            [PY, str(ROOT / "scripts" / "pinned_step.py"), *args],
+            [PY, str(ROOT / "scripts" / "queue" / "pinned_step.py"), *args],
             cwd=ROOT,
             env=env,
             stdout=out,
@@ -194,7 +194,11 @@ def main() -> None:
 
     run("ppo_seed0", train_ppo, CKPT / "ppo" / "seed0" / "selection.json")
 
-    run("leaderboard", ["scripts/evaluate.py", "--games", "500", "--marathon-games", "100"], None)
+    run(
+        "leaderboard",
+        ["scripts/eval/evaluate.py", "--games", "500", "--marathon-games", "100"],
+        None,
+    )
 
     for agent, module in (("dqn", "tetris.agents.dqn.train"), ("ppo", "tetris.agents.ppo.train")):
         for seed in SEED_RUNS:
@@ -215,7 +219,7 @@ def main() -> None:
                 CKPT / agent / name / "selection.json",
             )
 
-    run("seed_spread", ["scripts/seed_spread.py"], None)
+    run("seed_spread", ["scripts/eval/seed_spread.py"], None)
     log("phase 4 queue finished")
 
 

@@ -85,7 +85,7 @@ Outputs in `checkpoints/ga/`:
 ## Logging games for imitation learning
 
 ```bash
-python scripts/log_games.py --agent ga --episodes 100 --settings garbage plain
+python scripts/train/log_games.py --agent ga --episodes 100 --settings garbage plain
 ```
 
 Writes `data/logs/ga/<setting>/seed_<seed>.jsonl.gz`. Each step stores the

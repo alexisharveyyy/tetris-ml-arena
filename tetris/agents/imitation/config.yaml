@@ -5,7 +5,7 @@ seed: 0
 device: mps                  # with the MPS pre-flight check and the progress watchdog
 torch_threads: 2
 
-# Data: logged GA games (scripts/log_games.py), 100 garbage + 100 plain episodes.
+# Data: logged GA games (scripts/train/log_games.py), 100 garbage + 100 plain episodes.
 teacher: ga
 log_dirs: [data/logs/ga]
 cache_dir: data/imitation

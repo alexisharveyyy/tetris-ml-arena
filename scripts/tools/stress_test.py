@@ -7,7 +7,7 @@ path. Reports pool startup time, frame time percentiles, and how soon after
 the start of a frame each human input is applied.
 
 Usage:
-    python scripts/stress_test.py [--mode race|battle] [--seconds 60]
+    python scripts/tools/stress_test.py [--mode race|battle] [--seconds 60]
 """
 
 from __future__ import annotations

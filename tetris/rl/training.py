@@ -5,7 +5,7 @@
   garbage setting, in a separate process pool so training does not pause.
 * Learning curves to TensorBoard, a CSV and a PNG under ``reports/``.
 * Final checkpoint choice by selection fitness only; held-out seeds are used
-  later by ``scripts/evaluate.py``.
+  later by ``scripts/eval/evaluate.py``.
 """
 
 from __future__ import annotations

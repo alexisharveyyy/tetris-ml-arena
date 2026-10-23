@@ -45,7 +45,7 @@ included.
 | Poster | 1920x1080 | 296 | 24.7 ms | 33.6 ms |
 | Tetromino | 1280x720 | 296 | 24.7 ms | 34.1 ms |
 
-For comparison, the server alone (`scripts/web_latency.py`, same opponents on
+For comparison, the server alone (`scripts/tools/web_latency.py`, same opponents on
 Unlimited) measured 12.1 ms p50 and 19.5 ms p99 from input to the snapshot
 that acknowledges it. The browser adds about one frame: the snapshot waits
 for the next animation frame and is drawn inside it.
@@ -61,7 +61,7 @@ inside the animation frame (`flushSync` in `web/src/state/match.ts`).
 | Snapshots | 60 per second |
 | Mean size | 3.35 KB (four boards, candidates and the event feed) |
 | Bandwidth | about 197 KB/s on localhost |
-| Server-side p99 size | 3.65 KB, max 3.82 KB (`scripts/web_latency.py`) |
+| Server-side p99 size | 3.65 KB, max 3.82 KB (`scripts/tools/web_latency.py`) |
 
 ## Checking the demo machine
 

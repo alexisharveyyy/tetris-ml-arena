@@ -1,7 +1,7 @@
 """Log games from an agent for imitation learning (Phase 5) and offline RL.
 
 Usage:
-    python scripts/log_games.py --agent ga --episodes 100 [--settings garbage plain]
+    python scripts/train/log_games.py --agent ga --episodes 100 [--settings garbage plain]
         [--out data/logs] [--workers N] [--checkpoint PATH]
 """
 

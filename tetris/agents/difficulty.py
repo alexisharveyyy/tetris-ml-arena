@@ -43,7 +43,7 @@ class DifficultyParams:
 
 
 #: Difficulty presets. Easy is meant to be beatable by a casual player: slow,
-#: with frequent plausible mistakes. See ``scripts/eval_difficulty.py`` for the
+#: with frequent plausible mistakes. See ``scripts/eval/eval_difficulty.py`` for the
 #: measured top-out rate and speed of each preset.
 PRESETS: dict[str, DifficultyParams] = {
     "Easy": DifficultyParams(pps=0.5, move_rate=5.0, reaction_delay=0.9, noise=0.4, epsilon=0.03),

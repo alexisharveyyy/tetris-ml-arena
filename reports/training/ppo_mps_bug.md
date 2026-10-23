@@ -76,7 +76,7 @@ starts with a pre-flight check:
   policy, and finally falls back to the CPU.
 - The result is saved as `preflight.json` in the run directory.
 
-`scripts/preflight.py` reports the check for all three trainers.
+`scripts/train/preflight.py` reports the check for all three trainers.
 
 Results on MPS, at real batch sizes:
 

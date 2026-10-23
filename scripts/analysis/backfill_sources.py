@@ -14,7 +14,7 @@ rerun". Sections replace the ones already in the file; other sections are
 kept. Checkpoints are only read.
 
 Usage:
-    TETRIS_CHECKPOINT_DIR=~/tetris-ml-arena/checkpoints python scripts/backfill_sources.py \\
+    TETRIS_CHECKPOINT_DIR=checkpoints python scripts/analysis/backfill_sources.py \\
         --written garbage=2026-10-21T03:19:42 plain=2026-10-21T03:59:48 \\
         marathon=2026-10-21T04:36:02 --note "Phase 5 queue, ..."
 """
@@ -102,7 +102,7 @@ def main() -> None:
         data.setdefault("sections", {})[section] = {
             "written_at": f"{written:%Y-%m-%dT%H:%M:%S}",
             "basis": (
-                f"inferred on {datetime.now():%Y-%m-%d} by scripts/backfill_sources.py: "
+                f"inferred on {datetime.now():%Y-%m-%d} by scripts/analysis/backfill_sources.py: "
                 "every checkpoint listed was last modified before the report was written "
                 f"({written:%Y-%m-%d %H:%M:%S}) and has not changed since. {args.note}"
             ).strip(),

@@ -116,16 +116,16 @@ python -m tetris.agents.heuristic_ga.train     # GA heuristic, about 15 minutes 
 python -m tetris.agents.cem.train              # cross-entropy method, about 15 minutes
 python -m tetris.agents.dqn.train              # DQN, 3 hours on MPS
 python -m tetris.agents.ppo.train              # PPO (afterstates), 3 hours on MPS
-python scripts/log_games.py --agent ga         # GA games for imitation learning
+python scripts/train/log_games.py --agent ga         # GA games for imitation learning
 python -m tetris.agents.imitation.train pure   # BC on the GA's games (also: dagger, choose, you)
 python -m tetris.agents.neuroevolution.train   # NEAT, 3 hours on CPU
-python scripts/run_phase6.py                   # Decision Transformer: collect, train, calibrate, leaderboard
-python scripts/run_phase6b.py                  # DT v2 (collect, train, calibrate, choose, evaluate), then the local LLM evaluation
+python scripts/queue/run_phase6.py                   # Decision Transformer: collect, train, calibrate, leaderboard
+python scripts/queue/run_phase6b.py                  # DT v2 (collect, train, calibrate, choose, evaluate), then the local LLM evaluation
 tensorboard --logdir runs
 ```
 
-The queue scripts (`scripts/run_phase*.py`) run their steps one at a time,
-each through `scripts/pinned_step.py`, which refuses to run unless the code
+The queue scripts (`scripts/queue/run_phase*.py`) run their steps one at a time,
+each through `scripts/queue/pinned_step.py`, which refuses to run unless the code
 is the pinned commit's. Run them from a worktree pinned to the commit you
 want results for.
 
@@ -241,7 +241,7 @@ server running), then `npm run build` before committing, which updates
 changed since that build, and the launcher rebuilds it when Node is
 installed. `/debug` is a bare page that exercises the whole loop;
 `python -m tetris.web.protocol` prints the WebSocket protocol's JSON schema;
-`scripts/web_latency.py` measures snapshot size and input latency against a
+`scripts/tools/web_latency.py` measures snapshot size and input latency against a
 running server (`reports/ui/web_performance.md`).
 
 ## Demo mode
@@ -259,12 +259,12 @@ keeps settings, history and recordings in `DIR` for a rehearsal.
 ## Evaluate
 
 ```bash
-python scripts/evaluate.py                 # leaderboard, 500 held-out seeds, paired bootstrap, Marathon
-python scripts/eval_dt_versions.py         # DT v1 vs v2 held out
-python scripts/eval_llm.py --dry-run       # LLM evaluation plan (needs Ollama or an API key)
-python scripts/seed_spread.py              # 1-hour DQN and PPO runs on 3 seeds
-python scripts/eval_difficulty.py          # difficulty presets in real-time headless matches
-python scripts/stress_test.py --mode battle  # frame times with 3 Unlimited agents
+python scripts/eval/evaluate.py                 # leaderboard, 500 held-out seeds, paired bootstrap, Marathon
+python scripts/eval/eval_dt_versions.py         # DT v1 vs v2 held out
+python scripts/eval/eval_llm.py --dry-run       # LLM evaluation plan (needs Ollama or an API key)
+python scripts/eval/seed_spread.py              # 1-hour DQN and PPO runs on 3 seeds
+python scripts/eval/eval_difficulty.py          # difficulty presets in real-time headless matches
+python scripts/tools/stress_test.py --mode battle  # frame times with 3 Unlimited agents
 ```
 
 `evaluate.py` plays each available agent on 500 fixed held-out seeds and
@@ -309,7 +309,7 @@ that sends a request through the LLM backends.
    factory (`"module:Class"`), the checkpoint file and the config. It is
    offered in Watch AI, Race and Marathon, on both desktop and web, once
    that file exists under `checkpoints/<key>/` and loads, and it appears on
-   the leaderboard at the next `scripts/evaluate.py` run.
+   the leaderboard at the next `scripts/eval/evaluate.py` run.
 4. Optional, in the config's `play` section: `decision_timeout` and
    `startup_timeout` for its worker, and `max_pps` to cap its speed at every
    preset. An agent that reports each move (a `move_info()` method, as the

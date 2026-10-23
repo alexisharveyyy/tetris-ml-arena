@@ -530,7 +530,7 @@ because the control would promise a weaker opponent and not deliver one.
   `runs/` (not in git) and `reports/`.
 
 **How queues run (from Phase 6b on):**
-- Queue steps run through `scripts/pinned_step.py`. It refuses to run unless
+- Queue steps run through `scripts/queue/pinned_step.py`. It refuses to run unless
   the `tetris` package and the commit are the pinned ones and the code is
   unedited.
 - Each step logs the commit; the logs are in `logs/`.
@@ -552,6 +552,9 @@ because the control would promise a weaker opponent and not deliver one.
   bracketed by the commits around it, but the exact commit is unknown.
 - File paths are relative to `reports/` and give where the files are now.
   Until the reorganization, every report sat directly in `reports/`.
+- Commands are as they ran at the "Ran at" commit. The scripts have since
+  moved into subfolders of `scripts/`; `scripts/README.md` maps each old path
+  to its current one.
 
 | Result | Command | Ran at | Recorded in | Code trees at "Ran at" (`tetris/` / `scripts/`) |
 |---|---|---|---|---|

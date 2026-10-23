@@ -46,7 +46,7 @@ than the teacher's.
 
 ## Data
 
-- **GA logs:** `data/logs/ga`, written by `scripts/log_games.py`. There are
+- **GA logs:** `data/logs/ga`, written by `scripts/train/log_games.py`. There are
   100 garbage-setting and 100 plain-setting games, about 146k states with
   about 69 legal actions each.
 - **Splits:** 10% of the games are held out for agreement metrics.
