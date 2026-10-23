@@ -1,6 +1,6 @@
 pre-flight bc_dagger seed0 on mps: batch 256 states (17,556 afterstates), scorer chunk 4096: relative gradient difference 4.01e-05 (tolerance 0.01, 1.7s)
 DAgger round 1: 100 games, 71713 states, mean 717 pieces, policy agreed with the GA on 91.5%
-encoded 100 episodes: 71713 states, 4914984 afterstate rows in 10s -> /Users/alexisharvey/tetris-ml-arena-phase5/data/imitation/dagger_seed0_r1_a318991d3085.npz
+encoded 100 episodes: 71713 states, 4914984 afterstate rows in 10s -> ../tetris-ml-arena-phase5/data/imitation/dagger_seed0_r1_a318991d3085.npz
 DAgger round 1: 100 games labeled by the GA in 92s; training on 202342 states
    0.5 min  step     168  loss 0.1134  lr 1.5e-04  param change 1.1e-02
    1.0 min  step     344  loss 0.1110  lr 1.5e-04  param change 1.3e-02
@@ -27,7 +27,7 @@ DAgger round 1: 100 games labeled by the GA in 92s; training on 202342 states
    9.1 min  step    3205  loss 0.0904  lr 3.2e-05  param change 3.6e-03
    9.6 min  step    3375  loss 0.0893  lr 3.0e-05  param change 2.9e-03
 DAgger round 2: 100 games, 72762 states, mean 728 pieces, policy agreed with the GA on 94.0%
-encoded 100 episodes: 72762 states, 4987199 afterstate rows in 11s -> /Users/alexisharvey/tetris-ml-arena-phase5/data/imitation/dagger_seed0_r2_e6ea295df500.npz
+encoded 100 episodes: 72762 states, 4987199 afterstate rows in 11s -> ../tetris-ml-arena-phase5/data/imitation/dagger_seed0_r2_e6ea295df500.npz
 DAgger round 2: 100 games labeled by the GA in 89s; training on 275104 states
   10.5 min  step    3692  loss 0.1017  lr 1.5e-04  param change 1.3e-02
   11.0 min  step    3875  loss 0.1009  lr 1.5e-04  param change 1.1e-02

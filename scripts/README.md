@@ -69,3 +69,4 @@ commits they cite. In the current tree, `scripts/<name>.py` is:
 | `scripts/dqn_q_bias.py`, `backfill_sources.py` | `scripts/analysis/` |
 | `scripts/pinned_step.py`, `run_phase4.py`, `run_phase5.py`, `run_phase6.py`, `run_phase6b.py`, `run_ppo_rerun.py` | `scripts/queue/` |
 | `scripts/play_path_check.py`, `stress_test.py`, `web_latency.py` | `scripts/tools/` |
+| `scripts/bench_env.py` | Removed: a one-off environment benchmark that no report used |

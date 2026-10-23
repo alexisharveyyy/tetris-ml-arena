@@ -9,7 +9,7 @@
   },
   "calibration": {
     "v1": {
-      "checkpoint": "/Users/alexisharvey/tetris-ml-arena/checkpoints/dt/best.pt",
+      "checkpoint": "checkpoints/dt/best.pt",
       "games_per_target": 30,
       "rows": [
         {
@@ -66,7 +66,7 @@
       "leaderboard_target": 0.8
     },
     "v2": {
-      "checkpoint": "/Users/alexisharvey/tetris-ml-arena/checkpoints/dt/seed0_v2/eval_0050min_4057.pt",
+      "checkpoint": "checkpoints/dt/seed0_v2/eval_0050min_4057.pt",
       "games_per_target": 30,
       "rows": [
         {

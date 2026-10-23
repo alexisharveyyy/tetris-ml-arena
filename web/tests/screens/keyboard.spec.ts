@@ -1,7 +1,7 @@
 // Keyboard-only run through Home, Choose opponents, Match and Results, against
 // a running server (no mocks), in every look. Every focused control must show
 // a visible focus ring.
-//   LIVE=1 TETRIS_CHECKPOINT_DIR=~/tetris-ml-arena/checkpoints npx playwright test keyboard
+//   LIVE=1 npx playwright test keyboard
 import { expect, test, type Page } from "@playwright/test";
 import { LOOK_IDS } from "./mock";
 

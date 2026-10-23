@@ -255,11 +255,12 @@ the tests and rehearsal servers use so they never touch the real files.
 ## Where results come from
 
 ```
-train.py (per agent) --> checkpoints/<agent>/<run>/eval_*.pt --(selection seeds)--> best.pt
-scripts/eval/evaluate.py  --> reports/leaderboard*.{md,csv}, leaderboard_sources.json,
-                         leaderboard_games_*.csv (per game, from now on)
-scripts/eval_*.py    --> reports/analysis/dt_v2.md, llm_agent.md, difficulty.md, ...
-reports/             --> web leaderboard screen (tetris/web/leaderboard.py)
+train.py (per agent)      --> checkpoints/<agent>/<run>/eval_*.pt --(selection seeds)--> best.pt
+                              reports/training/curves/curve_<agent>_<run>.png
+scripts/eval/evaluate.py  --> reports/leaderboard/: leaderboard.md, leaderboard_*.csv,
+                              leaderboard_sources.json, leaderboard_games_*.csv (per game)
+scripts/eval/eval_*.py    --> reports/analysis/ (difficulty, DT versions), reports/llm/
+reports/leaderboard/      --> web leaderboard screen (tetris/web/leaderboard.py)
 ```
 
 `checkpoints/`, `data/` and `runs/` are not in git. The reports name the

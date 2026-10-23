@@ -1,4 +1,4 @@
-pinned step: tetris from /Users/alexisharvey/tetris-ml-arena-phase6b/tetris/__init__.py, commit 68a5b2acacc67fa553cf863b012c6791904e6422
+pinned step: tetris from ../tetris-ml-arena-phase6b/tetris/__init__.py, commit 68a5b2acacc67fa553cf863b012c6791904e6422
 collecting 980 of 980 games with 11 workers
   50/980 games, 3s
   100/980 games, 10s

@@ -1,6 +1,6 @@
 neat seed0: population 150, 10 games per genome, 11 workers, budget 180 min
 gen    0     0.1 min  best 0.537  hidden 0  conns 13  species 1  3s/gen  selection 0.571
-/Users/alexisharvey/tetris-ml-arena-phase5/tetris/agents/neuroevolution/train.py:152: DeprecationWarning: Pickle, copy, and deepcopy support will be removed from itertools in Python 3.14.
+../tetris-ml-arena-phase5/tetris/agents/neuroevolution/train.py:152: DeprecationWarning: Pickle, copy, and deepcopy support will be removed from itertools in Python 3.14.
   pickle.dump(
 gen    1     0.2 min  best 0.603  hidden 0  conns 13  species 1  7s/gen
 gen    2     0.4 min  best 0.897  hidden 0  conns 13  species 2  11s/gen
@@ -223,4 +223,4 @@ gen  218   178.1 min  best 1.410  hidden 2  conns 11  species 3  54s/gen
 gen  219   178.9 min  best 1.409  hidden 0  conns 5  species 3  52s/gen
 gen  220   179.8 min  best 1.412  hidden 2  conns 10  species 3  54s/gen  selection 1.279
 gen  221   180.7 min  best 1.414  hidden 2  conns 9  species 3  50s/gen  selection 1.199
-selected generation 60 (selection fitness 1.395); topology /Users/alexisharvey/tetris-ml-arena-phase5/checkpoints/neat/seed0/topology.png
+selected generation 60 (selection fitness 1.395); topology ../tetris-ml-arena-phase5/checkpoints/neat/seed0/topology.png

@@ -13,11 +13,19 @@ checkpoints/**
 !checkpoints/*/
 !checkpoints/*/best.json
 !checkpoints/*/report.json
+# New run logs stay local; the committed queue logs behind the reports are kept.
 logs/
 configs/user_history.json
 
-# Phase 8 web frontend
+# Web frontend
 web/node_modules/
 web/test-results/
 web/playwright-report/
 web/screenshots/
+
+# OS and editor files
+.DS_Store
+.vscode/
+.idea/
+*.swp
+*~

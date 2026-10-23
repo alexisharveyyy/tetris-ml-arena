@@ -7,7 +7,7 @@ both versions, each at its calibrated default target, on the held-out seeds
 in the garbage and plain settings (the same seeds and settings as
 ``scripts/eval/evaluate.py``), with the paired bootstrap of v2 minus v1, and v2 in
 the Marathon section. Other agents are not replayed: v2 is placed against their
-results in ``reports/leaderboard_*.csv``. v1's replay should reproduce its
+results in ``reports/leaderboard/leaderboard_*.csv``. v1's replay should reproduce its
 leaderboard row exactly (play is deterministic per seed); the report checks it.
 
 Writes ``reports/analysis/dt_v2.md``, ``reports/analysis/dt_v1_vs_v2_calibration.png`` and

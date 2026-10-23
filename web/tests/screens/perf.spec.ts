@@ -3,7 +3,7 @@
 // times, input-to-render latency, long tasks and message size from the ?perf
 // probe (src/lib/perf.ts) into web/screenshots/perf.json, which is not in git
 // (the recorded run is reports/ui/perf.json).
-//   LIVE=1 TETRIS_CHECKPOINT_DIR=$PWD/../checkpoints npx playwright test perf
+//   LIVE=1 npx playwright test perf
 //   (AGENTS=bc_you,cem,ppo SECONDS=45 RUNS=tetromino@1920x1080,...)
 import { expect, test } from "@playwright/test";
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";

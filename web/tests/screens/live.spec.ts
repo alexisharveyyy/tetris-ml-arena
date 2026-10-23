@@ -1,6 +1,6 @@
 // Live check against a running server (no mocks): Solo practice end to end.
 // Runs only with LIVE=1 or LIVE_URL set (see playwright.config.ts), for example
-//   LIVE=1 TETRIS_CHECKPOINT_DIR=~/tetris-ml-arena/checkpoints npx playwright test live
+//   LIVE=1 npx playwright test live
 import { expect, test } from "@playwright/test";
 
 const LIVE = process.env.LIVE_URL;

@@ -1,4 +1,4 @@
-encoded 200 episodes: 145866 states, 9992886 afterstate rows in 20s -> /Users/alexisharvey/tetris-ml-arena-phase5/data/imitation/ga_516555d0ef94.npz
+encoded 200 episodes: 145866 states, 9992886 afterstate rows in 20s -> ../tetris-ml-arena-phase5/data/imitation/ga_516555d0ef94.npz
 pure BC: 130629 train / 15237 validation states (9992886 afterstate rows)
 pre-flight bc_pure seed0 on mps: batch 256 states (17,556 afterstates), scorer chunk 4096: relative gradient difference 8.88e-07 (tolerance 0.01, 1.8s)
    0.5 min  step     162  loss 2.6922  lr 3.0e-04  param change 5.5e-01

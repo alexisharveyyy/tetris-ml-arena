@@ -10,7 +10,8 @@ import { fileURLToPath } from "node:url";
 // The live specs (keyboard, live, perf) need a real server. LIVE=1 starts one
 // on port 8799 in demo mode, keeping settings, history and recordings in a new
 // temporary directory (--state-dir), and passes it to the specs as LIVE_URL:
-//   LIVE=1 TETRIS_CHECKPOINT_DIR=~/tetris-ml-arena/checkpoints npx playwright test keyboard
+//   LIVE=1 npx playwright test keyboard
+// (TETRIS_CHECKPOINT_DIR=<dir> uses another checkout's trained checkpoints.)
 // LIVE_URL=<url> runs them against a server you started instead (for example
 // the demo machine). Either way, tests/state-guard.ts fails the run if the
 // real user state files change.

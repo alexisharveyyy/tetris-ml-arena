@@ -1,4 +1,4 @@
-pinned step: tetris from /Users/alexisharvey/tetris-ml-arena/tetris/__init__.py, commit 8457f2765963e14b4cde694616053688da363481
+pinned step: tetris from tetris/__init__.py, commit 8457f2765963e14b4cde694616053688da363481
 runs ['qwen3-bare']: 20 games each, cap 100 pieces, timeout 15 s; API spent so far $5.00 of $5.00
 qwen3-bare (Ollama qwen3:8b, bare, timeout 15 s): 0 games done, 20 to play
   loaded qwen3:8b in 1.6s

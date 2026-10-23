@@ -1,4 +1,4 @@
-encoded 7 episodes: 1397 states, 95452 afterstate rows in 1s -> /Users/alexisharvey/tetris-ml-arena-phase5/data/imitation/human_fc7d65ee6389.npz
+encoded 7 episodes: 1397 states, 95452 afterstate rows in 1s -> ../tetris-ml-arena-phase5/data/imitation/human_fc7d65ee6389.npz
 pre-flight bc_you seed0 on mps: batch 256 states (17,466 afterstates), scorer chunk 4096: relative gradient difference 8.33e-06 (tolerance 0.01, 1.6s)
     0.0 min  validation top-1 0.400  top-3 0.778
    0.5 min  step     154  loss 15.2643  lr 3.0e-05  param change 3.5e-02
@@ -187,5 +187,5 @@ pre-flight bc_you seed0 on mps: batch 256 states (17,466 afterstates), scorer ch
     }
   ],
   "learning_rate": 3e-05,
-  "initialized_from": "/Users/alexisharvey/tetris-ml-arena-phase5/checkpoints/bc/best.pt"
+  "initialized_from": "../tetris-ml-arena-phase5/checkpoints/bc/best.pt"
 }

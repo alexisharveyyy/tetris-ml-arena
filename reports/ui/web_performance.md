@@ -10,7 +10,7 @@ rotations; gravity drops the pieces, so you never top out during the window).
 The agents placed about 57 pieces per second each.
 
 Raw numbers: `reports/ui/perf.json`. To rerun:
-`LIVE=1 TETRIS_CHECKPOINT_DIR=$PWD/../checkpoints npx playwright test perf`
+`LIVE=1 npx playwright test perf`
 in `web/` (it starts its own server, with settings and history in a temporary
 directory), or `LIVE_URL=<url> npx playwright test perf` for a server you started.
 A rerun writes `web/screenshots/perf.json`, which is not in git.

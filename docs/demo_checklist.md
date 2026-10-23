@@ -47,7 +47,7 @@ every font is self-hosted.
 4. Do a full rehearsal with Wi-Fi turned off:
 
    ```bash
-   python -m tetris.web --demo --checkpoint-dir ~/tetris-ml-arena/checkpoints
+   python -m tetris.web --demo
    ```
 
    - Home lists every lineup agent without "Not available yet". The server
@@ -89,7 +89,7 @@ every font is self-hosted.
 Use the Pygame app. It has the same agents, rules and checkpoints:
 
 ```bash
-TETRIS_CHECKPOINT_DIR=~/tetris-ml-arena/checkpoints python -m tetris
+python -m tetris
 ```
 
 The server log is the terminal it was started from. If the page shows "The

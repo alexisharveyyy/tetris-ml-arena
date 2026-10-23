@@ -12,7 +12,9 @@ copy's commit at each time from `git reflog master`; uncommitted edits from
 the timestamps of every tool call in the session transcript that wrote to
 `tetris/` or `scripts/` (this one session covers every queue; edits made
 outside it would not show). How each queue was launched also comes from the
-transcript.
+transcript. Paths in the committed logs are relative to the main checkout:
+the worktrees sat next to it, so `../tetris-ml-arena-phase6b` is the Phase 6b
+worktree.
 
 | Queue | Step (local time) | Code imported | Main copy then | Differs from the queue's commit? | Current result from it? |
 |---|---|---|---|---|---|
@@ -21,7 +23,7 @@ transcript.
 | PPO rerun (worktree at 9c4936e, launched with `PYTHONPATH` = worktree) | leaderboard, Oct 20 22:04-22:45 | worktree | 2c7cfca (not imported) | No | No: replaced by later full leaderboards |
 | PPO rerun | seed_spread, Oct 20 22:45-22:58 | worktree | 2c7cfca (not imported) | No | Yes: `reports/training/seed_spread.md` |
 | Phase 5 (worktree at 2c7cfca, launched with `PYTHONPATH` = worktree) | leaderboard, Oct 21 03:03-04:36 | worktree | 2c7cfca, no uncommitted edits | No | No: replaced by the Phase 6 leaderboard |
-| Phase 6 (worktree at 14f166a, launched without `PYTHONPATH`) | leaderboard, Oct 21 15:15-18:08 | **main copy** | 3ca1bde: only `tetris/agents/checkpoint_check.py` differs from 14f166a, and neither script loads it; no uncommitted edits | No (in effect) | Yes: `reports/leaderboard*` |
+| Phase 6 (worktree at 14f166a, launched without `PYTHONPATH`) | leaderboard, Oct 21 15:15-18:08 | **main copy** | 3ca1bde: only `tetris/agents/checkpoint_check.py` differs from 14f166a, and neither script loads it; no uncommitted edits | No (in effect) | Yes: the leaderboard, now in `reports/leaderboard/` |
 | Phase 6 | LLM evaluation, Oct 21 18:08-21:19 | **main copy** | 3ca1bde, as above | No (in effect) | No: invalid (rejected API key); being rerun |
 
 Both worktrees are still clean under `tetris/` and `scripts/`.

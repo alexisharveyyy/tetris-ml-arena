@@ -1,4 +1,4 @@
-pinned step: tetris from /Users/alexisharvey/tetris-ml-arena-phase6b/tetris/__init__.py, commit 68a5b2acacc67fa553cf863b012c6791904e6422
+pinned step: tetris from ../tetris-ml-arena-phase6b/tetris/__init__.py, commit 68a5b2acacc67fa553cf863b012c6791904e6422
 target 0.20: achieved 1.350
 target 0.40: achieved 1.284
 target 0.60: achieved 1.263

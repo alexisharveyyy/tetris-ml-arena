@@ -1,5 +1,5 @@
-pinned step: tetris from /Users/alexisharvey/tetris-ml-arena-phase6b/tetris/__init__.py, commit 68a5b2acacc67fa553cf863b012c6791904e6422
-encoded 980 episodes: 287323 states, 19553316 afterstate rows in 43s -> /Users/alexisharvey/tetris-ml-arena-phase6b/data/dt/dt_24990fb61088.npz
+pinned step: tetris from ../tetris-ml-arena-phase6b/tetris/__init__.py, commit 68a5b2acacc67fa553cf863b012c6791904e6422
+encoded 980 episodes: 287323 states, 19553316 afterstate rows in 43s -> ../tetris-ml-arena-phase6b/data/dt/dt_24990fb61088.npz
 DT: 272137 train / 15186 validation states, 980 episodes, returns 0.050 to 1.464 (median 0.846); selection target 1.418
 pre-flight dt seed0_v2 on mps: batch 32 windows x 20 pieces (42,579 afterstates), scorer chunk 4096: relative gradient difference 5.06e-07 (tolerance 0.01, 3.9s)
    0.5 min  step      67  loss 3.6912  lr 4.0e-05  param change 3.8e-03

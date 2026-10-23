@@ -1,4 +1,4 @@
-encoded 995 episodes: 303011 states, 20630810 afterstate rows in 48s -> /Users/alexisharvey/tetris-ml-arena-phase6/data/dt/dt_8bc1a11e4d02.npz
+encoded 995 episodes: 303011 states, 20630810 afterstate rows in 48s -> ../tetris-ml-arena-phase6/data/dt/dt_8bc1a11e4d02.npz
 DT: 286125 train / 16886 validation states, 995 episodes, returns 0.073 to 1.439 (median 0.790); selection target 1.417
 pre-flight dt seed0 on mps: batch 32 windows x 20 pieces (41,005 afterstates), scorer chunk 4096: relative gradient difference 5.99e-07 (tolerance 0.01, 5.6s)
    0.5 min  step      63  loss 3.6890  lr 3.8e-05  param change 3.4e-03
