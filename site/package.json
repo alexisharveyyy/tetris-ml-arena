@@ -1,0 +1,29 @@
+{
+  "name": "tetris-ml-arena-site",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Static browser version of Tetris ML Arena: the engine and every agent run in the page.",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "test": "vitest run",
+    "fixtures:engine": "cd .. && python scripts/tools/web_fixtures.py engine",
+    "e2e": "playwright test"
+  },
+  "dependencies": {
+    "react": "19.3.1",
+    "react-dom": "19.3.1"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.64.1",
+    "@types/node": "24.19.2",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "@vitejs/plugin-react": "6.1.2",
+    "typescript": "7.0.2",
+    "vite": "8.3.4",
+    "vitest": "5.0.5"
+  }
+}
