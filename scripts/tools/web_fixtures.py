@@ -12,7 +12,8 @@ placements and their scores) and, for the Decision Transformer, whole
 trajectories (it keeps a history). Needs the trained checkpoints, so it runs
 locally and the output is committed. ``--only`` limits it to some agents, and
 ``--check`` compares with the committed files instead of writing them (CI does
-this for the linear and NEAT agents, whose weights are committed).
+this for the linear and NEAT agents, whose weights are committed): placements
+must match exactly and scores to 1e-9.
 
 Usage:
   python scripts/tools/web_fixtures.py engine [--out PATH]
@@ -311,6 +312,20 @@ def dt_trajectories() -> list[dict]:
     return trajs
 
 
+def _same(a, b, rel: float = 1e-9) -> bool:
+    """Equal structure and integers; floats within ``rel`` (BLAS summation order
+    can change the last bits of a score between machines)."""
+    if isinstance(a, float) or isinstance(b, float):
+        if not isinstance(a, (int, float)) or not isinstance(b, (int, float)):
+            return False
+        return abs(a - b) <= rel * max(1.0, abs(a), abs(b))
+    if isinstance(a, dict):
+        return isinstance(b, dict) and a.keys() == b.keys() and all(_same(a[k], b[k], rel) for k in a)
+    if isinstance(a, list):
+        return isinstance(b, list) and len(a) == len(b) and all(_same(x, y, rel) for x, y in zip(a, b))
+    return a == b
+
+
 def agents(only: list[str] | None, check: bool) -> int:
     keys = [k for k in AGENT_KEYS if not only or k in only]
     pool_path = AGENT_DIR / "pool.json"
@@ -327,7 +342,7 @@ def agents(only: list[str] | None, check: bool) -> int:
     bad = 0
     for path, text in outputs.items():
         if check:
-            if not path.exists() or path.read_text() != text:
+            if not path.exists() or not _same(json.loads(path.read_text()), json.loads(text)):
                 print(f"differs from the Python agents: {path.relative_to(ROOT)}")
                 bad += 1
         else:

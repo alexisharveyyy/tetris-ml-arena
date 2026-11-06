@@ -1,0 +1,114 @@
+name: Site
+
+# The browser version (site/). Every push and pull request runs the parity
+# tests; a push to master also builds the site and publishes it to GitHub Pages
+# at https://alexisalineharvey.com/tetris-ml-arena/.
+#
+# Parity:
+#   - the Python engine writes 50 seeded games move for move, and the
+#     TypeScript engine must replay them exactly;
+#   - the linear and NEAT agent fixtures are recomputed from the committed
+#     weights and must match the committed files;
+#   - every agent must pick its Python original's placement on the recorded
+#     states (the neural agents' fixtures come from the trained checkpoints,
+#     which are not in the repository, so they are committed).
+on:
+  push:
+    paths:
+      - "site/**"
+      - "web/src/**"
+      - "tetris/engine/**"
+      - "tetris/agents/**"
+      - "tetris/env/**"
+      - "tetris/rl/**"
+      - "scripts/tools/web_*.py"
+      - "reports/FINAL_REPORT.md"
+      - ".github/workflows/site.yml"
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: site-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  parity:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+      # The engine and the heuristic agents need only these (no torch).
+      - name: Python dependencies
+        run: pip install numpy==2.5.4 PyYAML==6.0.3 gymnasium==1.4.0
+      - name: Engine traces from the Python engine
+        run: python scripts/tools/web_fixtures.py engine
+      - name: Linear and NEAT fixtures match the Python agents
+        run: python scripts/tools/web_fixtures.py agents --only dellacherie,ga,cem,neat --check
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: site/package-lock.json
+      - name: Install
+        working-directory: site
+        run: npm ci
+      - name: Type check
+        working-directory: site
+        run: npx tsc --noEmit -p .
+      - name: Parity tests
+        working-directory: site
+        run: npx vitest run
+      - name: Near-tie report
+        if: always()
+        run: cat site/tests/parity-report.json || true
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: parity-report
+          path: site/tests/parity-report.json
+          if-no-files-found: ignore
+
+  build:
+    needs: parity
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: site/package-lock.json
+      - name: Install
+        working-directory: site
+        run: npm ci
+      - name: Build
+        working-directory: site
+        run: npm run build
+      - uses: actions/configure-pages@v6
+      - uses: actions/upload-pages-artifact@v5
+        with:
+          path: site/dist
+
+  deploy:
+    needs: build
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    concurrency:
+      group: pages
+      cancel-in-progress: false
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v5
