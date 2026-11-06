@@ -312,18 +312,34 @@ def dt_trajectories() -> list[dict]:
     return trajs
 
 
-def _same(a, b, rel: float = 1e-9) -> bool:
-    """Equal structure and integers; floats within ``rel`` (BLAS summation order
-    can change the last bits of a score between machines)."""
+def _first_diff(a, b, path: str = "", rel: float = 1e-9) -> str | None:
+    """Where ``a`` and ``b`` first differ: equal structure and integers, floats
+    within ``rel`` (BLAS summation order can change a score's last bits)."""
     if isinstance(a, float) or isinstance(b, float):
-        if not isinstance(a, (int, float)) or not isinstance(b, (int, float)):
-            return False
-        return abs(a - b) <= rel * max(1.0, abs(a), abs(b))
-    if isinstance(a, dict):
-        return isinstance(b, dict) and a.keys() == b.keys() and all(_same(a[k], b[k], rel) for k in a)
-    if isinstance(a, list):
-        return isinstance(b, list) and len(a) == len(b) and all(_same(x, y, rel) for x, y in zip(a, b))
-    return a == b
+        ok = isinstance(a, (int, float)) and isinstance(b, (int, float))
+        ok = ok and abs(a - b) <= rel * max(1.0, abs(a), abs(b))
+        return None if ok else f"{path}: {a!r} != {b!r}"
+    if isinstance(a, dict) and isinstance(b, dict):
+        if a.keys() != b.keys():
+            return f"{path}: keys differ"
+        for k in a:
+            d = _first_diff(a[k], b[k], f"{path}.{k}", rel)
+            if d:
+                return d
+        return None
+    if isinstance(a, list) and isinstance(b, list):
+        if len(a) != len(b):
+            return f"{path}: length {len(a)} != {len(b)}"
+        for i, (x, y) in enumerate(zip(a, b)):
+            d = _first_diff(x, y, f"{path}[{i}]", rel)
+            if d:
+                return d
+        return None
+    return None if a == b else f"{path}: {str(a)[:200]} != {str(b)[:200]}"
+
+
+def _same(a, b) -> bool:
+    return _first_diff(a, b) is None
 
 
 def agents(only: list[str] | None, check: bool) -> int:
@@ -342,8 +358,9 @@ def agents(only: list[str] | None, check: bool) -> int:
     bad = 0
     for path, text in outputs.items():
         if check:
-            if not path.exists() or not _same(json.loads(path.read_text()), json.loads(text)):
-                print(f"differs from the Python agents: {path.relative_to(ROOT)}")
+            diff = "missing" if not path.exists() else _first_diff(json.loads(path.read_text()), json.loads(text))
+            if diff:
+                print(f"differs from the Python agents: {path.relative_to(ROOT)}: {diff}")
                 bad += 1
         else:
             path.parent.mkdir(parents=True, exist_ok=True)
