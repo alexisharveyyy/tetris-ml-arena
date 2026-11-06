@@ -1,0 +1,576 @@
+/* Phone layouts for the web client's four looks, kept in the static site so
+   web/src stays unchanged. The desktop layouts use two-column grids and fixed
+   column widths; below 720px wide these rules stack them into one column. */
+
+@media (max-width: 720px) {
+  /* Page frame and top bar */
+  #root {
+    max-width: 100vw;
+    overflow-x: hidden;
+  }
+  .screen,
+  main {
+    box-sizing: border-box;
+    max-width: 100vw;
+    padding-left: 16px !important;
+    padding-right: 16px !important;
+  }
+  .topbar,
+  .topbar__nav,
+  .look-switcher,
+  .page-head,
+  .tabs,
+  .seg--mode {
+    flex-wrap: wrap;
+    row-gap: 8px;
+  }
+  .topbar {
+    gap: 12px;
+  }
+  .page-title {
+    font-size: clamp(28px, 8vw, 44px);
+    overflow-wrap: anywhere;
+  }
+  h1 {
+    overflow-wrap: anywhere;
+  }
+
+  /* Two-column screens become one column */
+  [data-look="tetromino"] .home__main,
+  [data-look="tetromino"] .opponents__body,
+  [data-look="broadcast"] .bc-home,
+  [data-look="broadcast"] .bc-cols,
+  [data-look="poster"] .po-cols,
+  [data-look="terminal"] .term-home,
+  [data-look="terminal"] .term-cols {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+  [data-look="tetromino"] .home__main > *,
+  [data-look="broadcast"] .bc-home > *,
+  [data-look="terminal"] .term-home > * {
+    min-width: 0;
+  }
+  [data-look="tetromino"] .home h1,
+  [data-look="tetromino"] .home__title {
+    font-size: clamp(40px, 12vw, 64px);
+  }
+
+  /* Lists and grids of cards */
+  [data-look="tetromino"] .lineup-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  [data-look="tetromino"] .more-list a,
+  [data-look="terminal"] .term-menu__row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  [data-look="poster"] .po-tiles {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  [data-look="poster"] .po-more {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  [data-look="poster"] .po-band,
+  [data-look="broadcast"] .bc-board__head,
+  [data-look="broadcast"] .bc-board__row {
+    grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr) auto;
+  }
+  [data-look="terminal"] .term-agent {
+    grid-template-columns: 24px minmax(0, 1fr) auto;
+  }
+  [data-look="terminal"] .term-agent > :nth-child(n + 4) {
+    grid-column: 2 / -1;
+  }
+  .choice-list {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+  .setting {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+  .seg--difficulty,
+  [data-look="poster"] .po-diff {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+  .po-btn,
+  .agent-row__name {
+    white-space: normal !important;
+  }
+
+  /* Wide tables scroll inside their own box, never the page */
+  .survival-table,
+  .people-table,
+  .comparisons-table,
+  .keys-table,
+  table {
+    display: block;
+    max-width: 100%;
+    overflow-x: auto;
+    /* Without paint containment a wide table still widens the phone's layout
+       viewport (the page zooms out) even though it scrolls in its own box. */
+    contain: paint;
+  }
+  [data-look="tetromino"] .survival-table__axis {
+    width: 240px;
+  }
+  [data-look="tetromino"] .survival-table__agent {
+    min-width: 160px;
+  }
+  .overlay__box {
+    min-width: 0;
+    max-width: calc(100vw - 32px);
+  }
+}
+
+/* Play screens on a phone: your board first, the agents in a row under it.
+   The play screen's fit-to-window scaling then sizes the cells. */
+@media (max-width: 720px) {
+  [data-look="tetromino"] .match__head,
+  [data-look="tetromino"] .standings,
+  [data-look="tetromino"] .match__controls,
+  [data-look="terminal"] .term-head,
+  [data-look="broadcast"] .bc-scorebar,
+  [data-look="broadcast"] .bc-scores,
+  [data-look="poster"] .po-matchbar {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  [data-look="tetromino"] .match__boards,
+  [data-look="broadcast"] .bc-arena {
+    flex-wrap: wrap;
+    gap: 12px;
+    padding-left: 0;
+    padding-right: 0;
+  }
+  [data-look="tetromino"] .match__agents {
+    flex: 1 1 100%;
+    gap: 8px;
+  }
+  [data-look="tetromino"] .match__agents > *,
+  [data-look="broadcast"] .bc-arena > :not(.bc-you) {
+    flex: 1 1 0;
+    min-width: 0;
+  }
+  [data-look="broadcast"] .bc-you {
+    flex: 1 1 100%;
+  }
+  [data-look="tetromino"] .side,
+  [data-look="broadcast"] .bc-side,
+  [data-look="terminal"] .side,
+  [data-look="poster"] .side {
+    width: auto;
+    min-width: 0;
+  }
+  [data-look="terminal"] .term-match {
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 12px;
+  }
+  [data-look="terminal"] .term-agents-grid {
+    grid-auto-flow: column;
+    grid-template-columns: none;
+    grid-auto-columns: minmax(0, 1fr);
+    gap: 8px;
+  }
+  [data-look="terminal"] .term-agent-board {
+    min-width: 0;
+    width: auto;
+  }
+  [data-look="poster"] .po-columns {
+    flex-wrap: wrap;
+    min-height: 0;
+  }
+  [data-look="poster"] .po-col {
+    padding: 10px;
+  }
+  [data-look="poster"] .po-col--you {
+    flex: 1 1 100%;
+  }
+}
+
+/* Compact play screens on phones: the standings strip and the per-agent
+   explanations give way to the boards (places stay on each board's header;
+   a fallback or top-out message still shows). */
+@media (max-width: 720px) {
+  [data-look="tetromino"] .standings,
+  [data-look="broadcast"] .bc-scores,
+  [data-look="terminal"] .term-standings {
+    display: none;
+  }
+  .agent-card--playing .agent-card__status,
+  .agent-card--thinking .agent-card__status,
+  .agent-card__meta,
+  .agent-card__icon {
+    display: none !important;
+  }
+  .agent-card__head {
+    display: flex !important;
+    gap: 4px;
+    justify-content: space-between;
+    align-items: baseline;
+  }
+  .agent-card__who {
+    min-width: 0;
+  }
+  .screen.match,
+  .screen.term.match {
+    padding-top: 12px !important;
+    padding-bottom: 8px !important;
+  }
+  .match__boards {
+    margin-bottom: 0 !important;
+  }
+  .agent-card__head {
+    padding: 6px 8px !important;
+    min-height: 0 !important;
+  }
+  .agent-card__name {
+    font-size: 15px !important;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .agent-card {
+    padding-bottom: 6px !important;
+  }
+  .stats--agent .stats__item:not(:first-child) {
+    display: none !important;
+  }
+  .stats--agent {
+    margin: 4px 8px 0 !important;
+  }
+  .human-panel {
+    padding: 10px 12px !important;
+  }
+  .human-panel__head {
+    margin-bottom: 6px !important;
+  }
+  .stats--human {
+    margin-top: 8px !important;
+    padding-top: 8px !important;
+  }
+}
+@media (max-width: 720px) {
+  /* Pause is on the touch controls (and Esc). */
+  [data-look="tetromino"] .match__controls {
+    display: none;
+  }
+  .agent-card__head .piece-icon {
+    display: none;
+  }
+  .agent-card__place {
+    font-size: 13px !important;
+  }
+  [data-look="tetromino"] .match__clock,
+  [data-look="tetromino"] .match__timer {
+    font-size: 30px !important;
+    line-height: 1.1 !important;
+  }
+  [data-look="tetromino"] .match__mode {
+    font-size: 14px !important;
+  }
+  [data-look="tetromino"] .match__head {
+    margin-bottom: 8px !important;
+  }
+  .human-panel__title {
+    font-size: 22px !important;
+  }
+  .side__label {
+    font-size: 14px !important;
+    margin-bottom: 4px !important;
+  }
+  .stats__label {
+    font-size: 13px !important;
+  }
+  .stats__value {
+    font-size: 20px !important;
+  }
+}
+
+/* Stats on phones: one short line each (score and lines for you, score for agents). */
+@media (max-width: 720px) {
+  .stats--human .stats__item:nth-child(n + 3) {
+    display: none !important;
+  }
+  .stats--human,
+  .stats--agent {
+    display: flex !important;
+    gap: 16px;
+    border-top-width: 2px !important;
+  }
+  .stats__item {
+    display: flex !important;
+    align-items: baseline;
+    gap: 6px;
+  }
+  .stats--agent .stats__label {
+    display: none;
+  }
+  .stats--agent .stats__value {
+    font-size: 16px !important;
+  }
+  .side__label {
+    display: none !important;
+  }
+  .human-panel__head {
+    margin-bottom: 4px !important;
+  }
+}
+
+/* Last bits of height on phones: your place is on the agents' headers and in
+   the results, so your board's own header gives way. */
+@media (max-width: 720px) {
+  .human-panel__head {
+    display: none !important;
+  }
+  .agent-card__board {
+    padding: 6px 4px !important;
+    margin: 0 !important;
+  }
+  .stats--agent {
+    margin-top: 0 !important;
+    padding-top: 2px !important;
+  }
+}
+
+/* Hold and next boxes shrink with the board on phones. */
+@media (max-width: 720px) {
+  .side__box {
+    padding: 4px !important;
+    min-height: 0 !important;
+  }
+  .side__queue {
+    gap: 6px !important;
+  }
+  .side__queue li:nth-child(n + 4) {
+    display: none;
+  }
+  [data-look="terminal"] .side__queue .piece-preview--text {
+    font-size: 11px !important;
+    line-height: 1 !important;
+  }
+}
+
+/* Agent boards stay small on phones so your board gets the room. */
+@media (max-width: 720px) {
+  canvas.board:not(.board--human) {
+    height: 16vh !important;
+    width: auto !important;
+    max-width: 100%;
+  }
+}
+
+/* Terminal look on a phone */
+@media (max-width: 720px) {
+  [data-look="terminal"] .term-title,
+  [data-look="terminal"] .term-actions,
+  [data-look="terminal"] .term-side .term-h2,
+  [data-look="terminal"] .term-standings,
+  [data-look="terminal"] .term-legend,
+  [data-look="terminal"] .term-agent-board .term-dim,
+  [data-look="terminal"] .term-agent-board .term-agent-status {
+    display: none !important;
+  }
+  [data-look="terminal"] .term-head {
+    padding-bottom: 6px !important;
+    margin-bottom: 8px !important;
+    font-size: 16px;
+  }
+  [data-look="terminal"] .term-stats {
+    display: grid !important;
+    grid-template-columns: repeat(4, auto);
+    gap: 2px 8px;
+    margin: 0 !important;
+    font-size: 15px;
+  }
+  [data-look="terminal"] .term-stats dt,
+  [data-look="terminal"] .term-stats dd {
+    margin: 0;
+  }
+  [data-look="terminal"] .term-h2,
+  [data-look="terminal"] .term-agent-board p {
+    font-size: 14px !important;
+    margin: 2px 0 !important;
+    line-height: 1.2 !important;
+  }
+  [data-look="terminal"] .term-queue .term-dim {
+    font-size: 13px !important;
+  }
+}
+
+/* Broadcast look on a phone */
+@media (max-width: 720px) {
+  [data-look="broadcast"] .bc-scorebar__actions,
+  [data-look="broadcast"] .bc-agent-board__meta,
+  [data-look="broadcast"] .bc-page--match .ticker {
+    display: none !important;
+  }
+  [data-look="broadcast"] .bc-scorebar {
+    padding: 6px 12px !important;
+  }
+  [data-look="broadcast"] .bc-arena {
+    padding: 8px 12px !important;
+  }
+  [data-look="broadcast"] .bc-well {
+    padding-bottom: 0 !important;
+  }
+  [data-look="broadcast"] .bc-banner,
+  [data-look="broadcast"] .bc-banner--you {
+    position: static !important;
+    font-size: 16px !important;
+    white-space: normal !important;
+    margin-top: 4px;
+  }
+  [data-look="broadcast"] .bc-banner .plate__in {
+    padding: 3px 8px !important;
+  }
+  [data-look="broadcast"] .bc-banner--you .bc-banner__meta {
+    font-size: 13px !important;
+  }
+  [data-look="broadcast"] .bc-box {
+    padding: 4px !important;
+  }
+  [data-look="broadcast"] .bc-box__title {
+    font-size: 14px !important;
+    margin: 0 0 4px !important;
+  }
+  [data-look="broadcast"] .bc-queue {
+    gap: 4px !important;
+  }
+  [data-look="broadcast"] .bc-queue li:nth-child(n + 4) {
+    display: none;
+  }
+  [data-look="broadcast"] .bc-arena > .bc-agent-board .bc-well .board {
+    margin: 0 auto;
+  }
+}
+
+/* Poster look on a phone */
+@media (max-width: 720px) {
+  [data-look="poster"] .po-matchbar__actions,
+  [data-look="poster"] .po-col__meta,
+  [data-look="poster"] .po-col:not(.po-col--you) .po-col__status {
+    display: none !important;
+  }
+  [data-look="poster"] .po-matchbar {
+    padding: 6px 12px !important;
+  }
+  [data-look="poster"] .po-matchbar__timer {
+    font-size: 26px !important;
+  }
+  [data-look="poster"] .po-matchbar__mode {
+    font-size: 14px !important;
+  }
+  [data-look="poster"] .po-col__top {
+    gap: 6px;
+    padding-bottom: 4px !important;
+    margin-bottom: 4px !important;
+  }
+  [data-look="poster"] .po-col__place {
+    font-size: 30px !important;
+    line-height: 1 !important;
+  }
+  [data-look="poster"] .po-col__pts {
+    font-size: 18px !important;
+  }
+  [data-look="poster"] .po-col__lines {
+    font-size: 12px !important;
+  }
+  [data-look="poster"] .po-col__name {
+    font-size: 16px !important;
+    margin: 0 !important;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  [data-look="poster"] .po-col__board {
+    margin: 4px 0 !important;
+  }
+  [data-look="poster"] .po-col__status {
+    font-size: 13px !important;
+    margin: 0 !important;
+  }
+  [data-look="poster"] .po-col--you {
+    display: grid !important;
+    grid-template-columns: auto minmax(0, 1fr);
+    column-gap: 12px;
+    align-items: start;
+  }
+  [data-look="poster"] .po-col--you .po-col__board {
+    grid-row: 1 / span 4;
+    grid-column: 1;
+  }
+}
+@media (max-width: 720px) {
+  [data-look="broadcast"] .bc-page,
+  [data-look="broadcast"] .bc-page--match {
+    min-height: 0 !important;
+  }
+}
+
+/* Home screens of the Broadcast and Poster looks on a phone */
+@media (max-width: 720px) {
+  [data-look="broadcast"] .bc-topbar,
+  [data-look="poster"] .po-top,
+  [data-look="broadcast"] .bc-topbar__links,
+  [data-look="poster"] .po-top__links,
+  [data-look="broadcast"] .bc-tiles {
+    flex-wrap: wrap;
+    gap: 10px 16px;
+  }
+  [data-look="broadcast"] .bc-topbar {
+    padding: 12px 16px;
+  }
+  [data-look="broadcast"] .bc-home__main {
+    grid-template-columns: minmax(0, 1fr) !important;
+    display: grid;
+  }
+  [data-look="broadcast"] .bc-home__main > *,
+  [data-look="broadcast"] .bc-lineup li {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+  [data-look="broadcast"] .bc-tiles {
+    padding-left: 0;
+  }
+  [data-look="broadcast"] .bc-tile .plate__in {
+    padding: 10px 16px;
+  }
+  [data-look="poster"] .po-stripes {
+    flex-wrap: wrap;
+    height: auto;
+  }
+  [data-look="poster"] .po-stripe {
+    width: 25%;
+    box-sizing: border-box;
+    min-height: 170px;
+  }
+  [data-look="poster"] .po-stripe__name,
+  [data-look="poster"] .po-stripe__family {
+    white-space: normal !important;
+    overflow-wrap: anywhere;
+  }
+}
+@media (max-width: 720px) {
+  /* Broadcast opponents: the skewed plates need room for their slant. */
+  [data-look="broadcast"] .bc-agent {
+    width: calc(100% - 28px);
+    margin-left: 10px;
+  }
+  [data-look="broadcast"] .bc-agent .plate__in {
+    grid-template-columns: 44px minmax(0, 1fr) auto;
+    padding: 8px 12px;
+  }
+  [data-look="broadcast"] .bc-cols > * {
+    min-width: 0;
+  }
+  [data-look="broadcast"] .bc-slot,
+  [data-look="broadcast"] .bc-mode,
+  [data-look="broadcast"] .bc-start {
+    box-sizing: border-box;
+    max-width: calc(100% - 12px);
+  }
+}
+@media (max-width: 720px) {
+  [data-look="broadcast"] .bc-start {
+    width: calc(100% - 20px) !important;
+    margin-left: 8px !important;
+  }
+}

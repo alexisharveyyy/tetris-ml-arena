@@ -6,6 +6,10 @@ algorithm to DQN, PPO, imitation learning, NEAT, a Decision Transformer and
 an optional LLM. They all play the same deterministic engine, and are
 compared on held-out games under one evaluation protocol.
 
+**Play it in your browser:** <https://alexisalineharvey.com/tetris-ml-arena/>.
+The engine and every agent except the LLM run on your device, with no server
+(see [Browser version](#browser-version)).
+
 ![A Marathon match in the Tetromino look: the human against DQN, CEM and PPO](docs/screenshots/A3-match.png)
 
 | | |
@@ -92,6 +96,33 @@ interval, the threats to validity and how to reproduce each result, is
 [reports/FINAL_REPORT.md](reports/FINAL_REPORT.md). The other reports are
 indexed in [reports/README.md](reports/README.md).
 
+## Browser version
+
+`site/` is a fully static build of the web app, published to GitHub Pages at
+<https://alexisalineharvey.com/tetris-ml-arena/> by
+[.github/workflows/site.yml](.github/workflows/site.yml) on every push to
+`master`. It runs the web client's screens and four looks unchanged, with the
+server's API answered in the page.
+
+- **Engine:** a TypeScript port of `tetris/engine`. CI replays 50 seeded games
+  from the Python engine and requires the same state after every move.
+- **Agents:** Dellacherie, GA, CEM and NEAT run as plain TypeScript. DQN,
+  PPO, PPO (raw actions), the BC agents and the Decision Transformer are
+  exported to ONNX (`scripts/tools/web_export.py`) and run by a small
+  TypeScript inference module that reads the weights from the ONNX files.
+  Each agent runs in a Web Worker, and its model downloads only when chosen.
+- **Agent parity:** every agent must pick the same placement as its Python
+  original on recorded board states. A different pick is allowed only when
+  Python's top two scores are within 1e-4 (relative); the test counts these
+  near-ties per agent (see [site/README.md](site/README.md)).
+
+```bash
+cd site && npm ci
+npm run fixtures:engine   # engine traces from the Python engine
+npm test                  # engine, agent and planner parity
+npm run build && npm run preview
+```
+
 ## Repository layout
 
 ```
@@ -106,6 +137,7 @@ tetris/
   ui/pygame/     the desktop app (the only package that imports Pygame)
   web/           FastAPI server, WebSocket protocol, committed frontend build (static/)
 web/             React + TypeScript frontend source, four looks, Vitest and Playwright tests
+site/            static browser version: TS engine, agents, inference, Web Workers, parity tests
 scripts/         train/, eval/, analysis/, queue/, tools/ (see scripts/README.md)
 reports/         FINAL_REPORT.md and every result, indexed in reports/README.md
 docs/            usage, architecture, demo checklist, web UI design, screenshots

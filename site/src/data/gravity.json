@@ -1,0 +1,25 @@
+{
+ "note": "scoring.gravity_rows_per_second(level) for levels 1 to 20, as float64 bits.",
+ "bits": [
+  "3ff0000000000000",
+  "3ff42d3209af4b38",
+  "3ff9e60530202b3a",
+  "4000ec4a64092690",
+  "400685d0cd013543",
+  "400e88b01f7fdd1f",
+  "401516a4f7fa54f0",
+  "401db01e7cccdea3",
+  "40254da3df7a128f",
+  "402f2d18be3e3b29",
+  "403744c6fd5796e0",
+  "4041b829dae95f0c",
+  "404b8b0c6a81f42e",
+  "4055daba2b0d5dc6",
+  "4061b5776aedc8ba",
+  "406d517864232f8c",
+  "4078ccfeaabedaaf",
+  "408572362c97f8c0",
+  "4092f6eae0d490ca",
+  "40a127c3fd72642c"
+ ]
+}

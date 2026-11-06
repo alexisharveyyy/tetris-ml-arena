@@ -1,0 +1,19 @@
+{
+ "dqn": {
+  "gamma": 0.99
+ },
+ "dt": {
+  "default_target": 0.8,
+  "return_cap": 500,
+  "config": {
+   "d_model": 128,
+   "n_layers": 4,
+   "n_heads": 4,
+   "context": 20,
+   "max_timestep": 512,
+   "board_dim": 128,
+   "extra_dim": 64,
+   "dropout": 0.1
+  }
+ }
+}

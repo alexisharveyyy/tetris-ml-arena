@@ -1,0 +1,1959 @@
+{
+ "survival": {
+  "scale_max": 0.5,
+  "setting": {
+   "garbage_rows": 1,
+   "garbage_every": 3,
+   "max_pieces": 500
+  },
+  "method": "Intervals are 95% Wilson score intervals from 500 games each. A garbage row arrives every 3 pieces and cannot be cancelled, and games stop at 500 pieces. Ties and gaps come from a paired bootstrap on the same seeds.",
+  "significance": [
+   {
+    "label": "Statistically tied",
+    "text": "PPO, DQN, CEM, and Decision Transformer; GA heuristic, NEAT, BC (pure), and BC + DAgger; BC (you) and PPO (raw actions). Decision Transformer is also tied with GA heuristic."
+   },
+   {
+    "label": "Significant gaps",
+    "text": "BC + DAgger tops out less often than Dellacherie; Dellacherie tops out less often than BC (you)."
+   },
+   {
+    "label": "Against the baseline (Dellacherie)",
+    "text": "PPO, DQN, CEM, Decision Transformer, GA heuristic, NEAT, BC (pure), and BC + DAgger better; BC (you) and PPO (raw actions) worse."
+   }
+  ],
+  "comparisons": [
+   {
+    "a": "ppo",
+    "b": "dqn",
+    "fitness": {
+     "mean": -0.005657134882079685,
+     "lo": -0.035316439809417254,
+     "hi": 0.02343456740424524,
+     "significant": false
+    },
+    "top_out_rate": {
+     "mean": -0.002,
+     "lo": -0.044,
+     "hi": 0.04,
+     "significant": false
+    }
+   },
+   {
+    "a": "ppo",
+    "b": "cem",
+    "fitness": {
+     "mean": 0.02105725357892925,
+     "lo": -0.007602313541028378,
+     "hi": 0.050557088970743354,
+     "significant": false
+    },
+    "top_out_rate": {
+     "mean": -0.026,
+     "lo": -0.068,
+     "hi": 0.016,
+     "significant": false
+    }
+   },
+   {
+    "a": "ppo",
+    "b": "dt",
+    "fitness": {
+     "mean": 0.0295665524693793,
+     "lo": -0.0013698490997868266,
+     "hi": 0.05974504840194963,
+     "significant": false
+    },
+    "top_out_rate": {
+     "mean": -0.034,
+     "lo": -0.076,
+     "hi": 0.008,
+     "significant": false
+    }
+   },
+   {
+    "a": "ppo",
+    "b": "ga",
+    "fitness": {
+     "mean": 0.049513106966473146,
+     "lo": 0.0158328832512661,
+     "hi": 0.08286124779979673,
+     "significant": true
+    },
+    "top_out_rate": {
+     "mean": -0.058,
+     "lo": -0.102,
+     "hi": -0.014,
+     "significant": true
+    }
+   },
+   {
+    "a": "ppo",
+    "b": "neat",
+    "fitness": {
+     "mean": 0.05874034876178603,
+     "lo": 0.024848532529387922,
+     "hi": 0.09247768672339604,
+     "significant": true
+    },
+    "top_out_rate": {
+     "mean": -0.066,
+     "lo": -0.11,
+     "hi": -0.022,
+     "significant": true
+    }
+   },
+   {
+    "a": "ppo",
+    "b": "bc_pure",
+    "fitness": {
+     "mean": 0.04254021864210898,
+     "lo": 0.010882746016761423,
+     "hi": 0.07443903220639267,
+     "significant": true
+    },
+    "top_out_rate": {
+     "mean": -0.078,
+     "lo": -0.124,
+     "hi": -0.032,
+     "significant": true
+    }
+   },
+   {
+    "a": "ppo",
+    "b": "bc_dagger",
+    "fitness": {
+     "mean": 0.05906434119922386,
+     "lo": 0.025667593384356778,
+     "hi": 0.0928083358752228,
+     "significant": true
+    },
+    "top_out_rate": {
+     "mean": -0.082,
+     "lo": -0.126,
+     "hi": -0.038,
+     "significant": true
+    }
+   },
+   {
+    "a": "ppo",
+    "b": "dellacherie",
+    "fitness": {
+     "mean": 0.14339024471401432,
+     "lo": 0.10592503951718671,
+     "hi": 0.18141432504433355,
+     "significant": true
+    },
+    "top_out_rate": {
+     "mean": -0.186,
+     "lo": -0.236,
+     "hi": -0.138,
+     "significant": true
+    }
+   },
+   {
+    "a": "ppo",
+    "b": "bc_you",
+    "fitness": {
+     "mean": 1.1922125446981258,
+     "lo": 1.1693228197893255,
+     "hi": 1.2134697609277652,
+     "significant": true
+    },
+    "top_out_rate": {
+     "mean": -0.876,
+     "lo": -0.904,
+     "hi": -0.846,
+     "significant": true
+    }
+   },
+   {
+    "a": "ppo",
+    "b": "ppo_raw",
+    "fitness": {
+     "mean": 1.2355798490002128,
+     "lo": 1.2133828583759187,
+     "hi": 1.2556580409418845,
+     "significant": true
+    },
+    "top_out_rate": {
+     "mean": -0.876,
+     "lo": -0.904,
+     "hi": -0.846,
+     "significant": true
+    }
+   },
+   {
+    "a": "dqn",
+    "b": "cem",
+    "fitness": {
+     "mean": 0.026714388461008938,
+     "lo": -0.0020846348225204148,
+     "hi": 0.05531536364295303,
+     "significant": false
+    },
+    "top_out_rate": {
+     "mean": -0.024,
+     "lo": -0.068,
+     "hi": 0.02,
+     "significant": false
+    }
+   },
+   {
+    "a": "dqn",
+    "b": "dt",
+    "fitness": {
+     "mean": 0.03522368735145899,
+     "lo": 0.005593034559901521,
+     "hi": 0.06471074122066711,
+     "significant": true
+    },
+    "top_out_rate": {
+     "mean": -0.032,
+     "lo": -0.076,
+     "hi": 0.012,
+     "significant": false
+    }
+   },
+   {
+    "a": "dqn",
+    "b": "ga",
+    "fitness": {
+     "mean": 0.05517024184855283,
+     "lo": 0.024011579659473526,
+     "hi": 0.0860729820589124,
+     "significant": true
+    },
+    "top_out_rate": {
+     "mean": -0.056,
+     "lo": -0.1,
+     "hi": -0.012,
+     "significant": true
+    }
+   },
+   {
+    "a": "dqn",
+    "b": "neat",
+    "fitness": {
+     "mean": 0.06439748364386573,
+     "lo": 0.03258792753015146,
+     "hi": 0.09661687025732545,
+     "significant": true
+    },
+    "top_out_rate": {
+     "mean": -0.064,
+     "lo": -0.11,
+     "hi": -0.018,
+     "significant": true
+    }
+   },
+   {
+    "a": "dqn",
+    "b": "bc_pure",
+    "fitness": {
+     "mean": 0.04819735352418867,
+     "lo": 0.017154057883394986,
+     "hi": 0.08044375535043893,
+     "significant": true
+    },
+    "top_out_rate": {
+     "mean": -0.076,
+     "lo": -0.12,
+     "hi": -0.03,
+     "significant": true
+    }
+   },
+   {
+    "a": "dqn",
+    "b": "bc_dagger",
+    "fitness": {
+     "mean": 0.06472147608130353,
+     "lo": 0.032277407174191745,
+     "hi": 0.09825297894213751,
+     "significant": true
+    },
+    "top_out_rate": {
+     "mean": -0.08,
+     "lo": -0.126,
+     "hi": -0.034,
+     "significant": true
+    }
+   },
+   {
+    "a": "dqn",
+    "b": "dellacherie",
+    "fitness": {
+     "mean": 0.14904737959609402,
+     "lo": 0.11358259397684609,
+     "hi": 0.1842662359356767,
+     "significant": true
+    },
+    "top_out_rate": {
+     "mean": -0.184,
+     "lo": -0.232,
+     "hi": -0.136,
+     "significant": true
+    }
+   },
+   {
+    "a": "dqn",
+    "b": "bc_you",
+    "fitness": {
+     "mean": 1.1978696795802057,
+     "lo": 1.176595490244396,
+     "hi": 1.2173435451026868,
+     "significant": true
+    },
+    "top_out_rate": {
+     "mean": -0.874,
+     "lo": -0.902,
+     "hi": -0.844,
+     "significant": true
+    }
+   },
+   {
+    "a": "dqn",
+    "b": "ppo_raw",
+    "fitness": {
+     "mean": 1.2412369838822923,
+     "lo": 1.22163870305429,
+     "hi": 1.259392789921116,
+     "significant": true
+    },
+    "top_out_rate": {
+     "mean": -0.874,
+     "lo": -0.902,
+     "hi": -0.844,
+     "significant": true
+    }
+   },
+   {
+    "a": "cem",
+    "b": "dt",
+    "fitness": {
+     "mean": 0.008509298890450052,
+     "lo": -0.02230508969971544,
+     "hi": 0.03817228389669388,
+     "significant": false
+    },
+    "top_out_rate": {
+     "mean": -0.008,
+     "lo": -0.052,
+     "hi": 0.036,
+     "significant": false
+    }
+   },
+   {
+    "a": "cem",
+    "b": "ga",
+    "fitness": {
+     "mean": 0.02845585338754389,
+     "lo": -0.003957589455734669,
+     "hi": 0.06064546888025944,
+     "significant": false
+    },
+    "top_out_rate": {
+     "mean": -0.032,
+     "lo": -0.078,
+     "hi": 0.014,
+     "significant": false
+    }
+   },
+   {
+    "a": "cem",
+    "b": "neat",
+    "fitness": {
+     "mean": 0.03768309518285679,
+     "lo": 0.00377467859933936,
+     "hi": 0.07191950702252611,
+     "significant": true
+    },
+    "top_out_rate": {
+     "mean": -0.04,
+     "lo": -0.086,
+     "hi": 0.006,
+     "significant": false
+    }
+   },
+   {
+    "a": "cem",
+    "b": "bc_pure",
+    "fitness": {
+     "mean": 0.021482965063179732,
+     "lo": -0.009430570418617201,
+     "hi": 0.05306594212397312,
+     "significant": false
+    },
+    "top_out_rate": {
+     "mean": -0.052,
+     "lo": -0.098,
+     "hi": -0.006,
+     "significant": true
+    }
+   },
+   {
+    "a": "cem",
+    "b": "bc_dagger",
+    "fitness": {
+     "mean": 0.03800708762029461,
+     "lo": 0.005949793263520726,
+     "hi": 0.0711762655270144,
+     "significant": true
+    },
+    "top_out_rate": {
+     "mean": -0.056,
+     "lo": -0.102,
+     "hi": -0.01,
+     "significant": true
+    }
+   },
+   {
+    "a": "cem",
+    "b": "dellacherie",
+    "fitness": {
+     "mean": 0.12233299113508508,
+     "lo": 0.0848545960511988,
+     "hi": 0.15913798015571304,
+     "significant": true
+    },
+    "top_out_rate": {
+     "mean": -0.16,
+     "lo": -0.21,
+     "hi": -0.11,
+     "significant": true
+    }
+   },
+   {
+    "a": "cem",
+    "b": "bc_you",
+    "fitness": {
+     "mean": 1.1711552911191967,
+     "lo": 1.147501590076628,
+     "hi": 1.1930618821599919,
+     "significant": true
+    },
+    "top_out_rate": {
+     "mean": -0.85,
+     "lo": -0.882,
+     "hi": -0.818,
+     "significant": true
+    }
+   },
+   {
+    "a": "cem",
+    "b": "ppo_raw",
+    "fitness": {
+     "mean": 1.2145225954212833,
+     "lo": 1.1923057522236755,
+     "hi": 1.2349535522475823,
+     "significant": true
+    },
+    "top_out_rate": {
+     "mean": -0.85,
+     "lo": -0.882,
+     "hi": -0.818,
+     "significant": true
+    }
+   },
+   {
+    "a": "dt",
+    "b": "ga",
+    "fitness": {
+     "mean": 0.019946554497093844,
+     "lo": -0.0126317913774934,
+     "hi": 0.05287427280415321,
+     "significant": false
+    },
+    "top_out_rate": {
+     "mean": -0.024,
+     "lo": -0.07,
+     "hi": 0.022,
+     "significant": false
+    }
+   },
+   {
+    "a": "dt",
+    "b": "neat",
+    "fitness": {
+     "mean": 0.029173796292406736,
+     "lo": -0.0036381287290848654,
+     "hi": 0.06264196527314432,
+     "significant": false
+    },
+    "top_out_rate": {
+     "mean": -0.032,
+     "lo": -0.078,
+     "hi": 0.014,
+     "significant": false
+    }
+   },
+   {
+    "a": "dt",
+    "b": "bc_pure",
+    "fitness": {
+     "mean": 0.012973666172729683,
+     "lo": -0.017946851675289578,
+     "hi": 0.04418596427638951,
+     "significant": false
+    },
+    "top_out_rate": {
+     "mean": -0.044,
+     "lo": -0.09,
+     "hi": 0.002,
+     "significant": false
+    }
+   },
+   {
+    "a": "dt",
+    "b": "bc_dagger",
+    "fitness": {
+     "mean": 0.029497788729844553,
+     "lo": -0.0036309079926814952,
+     "hi": 0.06327413863768416,
+     "significant": false
+    },
+    "top_out_rate": {
+     "mean": -0.048,
+     "lo": -0.094,
+     "hi": -0.002,
+     "significant": true
+    }
+   },
+   {
+    "a": "dt",
+    "b": "dellacherie",
+    "fitness": {
+     "mean": 0.11382369224463501,
+     "lo": 0.07662493389653147,
+     "hi": 0.1508500344502359,
+     "significant": true
+    },
+    "top_out_rate": {
+     "mean": -0.152,
+     "lo": -0.204,
+     "hi": -0.1,
+     "significant": true
+    }
+   },
+   {
+    "a": "dt",
+    "b": "bc_you",
+    "fitness": {
+     "mean": 1.1626459922287464,
+     "lo": 1.1390136840843887,
+     "hi": 1.185679695724226,
+     "significant": true
+    },
+    "top_out_rate": {
+     "mean": -0.842,
+     "lo": -0.874,
+     "hi": -0.81,
+     "significant": true
+    }
+   },
+   {
+    "a": "dt",
+    "b": "ppo_raw",
+    "fitness": {
+     "mean": 1.2060132965308334,
+     "lo": 1.1831411082316576,
+     "hi": 1.2280134459705492,
+     "significant": true
+    },
+    "top_out_rate": {
+     "mean": -0.842,
+     "lo": -0.874,
+     "hi": -0.81,
+     "significant": true
+    }
+   },
+   {
+    "a": "ga",
+    "b": "neat",
+    "fitness": {
+     "mean": 0.009227241795312893,
+     "lo": -0.025284879133889316,
+     "hi": 0.04490738844801951,
+     "significant": false
+    },
+    "top_out_rate": {
+     "mean": -0.008,
+     "lo": -0.056,
+     "hi": 0.038,
+     "significant": false
+    }
+   },
+   {
+    "a": "ga",
+    "b": "bc_pure",
+    "fitness": {
+     "mean": -0.006972888324364161,
+     "lo": -0.03960844107560789,
+     "hi": 0.02645814551207316,
+     "significant": false
+    },
+    "top_out_rate": {
+     "mean": -0.02,
+     "lo": -0.06604999999999928,
+     "hi": 0.028,
+     "significant": false
+    }
+   },
+   {
+    "a": "ga",
+    "b": "bc_dagger",
+    "fitness": {
+     "mean": 0.009551234232750715,
+     "lo": -0.02576841463197538,
+     "hi": 0.04416380343645953,
+     "significant": false
+    },
+    "top_out_rate": {
+     "mean": -0.024,
+     "lo": -0.07,
+     "hi": 0.022,
+     "significant": false
+    }
+   },
+   {
+    "a": "ga",
+    "b": "dellacherie",
+    "fitness": {
+     "mean": 0.09387713774754115,
+     "lo": 0.055053086854048375,
+     "hi": 0.13301989212374962,
+     "significant": true
+    },
+    "top_out_rate": {
+     "mean": -0.128,
+     "lo": -0.18,
+     "hi": -0.076,
+     "significant": true
+    }
+   },
+   {
+    "a": "ga",
+    "b": "bc_you",
+    "fitness": {
+     "mean": 1.1426994377316528,
+     "lo": 1.1160470976870451,
+     "hi": 1.1687522261579795,
+     "significant": true
+    },
+    "top_out_rate": {
+     "mean": -0.818,
+     "lo": -0.852,
+     "hi": -0.784,
+     "significant": true
+    }
+   },
+   {
+    "a": "ga",
+    "b": "ppo_raw",
+    "fitness": {
+     "mean": 1.1860667420337394,
+     "lo": 1.1602627381160677,
+     "hi": 1.2110375312615518,
+     "significant": true
+    },
+    "top_out_rate": {
+     "mean": -0.818,
+     "lo": -0.852,
+     "hi": -0.784,
+     "significant": true
+    }
+   },
+   {
+    "a": "neat",
+    "b": "bc_pure",
+    "fitness": {
+     "mean": -0.01620013011967705,
+     "lo": -0.05123059169434554,
+     "hi": 0.019642173485117036,
+     "significant": false
+    },
+    "top_out_rate": {
+     "mean": -0.012,
+     "lo": -0.06,
+     "hi": 0.036,
+     "significant": false
+    }
+   },
+   {
+    "a": "neat",
+    "b": "bc_dagger",
+    "fitness": {
+     "mean": 0.0003239924374378234,
+     "lo": -0.03744420536033157,
+     "hi": 0.03745621638210752,
+     "significant": false
+    },
+    "top_out_rate": {
+     "mean": -0.016,
+     "lo": -0.066,
+     "hi": 0.034,
+     "significant": false
+    }
+   },
+   {
+    "a": "neat",
+    "b": "dellacherie",
+    "fitness": {
+     "mean": 0.08464989595222829,
+     "lo": 0.045939678299932674,
+     "hi": 0.12307508543597742,
+     "significant": true
+    },
+    "top_out_rate": {
+     "mean": -0.12,
+     "lo": -0.17,
+     "hi": -0.07,
+     "significant": true
+    }
+   },
+   {
+    "a": "neat",
+    "b": "bc_you",
+    "fitness": {
+     "mean": 1.1334721959363396,
+     "lo": 1.105660597947005,
+     "hi": 1.1599681456883741,
+     "significant": true
+    },
+    "top_out_rate": {
+     "mean": -0.81,
+     "lo": -0.844,
+     "hi": -0.776,
+     "significant": true
+    }
+   },
+   {
+    "a": "neat",
+    "b": "ppo_raw",
+    "fitness": {
+     "mean": 1.1768395002384269,
+     "lo": 1.1502603304026595,
+     "hi": 1.2021810365468846,
+     "significant": true
+    },
+    "top_out_rate": {
+     "mean": -0.81,
+     "lo": -0.844,
+     "hi": -0.776,
+     "significant": true
+    }
+   },
+   {
+    "a": "bc_pure",
+    "b": "bc_dagger",
+    "fitness": {
+     "mean": 0.016524122557114874,
+     "lo": -0.01662145710476465,
+     "hi": 0.049175111193951675,
+     "significant": false
+    },
+    "top_out_rate": {
+     "mean": -0.004,
+     "lo": -0.052,
+     "hi": 0.044,
+     "significant": false
+    }
+   },
+   {
+    "a": "bc_pure",
+    "b": "dellacherie",
+    "fitness": {
+     "mean": 0.10085002607190534,
+     "lo": 0.060474564333867,
+     "hi": 0.14175613417373403,
+     "significant": true
+    },
+    "top_out_rate": {
+     "mean": -0.108,
+     "lo": -0.162,
+     "hi": -0.054,
+     "significant": true
+    }
+   },
+   {
+    "a": "bc_pure",
+    "b": "bc_you",
+    "fitness": {
+     "mean": 1.1496723260560169,
+     "lo": 1.1230726527569181,
+     "hi": 1.1744505621067336,
+     "significant": true
+    },
+    "top_out_rate": {
+     "mean": -0.798,
+     "lo": -0.832,
+     "hi": -0.764,
+     "significant": true
+    }
+   },
+   {
+    "a": "bc_pure",
+    "b": "ppo_raw",
+    "fitness": {
+     "mean": 1.1930396303581037,
+     "lo": 1.1675276821357323,
+     "hi": 1.2169276925528603,
+     "significant": true
+    },
+    "top_out_rate": {
+     "mean": -0.798,
+     "lo": -0.832,
+     "hi": -0.764,
+     "significant": true
+    }
+   },
+   {
+    "a": "bc_dagger",
+    "b": "dellacherie",
+    "fitness": {
+     "mean": 0.08432590351479045,
+     "lo": 0.04571863340079399,
+     "hi": 0.1221344633371043,
+     "significant": true
+    },
+    "top_out_rate": {
+     "mean": -0.104,
+     "lo": -0.154,
+     "hi": -0.054,
+     "significant": true
+    }
+   },
+   {
+    "a": "bc_dagger",
+    "b": "bc_you",
+    "fitness": {
+     "mean": 1.1331482034989022,
+     "lo": 1.105277497453171,
+     "hi": 1.1601217919500366,
+     "significant": true
+    },
+    "top_out_rate": {
+     "mean": -0.794,
+     "lo": -0.828,
+     "hi": -0.758,
+     "significant": true
+    }
+   },
+   {
+    "a": "bc_dagger",
+    "b": "ppo_raw",
+    "fitness": {
+     "mean": 1.1765155078009888,
+     "lo": 1.1492412355603294,
+     "hi": 1.2025354190691844,
+     "significant": true
+    },
+    "top_out_rate": {
+     "mean": -0.794,
+     "lo": -0.828,
+     "hi": -0.758,
+     "significant": true
+    }
+   },
+   {
+    "a": "dellacherie",
+    "b": "bc_you",
+    "fitness": {
+     "mean": 1.0488222999841117,
+     "lo": 1.016658593261676,
+     "hi": 1.0799999875951318,
+     "significant": true
+    },
+    "top_out_rate": {
+     "mean": -0.69,
+     "lo": -0.73,
+     "hi": -0.65,
+     "significant": true
+    }
+   },
+   {
+    "a": "dellacherie",
+    "b": "ppo_raw",
+    "fitness": {
+     "mean": 1.0921896042861985,
+     "lo": 1.0607697444244713,
+     "hi": 1.122828766043997,
+     "significant": true
+    },
+    "top_out_rate": {
+     "mean": -0.69,
+     "lo": -0.73,
+     "hi": -0.65,
+     "significant": true
+    }
+   },
+   {
+    "a": "bc_you",
+    "b": "ppo_raw",
+    "fitness": {
+     "mean": 0.04336730430208692,
+     "lo": 0.03660420999672213,
+     "hi": 0.05043817078289846,
+     "significant": true
+    },
+    "top_out_rate": {
+     "mean": 0.0,
+     "lo": 0.0,
+     "hi": 0.0,
+     "significant": false
+    }
+   }
+  ],
+  "rows": [
+   {
+    "key": "ppo",
+    "evaluated": true,
+    "status": "valid",
+    "source": "evaluated ppo/best.pt",
+    "games": 500,
+    "top_out_rate": 0.124,
+    "lo": 0.09794566312958619,
+    "hi": 0.15578805000565316,
+    "off_scale": false,
+    "pieces_survived": 472.808,
+    "score_per_piece": 1573.4934814340386
+   },
+   {
+    "key": "dqn",
+    "evaluated": true,
+    "status": "valid",
+    "source": "evaluated dqn/best.pt",
+    "games": 500,
+    "top_out_rate": 0.126,
+    "lo": 0.09973485690292784,
+    "hi": 0.1579683577581879,
+    "off_scale": false,
+    "pieces_survived": 475.612,
+    "score_per_piece": 1573.6900209623575
+   },
+   {
+    "key": "cem",
+    "evaluated": true,
+    "status": "valid",
+    "source": "evaluated cem/best.json",
+    "games": 500,
+    "top_out_rate": 0.15,
+    "lo": 0.12137548023138253,
+    "hi": 0.1839617527402498,
+    "off_scale": false,
+    "pieces_survived": 468.658,
+    "score_per_piece": 1522.4644671183216
+   },
+   {
+    "key": "dt",
+    "evaluated": true,
+    "status": "valid",
+    "source": "evaluated dt/best.pt",
+    "games": 500,
+    "top_out_rate": 0.158,
+    "lo": 0.1286522063728175,
+    "hi": 0.1925630327023204,
+    "off_scale": false,
+    "pieces_survived": 466.038,
+    "score_per_piece": 1509.3872715565212
+   },
+   {
+    "key": "ga",
+    "evaluated": true,
+    "status": "valid",
+    "source": "evaluated ga/best.json",
+    "games": 500,
+    "top_out_rate": 0.182,
+    "lo": 0.15064591449727432,
+    "hi": 0.21820334288838023,
+    "off_scale": false,
+    "pieces_survived": 457.86,
+    "score_per_piece": 1495.0250535681462
+   },
+   {
+    "key": "neat",
+    "evaluated": true,
+    "status": "valid",
+    "source": "evaluated neat/best.json",
+    "games": 500,
+    "top_out_rate": 0.19,
+    "lo": 0.15802683592828387,
+    "hi": 0.22670042756087622,
+    "off_scale": false,
+    "pieces_survived": 456.14,
+    "score_per_piece": 1471.8760863868943
+   },
+   {
+    "key": "bc_pure",
+    "evaluated": true,
+    "status": "valid",
+    "source": "evaluated bc_pure/best.pt",
+    "games": 500,
+    "top_out_rate": 0.202,
+    "lo": 0.16914066023346225,
+    "hi": 0.2394036124109562,
+    "off_scale": false,
+    "pieces_survived": 459.668,
+    "score_per_piece": 1508.4526068656025
+   },
+   {
+    "key": "bc_dagger",
+    "evaluated": true,
+    "status": "valid",
+    "source": "evaluated bc_dagger/best.pt",
+    "games": 500,
+    "top_out_rate": 0.206,
+    "lo": 0.17285607517585092,
+    "hi": 0.24362720052032025,
+    "off_scale": false,
+    "pieces_survived": 453.886,
+    "score_per_piece": 1488.6121166371431
+   },
+   {
+    "key": "dellacherie",
+    "evaluated": true,
+    "status": "valid",
+    "source": "no checkpoint needed",
+    "games": 500,
+    "top_out_rate": 0.31,
+    "lo": 0.27103822626974466,
+    "hi": 0.3518591287719986,
+    "off_scale": false,
+    "pieces_survived": 427.504,
+    "score_per_piece": 1362.3645025779815
+   },
+   {
+    "key": "bc_you",
+    "evaluated": true,
+    "status": "valid",
+    "source": "evaluated bc_you/best.pt",
+    "games": 500,
+    "top_out_rate": 1.0,
+    "lo": 0.9923753814690964,
+    "hi": 0.9999999999999999,
+    "off_scale": true,
+    "pieces_survived": 56.524,
+    "score_per_piece": 134.9153026415352
+   },
+   {
+    "key": "ppo_raw",
+    "evaluated": true,
+    "status": "valid",
+    "source": "evaluated ppo_raw/best.pt",
+    "games": 500,
+    "top_out_rate": 1.0,
+    "lo": 0.9923753814690964,
+    "hi": 0.9999999999999999,
+    "off_scale": true,
+    "pieces_survived": 44.352,
+    "score_per_piece": 58.82208543318747
+   }
+  ]
+ },
+ "marathon": {
+  "minutes": [
+   1,
+   3,
+   5,
+   10
+  ],
+  "presets": [
+   "Easy",
+   "Medium",
+   "Hard",
+   "Unlimited"
+  ],
+  "rows": [
+   {
+    "key": "dqn",
+    "presets": {
+     "Easy": {
+      "games": 100,
+      "score": {
+       "1": 1898.96,
+       "3": 10915.96,
+       "5": 26443.1,
+       "10": 78115.68
+      },
+      "lines": {
+       "1": 7.91,
+       "3": 30.61,
+       "5": 53.14,
+       "10": 98.04
+      },
+      "alive": {
+       "1": 1.0,
+       "3": 1.0,
+       "5": 0.98,
+       "10": 0.04
+      },
+      "time_to_top_out": 531.9223333331765,
+      "time_is_lower_bound": false,
+      "cap_hit_rate": 0.0
+     },
+     "Medium": {
+      "games": 100,
+      "score": {
+       "1": 6295.76,
+       "3": 41007.52,
+       "5": 103123.76,
+       "10": 370889.33
+      },
+      "lines": {
+       "1": 21.06,
+       "3": 68.22,
+       "5": 115.3,
+       "10": 231.12
+      },
+      "alive": {
+       "1": 1.0,
+       "3": 1.0,
+       "5": 1.0,
+       "10": 1.0
+      },
+      "time_to_top_out": 2012.442666665196,
+      "time_is_lower_bound": true,
+      "cap_hit_rate": 0.96
+     },
+     "Hard": {
+      "games": 100,
+      "score": {
+       "1": 20256.02,
+       "3": 145390.99,
+       "5": 371554.29,
+       "10": 983144.29
+      },
+      "lines": {
+       "1": 44.46,
+       "3": 138.85,
+       "5": 231.95,
+       "10": 462.0
+      },
+      "alive": {
+       "1": 1.0,
+       "3": 1.0,
+       "5": 1.0,
+       "10": 1.0
+      },
+      "time_to_top_out": 1037.5149999993853,
+      "time_is_lower_bound": true,
+      "cap_hit_rate": 1.0
+     },
+     "Unlimited": null
+    },
+    "evaluated": true,
+    "status": "valid",
+    "source": "evaluated dqn/best.pt"
+   },
+   {
+    "key": "cem",
+    "presets": {
+     "Easy": {
+      "games": 100,
+      "score": {
+       "1": 2009.12,
+       "3": 11050.36,
+       "5": 27116.44,
+       "10": 80899.79
+      },
+      "lines": {
+       "1": 8.54,
+       "3": 30.8,
+       "5": 53.29,
+       "10": 98.32
+      },
+      "alive": {
+       "1": 1.0,
+       "3": 0.99,
+       "5": 0.94,
+       "10": 0.06
+      },
+      "time_to_top_out": 529.5418333331756,
+      "time_is_lower_bound": false,
+      "cap_hit_rate": 0.0
+     },
+     "Medium": {
+      "games": 100,
+      "score": {
+       "1": 6443.8,
+       "3": 41074.86,
+       "5": 102766.5,
+       "10": 373106.29
+      },
+      "lines": {
+       "1": 21.58,
+       "3": 68.72,
+       "5": 115.64,
+       "10": 233.38
+      },
+      "alive": {
+       "1": 1.0,
+       "3": 1.0,
+       "5": 1.0,
+       "10": 1.0
+      },
+      "time_to_top_out": 1994.2326666651823,
+      "time_is_lower_bound": true,
+      "cap_hit_rate": 0.97
+     },
+     "Hard": {
+      "games": 100,
+      "score": {
+       "1": 20384.68,
+       "3": 142420.1,
+       "5": 366885.94,
+       "10": 975625.94
+      },
+      "lines": {
+       "1": 45.18,
+       "3": 139.04,
+       "5": 232.91,
+       "10": 464.55
+      },
+      "alive": {
+       "1": 1.0,
+       "3": 1.0,
+       "5": 1.0,
+       "10": 1.0
+      },
+      "time_to_top_out": 1031.5511666660575,
+      "time_is_lower_bound": true,
+      "cap_hit_rate": 1.0
+     },
+     "Unlimited": null
+    },
+    "evaluated": true,
+    "status": "valid",
+    "source": "evaluated cem/best.json"
+   },
+   {
+    "key": "ga",
+    "presets": {
+     "Easy": {
+      "games": 100,
+      "score": {
+       "1": 1980.4,
+       "3": 11216.42,
+       "5": 26775.96,
+       "10": 81923.02
+      },
+      "lines": {
+       "1": 8.52,
+       "3": 31.14,
+       "5": 53.14,
+       "10": 99.17
+      },
+      "alive": {
+       "1": 1.0,
+       "3": 1.0,
+       "5": 0.93,
+       "10": 0.06
+      },
+      "time_to_top_out": 533.2981666665075,
+      "time_is_lower_bound": false,
+      "cap_hit_rate": 0.0
+     },
+     "Medium": {
+      "games": 100,
+      "score": {
+       "1": 6354.04,
+       "3": 40172.92,
+       "5": 99445.86,
+       "10": 363607.49
+      },
+      "lines": {
+       "1": 21.54,
+       "3": 68.74,
+       "5": 115.71,
+       "10": 232.21
+      },
+      "alive": {
+       "1": 1.0,
+       "3": 1.0,
+       "5": 1.0,
+       "10": 1.0
+      },
+      "time_to_top_out": 1973.4873333318706,
+      "time_is_lower_bound": true,
+      "cap_hit_rate": 0.93
+     },
+     "Hard": {
+      "games": 100,
+      "score": {
+       "1": 19609.4,
+       "3": 136888.11,
+       "5": 357612.67,
+       "10": 950482.67
+      },
+      "lines": {
+       "1": 45.14,
+       "3": 139.03,
+       "5": 233.12,
+       "10": 464.13
+      },
+      "alive": {
+       "1": 1.0,
+       "3": 1.0,
+       "5": 1.0,
+       "10": 1.0
+      },
+      "time_to_top_out": 1031.820666666057,
+      "time_is_lower_bound": true,
+      "cap_hit_rate": 1.0
+     },
+     "Unlimited": null
+    },
+    "evaluated": true,
+    "status": "valid",
+    "source": "evaluated ga/best.json"
+   },
+   {
+    "key": "ppo",
+    "presets": {
+     "Easy": {
+      "games": 100,
+      "score": {
+       "1": 1996.4,
+       "3": 11872.55,
+       "5": 29056.09,
+       "10": 96285.53
+      },
+      "lines": {
+       "1": 8.29,
+       "3": 31.92,
+       "5": 55.04,
+       "10": 109.32
+      },
+      "alive": {
+       "1": 1.0,
+       "3": 1.0,
+       "5": 0.99,
+       "10": 0.15
+      },
+      "time_to_top_out": 575.4524999998041,
+      "time_is_lower_bound": false,
+      "cap_hit_rate": 0.0
+     },
+     "Medium": {
+      "games": 100,
+      "score": {
+       "1": 6210.3,
+       "3": 42415.38,
+       "5": 108305.16,
+       "10": 392798.17
+      },
+      "lines": {
+       "1": 20.44,
+       "3": 67.55,
+       "5": 114.76,
+       "10": 233.79
+      },
+      "alive": {
+       "1": 1.0,
+       "3": 1.0,
+       "5": 1.0,
+       "10": 1.0
+      },
+      "time_to_top_out": 2001.1788333318418,
+      "time_is_lower_bound": true,
+      "cap_hit_rate": 0.99
+     },
+     "Hard": {
+      "games": 100,
+      "score": {
+       "1": 20753.04,
+       "3": 154074.9,
+       "5": 393328.4,
+       "10": 1041008.4
+      },
+      "lines": {
+       "1": 43.87,
+       "3": 138.27,
+       "5": 232.47,
+       "10": 465.28
+      },
+      "alive": {
+       "1": 1.0,
+       "3": 1.0,
+       "5": 1.0,
+       "10": 1.0
+      },
+      "time_to_top_out": 1028.1518333327272,
+      "time_is_lower_bound": true,
+      "cap_hit_rate": 1.0
+     },
+     "Unlimited": null
+    },
+    "evaluated": true,
+    "status": "valid",
+    "source": "evaluated ppo/best.pt"
+   },
+   {
+    "key": "bc_you",
+    "presets": {
+     "Easy": {
+      "games": 100,
+      "score": {
+       "1": 1970.3,
+       "3": 9946.22,
+       "5": 20822.55,
+       "10": 44901.63
+      },
+      "lines": {
+       "1": 8.32,
+       "3": 27.98,
+       "5": 43.14,
+       "10": 63.94
+      },
+      "alive": {
+       "1": 1.0,
+       "3": 0.82,
+       "5": 0.64,
+       "10": 0.0
+      },
+      "time_to_top_out": 376.626666666606,
+      "time_is_lower_bound": false,
+      "cap_hit_rate": 0.0
+     },
+     "Medium": {
+      "games": 100,
+      "score": {
+       "1": 6322.18,
+       "3": 37794.52,
+       "5": 88988.79,
+       "10": 276234.06
+      },
+      "lines": {
+       "1": 21.26,
+       "3": 65.16,
+       "5": 104.24,
+       "10": 186.66
+      },
+      "alive": {
+       "1": 1.0,
+       "3": 0.9,
+       "5": 0.83,
+       "10": 0.6
+      },
+      "time_to_top_out": 909.9443333328132,
+      "time_is_lower_bound": true,
+      "cap_hit_rate": 0.12
+     },
+     "Hard": {
+      "games": 100,
+      "score": {
+       "1": 19486.96,
+       "3": 130970.94,
+       "5": 325220.82,
+       "10": 742580.82
+      },
+      "lines": {
+       "1": 43.9,
+       "3": 130.04,
+       "5": 210.57,
+       "10": 368.86
+      },
+      "alive": {
+       "1": 0.96,
+       "3": 0.91,
+       "5": 0.81,
+       "10": 0.61
+      },
+      "time_to_top_out": 686.4803333330125,
+      "time_is_lower_bound": true,
+      "cap_hit_rate": 0.33
+     },
+     "Unlimited": null
+    },
+    "evaluated": true,
+    "status": "valid",
+    "source": "evaluated bc_you/best.pt"
+   },
+   {
+    "key": "neat",
+    "presets": {
+     "Easy": {
+      "games": 100,
+      "score": {
+       "1": 1999.48,
+       "3": 11164.12,
+       "5": 27055.14,
+       "10": 75710.11
+      },
+      "lines": {
+       "1": 8.65,
+       "3": 31.31,
+       "5": 53.81,
+       "10": 96.5
+      },
+      "alive": {
+       "1": 1.0,
+       "3": 0.99,
+       "5": 0.96,
+       "10": 0.04
+      },
+      "time_to_top_out": 523.7106666665165,
+      "time_is_lower_bound": false,
+      "cap_hit_rate": 0.0
+     },
+     "Medium": {
+      "games": 100,
+      "score": {
+       "1": 6328.9,
+       "3": 39344.68,
+       "5": 97609.34,
+       "10": 356801.2
+      },
+      "lines": {
+       "1": 21.75,
+       "3": 68.97,
+       "5": 116.03,
+       "10": 233.23
+      },
+      "alive": {
+       "1": 1.0,
+       "3": 1.0,
+       "5": 1.0,
+       "10": 1.0
+      },
+      "time_to_top_out": 2015.354666665167,
+      "time_is_lower_bound": true,
+      "cap_hit_rate": 0.98
+     },
+     "Hard": {
+      "games": 100,
+      "score": {
+       "1": 19231.04,
+       "3": 133381.82,
+       "5": 346714.02,
+       "10": 923554.02
+      },
+      "lines": {
+       "1": 45.4,
+       "3": 139.2,
+       "5": 232.73,
+       "10": 464.4
+      },
+      "alive": {
+       "1": 1.0,
+       "3": 1.0,
+       "5": 1.0,
+       "10": 1.0
+      },
+      "time_to_top_out": 1032.5121666660564,
+      "time_is_lower_bound": true,
+      "cap_hit_rate": 1.0
+     },
+     "Unlimited": null
+    },
+    "evaluated": true,
+    "status": "valid",
+    "source": "evaluated neat/best.json"
+   },
+   {
+    "key": "dt",
+    "presets": {
+     "Easy": {
+      "games": 100,
+      "score": {
+       "1": 2132.18,
+       "3": 11974.5,
+       "5": 28832.02,
+       "10": 94999.33
+      },
+      "lines": {
+       "1": 9.46,
+       "3": 33.0,
+       "5": 56.55,
+       "10": 112.38
+      },
+      "alive": {
+       "1": 1.0,
+       "3": 1.0,
+       "5": 1.0,
+       "10": 0.32
+      },
+      "time_to_top_out": 587.893999999794,
+      "time_is_lower_bound": false,
+      "cap_hit_rate": 0.0
+     },
+     "Medium": {
+      "games": 100,
+      "score": {
+       "1": 6412.68,
+       "3": 39715.52,
+       "5": 98965.64,
+       "10": 363272.36
+      },
+      "lines": {
+       "1": 21.8,
+       "3": 68.89,
+       "5": 116.09,
+       "10": 234.09
+      },
+      "alive": {
+       "1": 1.0,
+       "3": 1.0,
+       "5": 1.0,
+       "10": 1.0
+      },
+      "time_to_top_out": 2020.0304999984915,
+      "time_is_lower_bound": true,
+      "cap_hit_rate": 1.0
+     },
+     "Hard": {
+      "games": 100,
+      "score": {
+       "1": 19680.18,
+       "3": 137237.18,
+       "5": 355808.64,
+       "10": 950448.64
+      },
+      "lines": {
+       "1": 45.3,
+       "3": 139.34,
+       "5": 233.12,
+       "10": 465.46
+      },
+      "alive": {
+       "1": 1.0,
+       "3": 1.0,
+       "5": 1.0,
+       "10": 1.0
+      },
+      "time_to_top_out": 1029.7964999993922,
+      "time_is_lower_bound": true,
+      "cap_hit_rate": 1.0
+     },
+     "Unlimited": null
+    },
+    "evaluated": true,
+    "status": "valid",
+    "source": "evaluated dt/best.pt"
+   },
+   {
+    "key": "dellacherie",
+    "presets": {
+     "Easy": {
+      "games": 100,
+      "score": {
+       "1": 1993.78,
+       "3": 10816.08,
+       "5": 26338.64,
+       "10": 77120.9
+      },
+      "lines": {
+       "1": 8.74,
+       "3": 30.78,
+       "5": 53.28,
+       "10": 97.98
+      },
+      "alive": {
+       "1": 1.0,
+       "3": 0.98,
+       "5": 0.96,
+       "10": 0.1
+      },
+      "time_to_top_out": 529.9511666665088,
+      "time_is_lower_bound": false,
+      "cap_hit_rate": 0.0
+     },
+     "Medium": {
+      "games": 100,
+      "score": {
+       "1": 6240.92,
+       "3": 39031.38,
+       "5": 96883.3,
+       "10": 357140.98
+      },
+      "lines": {
+       "1": 21.74,
+       "3": 68.93,
+       "5": 116.12,
+       "10": 232.82
+      },
+      "alive": {
+       "1": 1.0,
+       "3": 1.0,
+       "5": 1.0,
+       "10": 1.0
+      },
+      "time_to_top_out": 2001.9718333318428,
+      "time_is_lower_bound": true,
+      "cap_hit_rate": 0.96
+     },
+     "Hard": {
+      "games": 100,
+      "score": {
+       "1": 19317.46,
+       "3": 133009.82,
+       "5": 347027.6,
+       "10": 924187.6
+      },
+      "lines": {
+       "1": 45.45,
+       "3": 139.39,
+       "5": 232.22,
+       "10": 461.4
+      },
+      "alive": {
+       "1": 1.0,
+       "3": 1.0,
+       "5": 0.99,
+       "10": 0.99
+      },
+      "time_to_top_out": 1024.06883333273,
+      "time_is_lower_bound": true,
+      "cap_hit_rate": 0.99
+     },
+     "Unlimited": null
+    },
+    "evaluated": true,
+    "status": "valid",
+    "source": "no checkpoint needed"
+   },
+   {
+    "key": "ppo_raw",
+    "presets": {
+     "Easy": {
+      "games": 100,
+      "score": {
+       "1": 908.8,
+       "3": 1313.66,
+       "5": 1313.66,
+       "10": 1313.66
+      },
+      "lines": {
+       "1": 2.08,
+       "3": 4.26,
+       "5": 4.26,
+       "10": 4.26
+      },
+      "alive": {
+       "1": 1.0,
+       "3": 0.0,
+       "5": 0.0,
+       "10": 0.0
+      },
+      "time_to_top_out": 99.07066666666283,
+      "time_is_lower_bound": false,
+      "cap_hit_rate": 0.0
+     },
+     "Medium": {
+      "games": 100,
+      "score": {
+       "1": 2585.97,
+       "3": 3346.58,
+       "5": 3346.58,
+       "10": 3346.58
+      },
+      "lines": {
+       "1": 10.2,
+       "3": 12.96,
+       "5": 12.96,
+       "10": 12.96
+      },
+      "alive": {
+       "1": 0.95,
+       "3": 0.0,
+       "5": 0.0,
+       "10": 0.0
+      },
+      "time_to_top_out": 77.22866666666357,
+      "time_is_lower_bound": false,
+      "cap_hit_rate": 0.0
+     },
+     "Hard": {
+      "games": 100,
+      "score": {
+       "1": 5865.04,
+       "3": 5873.2,
+       "5": 5873.2,
+       "10": 5873.2
+      },
+      "lines": {
+       "1": 20.11,
+       "3": 20.13,
+       "5": 20.13,
+       "10": 20.13
+      },
+      "alive": {
+       "1": 0.02,
+       "3": 0.0,
+       "5": 0.0,
+       "10": 0.0
+      },
+      "time_to_top_out": 48.0248333333319,
+      "time_is_lower_bound": false,
+      "cap_hit_rate": 0.0
+     },
+     "Unlimited": null
+    },
+    "evaluated": true,
+    "status": "valid",
+    "source": "evaluated ppo_raw/best.pt"
+   },
+   {
+    "key": "bc_pure",
+    "presets": {
+     "Easy": {
+      "games": 100,
+      "score": {
+       "1": 2073.58,
+       "3": 11700.74,
+       "5": 28876.12,
+       "10": 95758.8
+      },
+      "lines": {
+       "1": 9.16,
+       "3": 32.34,
+       "5": 56.19,
+       "10": 111.76
+      },
+      "alive": {
+       "1": 1.0,
+       "3": 1.0,
+       "5": 1.0,
+       "10": 0.33
+      },
+      "time_to_top_out": 587.6764999997941,
+      "time_is_lower_bound": false,
+      "cap_hit_rate": 0.0
+     },
+     "Medium": {
+      "games": 100,
+      "score": {
+       "1": 6285.84,
+       "3": 39417.78,
+       "5": 98414.32,
+       "10": 358793.92
+      },
+      "lines": {
+       "1": 21.54,
+       "3": 68.67,
+       "5": 115.64,
+       "10": 232.29
+      },
+      "alive": {
+       "1": 1.0,
+       "3": 1.0,
+       "5": 1.0,
+       "10": 1.0
+      },
+      "time_to_top_out": 2006.4848333318423,
+      "time_is_lower_bound": true,
+      "cap_hit_rate": 0.98
+     },
+     "Hard": {
+      "games": 100,
+      "score": {
+       "1": 19660.94,
+       "3": 137153.88,
+       "5": 356189.96,
+       "10": 948699.96
+      },
+      "lines": {
+       "1": 45.2,
+       "3": 139.05,
+       "5": 233.26,
+       "10": 464.39
+      },
+      "alive": {
+       "1": 1.0,
+       "3": 1.0,
+       "5": 1.0,
+       "10": 1.0
+      },
+      "time_to_top_out": 1032.2281666660567,
+      "time_is_lower_bound": true,
+      "cap_hit_rate": 1.0
+     },
+     "Unlimited": null
+    },
+    "evaluated": true,
+    "status": "valid",
+    "source": "evaluated bc_pure/best.pt"
+   },
+   {
+    "key": "bc_dagger",
+    "presets": {
+     "Easy": {
+      "games": 100,
+      "score": {
+       "1": 2043.12,
+       "3": 11582.4,
+       "5": 28378.12,
+       "10": 93452.59
+      },
+      "lines": {
+       "1": 9.04,
+       "3": 32.18,
+       "5": 55.73,
+       "10": 110.68
+      },
+      "alive": {
+       "1": 1.0,
+       "3": 1.0,
+       "5": 0.99,
+       "10": 0.35
+      },
+      "time_to_top_out": 582.6248333331321,
+      "time_is_lower_bound": false,
+      "cap_hit_rate": 0.0
+     },
+     "Medium": {
+      "games": 100,
+      "score": {
+       "1": 6230.32,
+       "3": 39307.1,
+       "5": 97202.53,
+       "10": 357416.17
+      },
+      "lines": {
+       "1": 21.51,
+       "3": 68.78,
+       "5": 115.66,
+       "10": 232.36
+      },
+      "alive": {
+       "1": 1.0,
+       "3": 1.0,
+       "5": 1.0,
+       "10": 0.99
+      },
+      "time_to_top_out": 2015.0071666651681,
+      "time_is_lower_bound": true,
+      "cap_hit_rate": 0.98
+     },
+     "Hard": {
+      "games": 100,
+      "score": {
+       "1": 19607.88,
+       "3": 136484.78,
+       "5": 354974.06,
+       "10": 944044.06
+      },
+      "lines": {
+       "1": 45.26,
+       "3": 139.15,
+       "5": 233.14,
+       "10": 464.71
+      },
+      "alive": {
+       "1": 1.0,
+       "3": 1.0,
+       "5": 1.0,
+       "10": 1.0
+      },
+      "time_to_top_out": 1031.8423333327237,
+      "time_is_lower_bound": true,
+      "cap_hit_rate": 1.0
+     },
+     "Unlimited": null
+    },
+    "evaluated": true,
+    "status": "valid",
+    "source": "evaluated bc_dagger/best.pt"
+   }
+  ]
+ }
+}

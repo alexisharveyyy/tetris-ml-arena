@@ -1,0 +1,132 @@
+/* Styles for the static site's own pieces: About page, footer, touch controls.
+   Colors follow the current look through its CSS variables where available. */
+
+html,
+body {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+.site-footer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 24px;
+  justify-content: center;
+  padding: 16px;
+  font-size: 18px;
+}
+
+.site-footer a,
+.about a {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.about {
+  box-sizing: border-box;
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 24px 20px 48px;
+  font-size: 18px;
+  line-height: 1.55;
+}
+
+.about h1 {
+  font-size: 32px;
+  line-height: 1.2;
+  margin: 16px 0;
+}
+
+.about h2 {
+  font-size: 24px;
+  margin: 32px 0 8px;
+}
+
+.about__back {
+  display: inline-block;
+  padding: 8px 0;
+}
+
+.about__families {
+  margin: 0;
+}
+
+.about__families div {
+  margin: 0 0 12px;
+}
+
+.about__families dt {
+  font-weight: 700;
+}
+
+.about__families dd {
+  margin: 0;
+}
+
+.about__table {
+  overflow-x: auto;
+  max-width: 100%;
+}
+
+.about table {
+  border-collapse: collapse;
+  width: 100%;
+  font-variant-numeric: tabular-nums;
+}
+
+.about caption {
+  text-align: left;
+  padding: 0 0 8px;
+}
+
+.about th,
+.about td {
+  text-align: left;
+  padding: 6px 10px;
+  border-bottom: 1px solid currentColor;
+}
+
+.about td:nth-child(3),
+.about td:nth-child(4),
+.about th:nth-child(3),
+.about th:nth-child(4) {
+  text-align: right;
+}
+
+.about__tied td {
+  font-weight: 700;
+}
+
+/* Touch controls: in the page flow, below the boards, so the play screen's
+   fit-to-window scaling leaves room for them. */
+.touch {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 520px;
+  margin: 0 auto;
+  padding: 8px 8px calc(8px + env(safe-area-inset-bottom));
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+}
+
+.touch__btn {
+  min-height: 44px;
+  font: inherit;
+  font-size: 16px;
+  font-weight: 700;
+  border-radius: 10px;
+  border: 2px solid currentColor;
+  background: transparent;
+  color: inherit;
+  touch-action: none;
+}
+
+.touch__btn:active {
+  filter: brightness(1.4);
+}
