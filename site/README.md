@@ -50,7 +50,8 @@ npm test
 
 - **Engine:** 50 games from the Python engine (25 with random inputs, 20
   played by the GA agent through the planner in real time, 5 with instant
-  placements), 55,284 steps in total. After every move or gravity tick the
+  placements), about 55,000 steps in total (the exact count depends on the
+  machine: the GA can break exact ties differently). After every move or gravity tick the
   TypeScript state, including the RNG states, timers and emitted events,
   must equal Python's.
 - **Agents:** on recorded board states, each agent must pick the same
