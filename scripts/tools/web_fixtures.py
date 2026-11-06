@@ -327,6 +327,8 @@ def _first_diff(a, b, path: str = "", rel: float = 1e-9) -> str | None:
             if d:
                 return d
         return None
+    if _is_ranking(a) and _is_ranking(b):
+        return _ranking_diff(a, b, path, rel)
     if isinstance(a, list) and isinstance(b, list):
         if len(a) != len(b):
             return f"{path}: length {len(a)} != {len(b)}"
@@ -336,6 +338,36 @@ def _first_diff(a, b, path: str = "", rel: float = 1e-9) -> str | None:
                 return d
         return None
     return None if a == b else f"{path}: {str(a)[:200]} != {str(b)[:200]}"
+
+
+def _is_ranking(x) -> bool:
+    """A list of [action index, score] pairs, best first."""
+    return isinstance(x, list) and len(x) > 0 and all(
+        isinstance(e, list) and len(e) == 2 and isinstance(e[0], int) and isinstance(e[1], (int, float))
+        for e in x
+    )
+
+
+def _ranking_diff(a, b, path: str, rel: float) -> str | None:
+    """Scores must match in order. Placements must match, except that within a
+    group of equal scores (a tie) their order may differ."""
+    if len(a) != len(b):
+        return f"{path}: length {len(a)} != {len(b)}"
+    close = lambda x, y: abs(x - y) <= rel * max(1.0, abs(x), abs(y))  # noqa: E731
+    for i, ((_, sa), (_, sb)) in enumerate(zip(a, b)):
+        if not close(sa, sb):
+            return f"{path}[{i}]: score {sa!r} != {sb!r}"
+    i = 0
+    while i < len(a):
+        j = i + 1
+        while j < len(a) and close(a[j][1], a[i][1]):
+            j += 1
+        # A tie group that runs to the end of the list may continue past it, so
+        # only its size is comparable there.
+        if j < len(a) and sorted(e[0] for e in a[i:j]) != sorted(e[0] for e in b[i:j]):
+            return f"{path}[{i}:{j}]: placements {a[i:j]} != {b[i:j]}"
+        i = j
+    return None
 
 
 def _same(a, b) -> bool:
